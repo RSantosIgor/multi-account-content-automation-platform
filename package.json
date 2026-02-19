@@ -1,0 +1,32 @@
+{
+  "name": "batchnews",
+  "private": true,
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:backend\"",
+    "build": "pnpm --filter frontend build && pnpm --filter backend build",
+    "lint": "pnpm --filter frontend lint && pnpm --filter backend lint",
+    "format": "prettier --write .",
+    "test": "pnpm --filter backend test && pnpm --filter frontend test",
+    "db:push": "supabase db push",
+    "db:types": "supabase gen types typescript --local > backend/src/types/database.ts",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^17.3.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.3.0",
+    "prettier-plugin-tailwindcss": "^0.6.0"
+  }
+}

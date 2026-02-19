@@ -22,6 +22,7 @@
 13. [Folder Structure](#13-folder-structure)
 14. [Naming Conventions](#14-naming-conventions)
 15. [Environment Variables](#15-environment-variables)
+16. [Testing Strategy](#16-testing-strategy)
 
 ---
 
@@ -78,28 +79,28 @@
 
 ### Frontend — `frontend/`
 
-| Responsibility | Yes | No |
-|----------------|-----|----|
-| Render UI | ✓ | |
-| Handle user auth (Supabase SSR) | ✓ | |
-| Call backend REST API | ✓ | |
-| Direct DB queries | | ✓ |
-| Business logic | | ✓ |
-| Scraping / AI / X API calls | | ✓ |
+| Responsibility                  | Yes | No  |
+| ------------------------------- | --- | --- |
+| Render UI                       | ✓   |     |
+| Handle user auth (Supabase SSR) | ✓   |     |
+| Call backend REST API           | ✓   |     |
+| Direct DB queries               |     | ✓   |
+| Business logic                  |     | ✓   |
+| Scraping / AI / X API calls     |     | ✓   |
 
 ### Backend — `backend/`
 
-| Responsibility | Yes |
-|----------------|-----|
-| Validate & handle all API requests | ✓ |
-| Verify Supabase JWT on every request | ✓ |
-| Scraping (RSS + HTML) | ✓ |
-| AI suggestion generation | ✓ |
-| X OAuth 2.0 PKCE flow | ✓ |
-| Posting to X API | ✓ |
-| Token encryption/decryption | ✓ |
-| Scheduled cron jobs | ✓ |
-| Interact with Supabase DB (service role) | ✓ |
+| Responsibility                           | Yes |
+| ---------------------------------------- | --- |
+| Validate & handle all API requests       | ✓   |
+| Verify Supabase JWT on every request     | ✓   |
+| Scraping (RSS + HTML)                    | ✓   |
+| AI suggestion generation                 | ✓   |
+| X OAuth 2.0 PKCE flow                    | ✓   |
+| Posting to X API                         | ✓   |
+| Token encryption/decryption              | ✓   |
+| Scheduled cron jobs                      | ✓   |
+| Interact with Supabase DB (service role) | ✓   |
 
 ### Database — Supabase PostgreSQL
 
@@ -111,21 +112,21 @@
 
 ## 4. Tech Stack & Rationale
 
-| Layer | Technology | Version | Rationale |
-|-------|-----------|---------|-----------|
-| Frontend framework | Next.js | 14+ (App Router) | SSR, file-based routing, built-in optimizations |
-| UI library | shadcn/ui + Tailwind CSS | latest | Accessible, unstyled primitives, full ownership of code |
-| Backend framework | Fastify | 4.x | Fast, TypeScript-native, plugin ecosystem, auto Swagger docs |
-| Database | Supabase (PostgreSQL) | latest | Managed Postgres, built-in Auth, RLS, CLI tooling |
-| Auth | Supabase Auth | — | JWT-based, integrates with RLS, no custom auth to maintain |
-| Scraping (structured) | rss-parser | latest | Reliable RSS/Atom parsing, lightweight |
-| Scraping (HTML) | cheerio | latest | jQuery-like HTML parsing, runs in Node (no browser needed) |
-| AI | openai / @anthropic-ai/sdk | latest | Configurable via env var; both SDKs have compatible APIs |
-| X integration | twitter-api-v2 | latest | Full X API v2 support, OAuth 2.0 PKCE, typed responses |
-| Cron scheduler | node-cron | latest | Simple, zero-dependency cron inside the Fastify process |
-| Validation | zod | latest | TypeScript-first schema validation, shared between frontend/backend |
-| Form handling | react-hook-form + @hookform/resolvers | latest | Performant forms with Zod integration |
-| Package manager | pnpm | latest | Faster than npm, native workspace support |
+| Layer                 | Technology                            | Version          | Rationale                                                           |
+| --------------------- | ------------------------------------- | ---------------- | ------------------------------------------------------------------- |
+| Frontend framework    | Next.js                               | 14+ (App Router) | SSR, file-based routing, built-in optimizations                     |
+| UI library            | shadcn/ui + Tailwind CSS              | latest           | Accessible, unstyled primitives, full ownership of code             |
+| Backend framework     | Fastify                               | 4.x              | Fast, TypeScript-native, plugin ecosystem, auto Swagger docs        |
+| Database              | Supabase (PostgreSQL)                 | latest           | Managed Postgres, built-in Auth, RLS, CLI tooling                   |
+| Auth                  | Supabase Auth                         | —                | JWT-based, integrates with RLS, no custom auth to maintain          |
+| Scraping (structured) | rss-parser                            | latest           | Reliable RSS/Atom parsing, lightweight                              |
+| Scraping (HTML)       | cheerio                               | latest           | jQuery-like HTML parsing, runs in Node (no browser needed)          |
+| AI                    | openai / @anthropic-ai/sdk            | latest           | Configurable via env var; both SDKs have compatible APIs            |
+| X integration         | twitter-api-v2                        | latest           | Full X API v2 support, OAuth 2.0 PKCE, typed responses              |
+| Cron scheduler        | node-cron                             | latest           | Simple, zero-dependency cron inside the Fastify process             |
+| Validation            | zod                                   | latest           | TypeScript-first schema validation, shared between frontend/backend |
+| Form handling         | react-hook-form + @hookform/resolvers | latest           | Performant forms with Zod integration                               |
+| Package manager       | pnpm                                  | latest           | Faster than npm, native workspace support                           |
 
 ---
 
@@ -152,16 +153,16 @@ auth.users (Supabase managed)
 
 ### Table Reference
 
-| Table | Purpose |
-|-------|---------|
-| `user_profiles` | Display name, avatar (extends `auth.users`) |
-| `user_roles` | Role per user: `admin` or `member` |
-| `x_accounts` | Registered X accounts with encrypted OAuth tokens |
-| `news_sites` | Sites to scrape, with RSS URL and/or HTML selector config |
+| Table              | Purpose                                                     |
+| ------------------ | ----------------------------------------------------------- |
+| `user_profiles`    | Display name, avatar (extends `auth.users`)                 |
+| `user_roles`       | Role per user: `admin` or `member`                          |
+| `x_accounts`       | Registered X accounts with encrypted OAuth tokens           |
+| `news_sites`       | Sites to scrape, with RSS URL and/or HTML selector config   |
 | `scraped_articles` | Articles collected; title + summary only (not full content) |
-| `ai_suggestions` | AI-generated post suggestions with lifecycle status |
-| `posts` | Published posts history with X post ID |
-| `scraping_runs` | Execution log for every scraping run |
+| `ai_suggestions`   | AI-generated post suggestions with lifecycle status         |
+| `posts`            | Published posts history with X post ID                      |
+| `scraping_runs`    | Execution log for every scraping run                        |
 
 ### Common Column Conventions
 
@@ -172,6 +173,7 @@ updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
 
 All tables have an `updated_at` trigger:
+
 ```sql
 CREATE TRIGGER set_updated_at
   BEFORE UPDATE ON <table>
@@ -180,10 +182,10 @@ CREATE TRIGGER set_updated_at
 
 ### `news_sites.source_type` Values
 
-| Value | Behavior |
-|-------|----------|
-| `'rss'` | Always use `feed_url` |
-| `'html'` | Always use `scraping_config` selectors |
+| Value    | Behavior                                     |
+| -------- | -------------------------------------------- |
+| `'rss'`  | Always use `feed_url`                        |
+| `'html'` | Always use `scraping_config` selectors       |
 | `'auto'` | Try RSS first → fall back to HTML on failure |
 
 ### `ai_suggestions.status` Lifecycle
@@ -230,12 +232,12 @@ Fastify middleware:
 
 ### Route Protection
 
-| Route pattern | Frontend | Backend |
-|---------------|----------|---------|
-| `/(auth)/*` | Public | — |
-| `/(app)/*` | Requires Supabase session | — |
-| `/api/*` (except /health) | — | Requires valid JWT |
-| `/api/admin/*` | — | Requires JWT + role=admin |
+| Route pattern             | Frontend                  | Backend                   |
+| ------------------------- | ------------------------- | ------------------------- |
+| `/(auth)/*`               | Public                    | —                         |
+| `/(app)/*`                | Requires Supabase session | —                         |
+| `/api/*` (except /health) | —                         | Requires valid JWT        |
+| `/api/admin/*`            | —                         | Requires JWT + role=admin |
 
 ---
 
@@ -258,6 +260,7 @@ When a news_site is due for scraping:
 ### RSS Auto-Detection (on site registration)
 
 When a user adds a site, the backend:
+
 1. Fetches the site URL
 2. Searches for `<link rel="alternate" type="application/rss+xml">`
 3. If found → sets `feed_url` and `source_type = 'rss'`
@@ -298,7 +301,7 @@ On conflict → `ON CONFLICT DO NOTHING` (PostgreSQL upsert).
 ```typescript
 // backend/src/services/ai/provider.ts
 interface AiProvider {
-  generateSuggestion(title: string, summary: string): Promise<AiSuggestion>
+  generateSuggestion(title: string, summary: string): Promise<AiSuggestion>;
 }
 
 // Implementations: OpenAiProvider, AnthropicProvider
@@ -369,6 +372,7 @@ export function registerJobs() {
 ```
 
 Called once at server startup:
+
 ```typescript
 // backend/src/server.ts
 registerJobs();
@@ -384,13 +388,13 @@ await fastify.listen({ port: 3001 });
 
 ### Layers of Security
 
-| Layer | Mechanism | Protects against |
-|-------|-----------|-----------------|
-| Transport | HTTPS (production) | MITM |
-| Auth | Supabase JWT | Unauthenticated access |
-| Authorization | Fastify role middleware | Privilege escalation |
-| Data isolation | Supabase RLS | Cross-tenant data leakage |
-| Token storage | AES-256-GCM at-rest | DB compromise |
+| Layer            | Mechanism                 | Protects against          |
+| ---------------- | ------------------------- | ------------------------- |
+| Transport        | HTTPS (production)        | MITM                      |
+| Auth             | Supabase JWT              | Unauthenticated access    |
+| Authorization    | Fastify role middleware   | Privilege escalation      |
+| Data isolation   | Supabase RLS              | Cross-tenant data leakage |
+| Token storage    | AES-256-GCM at-rest       | DB compromise             |
 | Input validation | Zod schemas on all routes | Injection, malformed data |
 
 ### Sensitive Data Rules
@@ -418,6 +422,7 @@ Frontend: http://localhost:3000
 ### Authentication
 
 All routes except `GET /health` require:
+
 ```
 Authorization: Bearer <supabase_access_token>
 ```
@@ -425,6 +430,7 @@ Authorization: Bearer <supabase_access_token>
 ### Response Format
 
 **Success:**
+
 ```json
 {
   "data": { ... },
@@ -433,6 +439,7 @@ Authorization: Bearer <supabase_access_token>
 ```
 
 **Error:**
+
 ```json
 {
   "statusCode": 400,
@@ -443,17 +450,17 @@ Authorization: Bearer <supabase_access_token>
 
 ### HTTP Status Codes
 
-| Code | When |
-|------|------|
-| 200 | Successful GET / PATCH |
-| 201 | Successful POST (resource created) |
-| 204 | Successful DELETE |
-| 400 | Validation error (Zod) |
-| 401 | Missing or invalid JWT |
-| 403 | Authenticated but insufficient permissions |
-| 404 | Resource not found |
-| 409 | Conflict (duplicate, etc.) |
-| 500 | Unexpected server error |
+| Code | When                                       |
+| ---- | ------------------------------------------ |
+| 200  | Successful GET / PATCH                     |
+| 201  | Successful POST (resource created)         |
+| 204  | Successful DELETE                          |
+| 400  | Validation error (Zod)                     |
+| 401  | Missing or invalid JWT                     |
+| 403  | Authenticated but insufficient permissions |
+| 404  | Resource not found                         |
+| 409  | Conflict (duplicate, etc.)                 |
+| 500  | Unexpected server error                    |
 
 ### Route Versioning
 
@@ -462,10 +469,13 @@ All API routes are prefixed with `/api/v1/` to allow future versioning.
 ### Pagination
 
 List endpoints support:
+
 ```
 GET /api/v1/accounts/:id/timeline?page=1&limit=20
 ```
+
 Response includes:
+
 ```json
 {
   "data": [...],
@@ -586,32 +596,32 @@ batchNews/                        ← monorepo root
 
 ### Files & Directories
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Files | `kebab-case` | `x-oauth.ts`, `scraping-runs.ts` |
-| React components | `PascalCase` | `SuggestionCard.tsx` |
-| Directories | `kebab-case` | `x-api/`, `news-sites/` |
-| SQL migrations | `NNN_description.sql` | `004_x_accounts.sql` |
+| Type             | Convention            | Example                          |
+| ---------------- | --------------------- | -------------------------------- |
+| Files            | `kebab-case`          | `x-oauth.ts`, `scraping-runs.ts` |
+| React components | `PascalCase`          | `SuggestionCard.tsx`             |
+| Directories      | `kebab-case`          | `x-api/`, `news-sites/`          |
+| SQL migrations   | `NNN_description.sql` | `004_x_accounts.sql`             |
 
 ### Code
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Variables / functions | `camelCase` | `getXAccount`, `fetchFeed` |
-| Classes / interfaces / types | `PascalCase` | `AiProvider`, `ScrapedArticle` |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_ARTICLES_PER_RUN` |
-| Enums | `PascalCase` members | `SuggestionStatus.Pending` |
-| React components | `PascalCase` | `TimelineItem` |
-| Custom hooks | `use` prefix | `useXAccounts` |
+| Type                         | Convention             | Example                        |
+| ---------------------------- | ---------------------- | ------------------------------ |
+| Variables / functions        | `camelCase`            | `getXAccount`, `fetchFeed`     |
+| Classes / interfaces / types | `PascalCase`           | `AiProvider`, `ScrapedArticle` |
+| Constants                    | `SCREAMING_SNAKE_CASE` | `MAX_ARTICLES_PER_RUN`         |
+| Enums                        | `PascalCase` members   | `SuggestionStatus.Pending`     |
+| React components             | `PascalCase`           | `TimelineItem`                 |
+| Custom hooks                 | `use` prefix           | `useXAccounts`                 |
 
 ### Database
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Tables | `snake_case` (plural) | `x_accounts`, `news_sites` |
-| Columns | `snake_case` | `oauth_access_token_enc` |
-| Indexes | `idx_<table>_<column>` | `idx_x_accounts_user_id` |
-| RLS policies | descriptive string | `"members can see own x_accounts"` |
+| Type         | Convention             | Example                            |
+| ------------ | ---------------------- | ---------------------------------- |
+| Tables       | `snake_case` (plural)  | `x_accounts`, `news_sites`         |
+| Columns      | `snake_case`           | `oauth_access_token_enc`           |
+| Indexes      | `idx_<table>_<column>` | `idx_x_accounts_user_id`           |
+| RLS policies | descriptive string     | `"members can see own x_accounts"` |
 
 ### API Routes
 
@@ -667,4 +677,194 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ---
 
-*Last updated: 2026-02-19*
+## 16. Testing Strategy
+
+### 16.1 Test Pyramid
+
+```
+        ┌───────────────┐
+        │   E2E Tests   │  ← out of scope for v1
+        ├───────────────┤
+        │  Integration  │  ← Fastify route tests (backend)
+        │    Tests      │     Component tests (frontend)
+        ├───────────────┤
+        │  Unit Tests   │  ← services, utilities, helpers
+        └───────────────┘
+```
+
+Unit tests are the foundation. Integration tests cover the critical paths. E2E tests are deferred to a later phase.
+
+---
+
+### 16.2 Tools
+
+| Layer               | Tool                                   | Purpose                     |
+| ------------------- | -------------------------------------- | --------------------------- |
+| Backend unit        | `vitest`                               | Services, utilities, crypto |
+| Backend integration | `vitest` + Fastify `inject()`          | Route handler tests         |
+| Frontend unit       | `vitest` + `@testing-library/react`    | Component tests             |
+| Mocking             | `vitest` built-in (`vi.mock`, `vi.fn`) | External API mocking        |
+| Coverage            | `@vitest/coverage-v8`                  | Coverage reports            |
+
+---
+
+### 16.3 File Location Convention
+
+Tests are **colocated** with the source file they test:
+
+```
+backend/src/
+├── lib/
+│   ├── crypto.ts
+│   └── crypto.test.ts          ← unit test for crypto.ts
+├── services/
+│   ├── scraper/
+│   │   ├── rss.ts
+│   │   ├── rss.test.ts         ← unit test for rss.ts
+│   │   ├── html.ts
+│   │   └── html.test.ts        ← unit test for html.ts
+│   └── ai/
+│       ├── openai.ts
+│       └── openai.test.ts      ← unit test (mocked OpenAI client)
+└── routes/
+    └── accounts.test.ts        ← integration test via fastify.inject()
+
+frontend/src/
+└── components/
+    ├── auth/
+    │   ├── LoginForm.tsx
+    │   └── LoginForm.test.tsx  ← component test
+    └── timeline/
+        ├── SuggestionCard.tsx
+        └── SuggestionCard.test.tsx
+```
+
+---
+
+### 16.4 What to Test
+
+#### Backend — Unit Tests (services & utilities)
+
+| Target                             | What to assert                                                    |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| `lib/crypto.ts`                    | encrypt/decrypt roundtrip; unique IVs; wrong key fails            |
+| `services/scraper/rss.ts`          | parses valid feed; handles empty feed; handles fetch error        |
+| `services/scraper/html.ts`         | extracts articles with given selectors; handles missing selectors |
+| `services/scraper/rss-detector.ts` | finds RSS link in HTML; returns null when absent                  |
+| `services/ai/openai.ts`            | calls OpenAI with correct prompt; parses JSON response            |
+| `services/ai/anthropic.ts`         | same as above for Anthropic                                       |
+| `services/ai/suggest.ts`           | processes unprocessed articles; marks `is_processed = true`       |
+
+#### Backend — Integration Tests (routes)
+
+Use Fastify's built-in `inject()` method — no real HTTP, no network, no Supabase needed.
+
+```typescript
+// Example: routes/accounts.test.ts
+import { buildApp } from '../app';
+
+describe('GET /api/v1/accounts', () => {
+  it('returns 401 when no JWT', async () => {
+    const app = await buildApp();
+    const res = await app.inject({ method: 'GET', url: '/api/v1/accounts' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns accounts list for authenticated user', async () => {
+    // Mock fastify.authenticate to inject a test user
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/accounts',
+      headers: { authorization: 'Bearer <test-token>' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveProperty('data');
+  });
+});
+```
+
+#### Frontend — Component Tests
+
+Use `@testing-library/react` to test components in isolation. Focus on user interactions, not implementation details.
+
+```typescript
+// Example: components/auth/LoginForm.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { LoginForm } from './LoginForm';
+
+it('shows error when email is invalid', async () => {
+  render(<LoginForm />);
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'bad' } });
+  fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+  expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
+});
+```
+
+---
+
+### 16.5 What NOT to Test
+
+- **shadcn/ui components** — they have their own tests; treat them as black boxes
+- **Database migrations** — verified by running `supabase db push` against a real project
+- **The Supabase client itself** — mock it; don't test the library
+- **Server Components that are pure data pass-throughs** — test the child components instead
+- **Type safety** — TypeScript handles this at compile time, not at runtime
+
+---
+
+### 16.6 Mocking External Services
+
+All external dependencies must be mocked in tests. Never make real network calls in tests.
+
+```typescript
+// Mock the Supabase client
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+  },
+}));
+
+// Mock the OpenAI SDK
+vi.mock('openai', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    chat: {
+      completions: {
+        create: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: '{"text":"Test post","hashtags":["#test"]}' } }],
+        }),
+      },
+    },
+  })),
+}));
+
+// Mock the X API client
+vi.mock('twitter-api-v2', () => ({
+  TwitterApi: vi.fn().mockImplementation(() => ({
+    v2: { tweet: vi.fn().mockResolvedValue({ data: { id: '123', text: 'Test' } }) },
+  })),
+}));
+```
+
+---
+
+### 16.7 Coverage Targets
+
+| Area                                 | Minimum Coverage |
+| ------------------------------------ | ---------------- |
+| `lib/` (crypto, auth helpers)        | 90%              |
+| `services/` (scrapers, AI, X client) | 70%              |
+| `routes/` (integration tests)        | 60%              |
+| Frontend components                  | 50%              |
+
+Run coverage with:
+
+```bash
+pnpm --filter backend test -- --coverage
+pnpm --filter frontend test -- --coverage
+```
+
+---
+
+_Last updated: 2026-02-19_
