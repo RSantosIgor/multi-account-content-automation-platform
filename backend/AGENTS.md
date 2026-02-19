@@ -39,20 +39,26 @@ After completing any task (or meaningful partial work), you **must** append an e
 
 **Agent:** <model name>
 **Task:** <task ID from TASKS.md, or 'ad-hoc' if not task-based>
+**Commit:** PENDING
 
 ### Files Created
+
 - `path/to/file.ts` — description of what it does
 
 ### Files Modified
+
 - `path/to/file.ts` — what was changed and why
 
 ### Files Deleted
+
 - `path/to/file.ts` — reason for deletion
 
 ### Summary
+
 One or two sentences describing what was implemented and any important decisions made.
 
 ### Notes
+
 Any caveats, known issues, or follow-up tasks required.
 ```
 
@@ -109,6 +115,7 @@ These apply to all code in this workspace. See `../docs/ARCHITECTURE.md §14` fo
 - Type augment `FastifyRequest` for custom properties (e.g., `request.user`)
 
 Example route structure:
+
 ```typescript
 // routes/accounts.ts
 import { FastifyPluginAsync } from 'fastify';
@@ -120,7 +127,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       // handler
-    }
+    },
   );
 };
 
@@ -180,20 +187,20 @@ throw fastify.httpErrors.forbidden('Insufficient permissions');
 
 Do not install new libraries without documenting the reason in `CHANGELOG.md`.
 
-| Purpose | Library |
-|---------|---------|
-| HTTP framework | `fastify` |
+| Purpose         | Library                                                                       |
+| --------------- | ----------------------------------------------------------------------------- |
+| HTTP framework  | `fastify`                                                                     |
 | Fastify plugins | `@fastify/cors`, `@fastify/helmet`, `@fastify/swagger`, `@fastify/swagger-ui` |
-| Database | `@supabase/supabase-js` |
-| X API | `twitter-api-v2` |
-| RSS parsing | `rss-parser` |
-| HTML parsing | `cheerio` |
-| AI — OpenAI | `openai` |
-| AI — Anthropic | `@anthropic-ai/sdk` |
-| Validation | `zod` |
-| Scheduler | `node-cron` |
-| Encryption | Node.js built-in `crypto` (no external library) |
-| Testing | `vitest` |
+| Database        | `@supabase/supabase-js`                                                       |
+| X API           | `twitter-api-v2`                                                              |
+| RSS parsing     | `rss-parser`                                                                  |
+| HTML parsing    | `cheerio`                                                                     |
+| AI — OpenAI     | `openai`                                                                      |
+| AI — Anthropic  | `@anthropic-ai/sdk`                                                           |
+| Validation      | `zod`                                                                         |
+| Scheduler       | `node-cron`                                                                   |
+| Encryption      | Node.js built-in `crypto` (no external library)                               |
+| Testing         | `vitest`                                                                      |
 
 ---
 
@@ -221,4 +228,4 @@ Do not install new libraries without documenting the reason in `CHANGELOG.md`.
 
 ---
 
-*This file is authoritative. When in doubt, follow the rules here.*
+_This file is authoritative. When in doubt, follow the rules here._

@@ -1,0 +1,7 @@
+HASH=$(git rev-parse --short HEAD)
+
+for f in backend/CHANGELOG.md frontend/CHANGELOG.md; do
+  if [ -f "$f" ]; then
+    sed -i "s/\*\*Commit:\*\* PENDING/**Commit:** $HASH/g" "$f"
+  fi
+done

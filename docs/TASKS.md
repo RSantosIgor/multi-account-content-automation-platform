@@ -21,12 +21,12 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [SETUP-003](#setup-003--scaffold-nextjs-frontend)             | Scaffold Next.js Frontend                      | Frontend  | Critical | DONE   |
 | [SETUP-004](#setup-004--configure-supabase-cli--project)      | Configure Supabase CLI & Project               | Both      | Critical | DONE   |
 | [SETUP-005](#setup-005--development-tooling)                  | Development Tooling                            | Both      | High     | DONE   |
-| [DB-001](#db-001--bootstrap-extensions--helpers)              | Bootstrap Extensions & Helpers                 | Database  | Critical | TODO   |
-| [DB-002](#db-002--user-profiles--roles)                       | User Profiles & Roles                          | Database  | Critical | TODO   |
-| [DB-003](#db-003--x-accounts)                                 | X Accounts                                     | Database  | Critical | TODO   |
-| [DB-004](#db-004--news-sites-articles-suggestions-posts-runs) | News Sites, Articles, Suggestions, Posts, Runs | Database  | Critical | TODO   |
-| [DB-005](#db-005--rls-policies)                               | RLS Policies                                   | Database  | Critical | TODO   |
-| [DB-006](#db-006--generate-typescript-types)                  | Generate TypeScript Types                      | Backend   | High     | TODO   |
+| [DB-001](#db-001--bootstrap-extensions--helpers)              | Bootstrap Extensions & Helpers                 | Database  | Critical | DONE   |
+| [DB-002](#db-002--user-profiles--roles)                       | User Profiles & Roles                          | Database  | Critical | DONE   |
+| [DB-003](#db-003--x-accounts)                                 | X Accounts                                     | Database  | Critical | DONE   |
+| [DB-004](#db-004--news-sites-articles-suggestions-posts-runs) | News Sites, Articles, Suggestions, Posts, Runs | Database  | Critical | DONE   |
+| [DB-005](#db-005--rls-policies)                               | RLS Policies                                   | Database  | Critical | DONE   |
+| [DB-006](#db-006--generate-typescript-types)                  | Generate TypeScript Types                      | Backend   | High     | DONE   |
 | [CORE-001](#core-001--authentication-plugin-fastify)          | Authentication Plugin (Fastify)                | Backend   | Critical | TODO   |
 | [CORE-002](#core-002--authorization-plugin-fastify)           | Authorization Plugin (Fastify)                 | Backend   | High     | TODO   |
 | [CORE-003](#core-003--crypto-service)                         | Crypto Service                                 | Backend   | Critical | TODO   |
@@ -325,7 +325,7 @@ export async function apiClient<T>(path: string, options?: RequestInit): Promise
 
 | Field        | Value     |
 | ------------ | --------- |
-| Status       | TODO      |
+| Status       | DONE      |
 | Priority     | Critical  |
 | Dependencies | SETUP-004 |
 
@@ -360,7 +360,7 @@ $$ LANGUAGE plpgsql;
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | DB-001   |
 
@@ -387,7 +387,7 @@ $$ LANGUAGE plpgsql;
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | DB-002   |
 
@@ -412,7 +412,7 @@ $$ LANGUAGE plpgsql;
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | DB-003   |
 
@@ -445,7 +445,7 @@ $$ LANGUAGE plpgsql;
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | DB-004   |
 
@@ -478,7 +478,7 @@ Enable RLS with `ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;` on every table.
 
 | Field        | Value  |
 | ------------ | ------ |
-| Status       | TODO   |
+| Status       | DONE   |
 | Priority     | High   |
 | Dependencies | DB-005 |
 

@@ -38,20 +38,26 @@ After completing any task (or meaningful partial work), you **must** append an e
 
 **Agent:** <model name>
 **Task:** <task ID from TASKS.md, or 'ad-hoc' if not task-based>
+**Commit:** PENDING
 
 ### Files Created
+
 - `path/to/file.tsx` — description of what it does
 
 ### Files Modified
+
 - `path/to/file.tsx` — what was changed and why
 
 ### Files Deleted
+
 - `path/to/file.tsx` — reason for deletion
 
 ### Summary
+
 One or two sentences describing what was implemented and any important decisions made.
 
 ### Notes
+
 Any caveats, known issues, or follow-up tasks required.
 ```
 
@@ -150,16 +156,16 @@ These apply to all code in this workspace. See `../docs/ARCHITECTURE.md §14` fo
 
 Do not install new libraries without updating `CHANGELOG.md` with the reason.
 
-| Purpose | Library |
-|---------|---------|
-| Framework | `next` |
-| Auth | `@supabase/ssr`, `@supabase/supabase-js` |
-| UI components | `shadcn/ui` (via CLI), `lucide-react` |
-| Styling | `tailwindcss` |
-| Forms | `react-hook-form`, `@hookform/resolvers` |
-| Validation | `zod` |
-| Dates | `date-fns` |
-| HTTP client | `fetch` via `lib/api/client.ts` |
+| Purpose       | Library                                  |
+| ------------- | ---------------------------------------- |
+| Framework     | `next`                                   |
+| Auth          | `@supabase/ssr`, `@supabase/supabase-js` |
+| UI components | `shadcn/ui` (via CLI), `lucide-react`    |
+| Styling       | `tailwindcss`                            |
+| Forms         | `react-hook-form`, `@hookform/resolvers` |
+| Validation    | `zod`                                    |
+| Dates         | `date-fns`                               |
+| HTTP client   | `fetch` via `lib/api/client.ts`          |
 
 ---
 
@@ -176,4 +182,4 @@ Do not install new libraries without updating `CHANGELOG.md` with the reason.
 
 ---
 
-*This file is authoritative. When in doubt, follow the rules here.*
+_This file is authoritative. When in doubt, follow the rules here._
