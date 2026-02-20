@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,8 +23,8 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-14 items-center border-b px-6">
-        <Link href="/dashboard" className="font-display text-gold text-xl font-bold">
-          batchNews
+        <Link href="/dashboard" className="flex items-center">
+          <Image src="/images/logo_dark.png" alt="batchNews" width={120} height={36} priority />
         </Link>
       </div>
       <Separator />

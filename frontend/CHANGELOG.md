@@ -44,6 +44,19 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 Complete frontend authentication flow: login, registration (with email verification), password recovery (request + reset), and app layout with responsive sidebar (Sheet on mobile) and user header with logout. Design system uses dark editorial theme with gold (#C6A75E) accents and Playfair Display titles.
 
+## [2026-02-20] Add batchNews logo to auth and app layouts
+
+**Agent:** claude-opus-4-6
+
+### Files Modified
+
+- `app/(auth)/layout.tsx` — Replaced text "batchNews" heading with `logo_dark.png` image (200x60, Next.js Image component with priority)
+- `components/layout/AppSidebar.tsx` — Replaced text logo with `logo_dark.png` image (120x36, Next.js Image component with priority)
+
+### Summary
+
+Integrated official batchNews logo (dark variant for dark backgrounds) into authentication pages and app sidebar. Both locations use Next.js optimized Image component with priority loading.
+
 <!-- NEW ENTRIES GO HERE — insert above this line -->
 
 ## [2026-02-19 00:00 UTC] SETUP-003 — Scaffold Next.js Frontend

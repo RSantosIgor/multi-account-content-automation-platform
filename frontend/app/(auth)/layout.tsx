@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center">
@@ -14,8 +16,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-md px-4">
-        <div className="mb-8 text-center">
-          <h1 className="font-display text-gold text-4xl font-bold tracking-tight">batchNews</h1>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Image
+            src="/images/logo_dark.png"
+            alt="batchNews"
+            width={200}
+            height={60}
+            priority
+            className="mb-3"
+          />
           <p className="mt-2 text-sm text-white/60">Multi-account X content automation</p>
         </div>
         {children}
