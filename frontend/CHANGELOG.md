@@ -6,6 +6,44 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-20] AUTH-001 to AUTH-004 — Frontend Authentication & Design System
+
+**Agent:** claude-opus-4-6
+**Task:** AUTH-001, AUTH-002, AUTH-003, AUTH-004
+
+### Design System
+
+- `app/globals.css` — Updated CSS variables to batchNews brand: #0F0F0F (background), #C6A75E (gold primary), #2D2D2D (card), #F4F4F4 (foreground)
+- `app/layout.tsx` — Added Playfair Display font (titles) alongside Inter (body), dark mode by default
+- `tailwind.config.ts` — Added `font-display` (Playfair) and `font-sans` (Inter) families, `gold` color
+
+### Files Created
+
+- `app/(auth)/login/page.tsx` — Login page (Server Component)
+- `app/(auth)/register/page.tsx` — Registration page (Server Component)
+- `app/(auth)/forgot-password/page.tsx` — Forgot password page (Server Component)
+- `app/(auth)/reset-password/page.tsx` — Reset password page (Server Component)
+- `components/auth/LoginForm.tsx` — Login form with react-hook-form + zod, Supabase signInWithPassword
+- `components/auth/RegisterForm.tsx` — Registration form with password confirmation, email verification flow
+- `components/auth/ForgotPasswordForm.tsx` — Email input for password reset request
+- `components/auth/ResetPasswordForm.tsx` — New password form with confirmation, toast on success
+- `components/layout/AppSidebar.tsx` — Sidebar with navigation links, active state, admin-only items
+- `components/layout/AppHeader.tsx` — Header with hamburger menu (mobile Sheet), user dropdown with logout
+- `components/ui/form.tsx` — shadcn/ui Form (react-hook-form integration)
+- `components/ui/sheet.tsx` — shadcn/ui Sheet (mobile sidebar)
+- `components/ui/separator.tsx` — shadcn/ui Separator
+- `components/ui/avatar.tsx` — shadcn/ui Avatar
+- `components/ui/dropdown-menu.tsx` — shadcn/ui DropdownMenu
+
+### Files Modified
+
+- `app/(auth)/layout.tsx` — Mountain landscape background with dark overlay, glassmorphism card, batchNews logo in Playfair gold
+- `app/(app)/layout.tsx` — Replaced placeholder with real AppSidebar + AppHeader components
+
+### Summary
+
+Complete frontend authentication flow: login, registration (with email verification), password recovery (request + reset), and app layout with responsive sidebar (Sheet on mobile) and user header with logout. Design system uses dark editorial theme with gold (#C6A75E) accents and Playfair Display titles.
+
 <!-- NEW ENTRIES GO HERE — insert above this line -->
 
 ## [2026-02-19 00:00 UTC] SETUP-003 — Scaffold Next.js Frontend

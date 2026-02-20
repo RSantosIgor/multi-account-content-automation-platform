@@ -32,10 +32,10 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [CORE-003](#core-003--crypto-service)                         | Crypto Service                                 | Backend   | Critical | DONE   |
 | [CORE-004](#core-004--supabase-service-client)                | Supabase Service Client                        | Backend   | Critical | DONE   |
 | [CORE-005](#core-005--standard-error-handling)                | Standard Error Handling                        | Backend   | High     | DONE   |
-| [AUTH-001](#auth-001--login-page)                             | Login Page                                     | Frontend  | Critical | TODO   |
-| [AUTH-002](#auth-002--registration-page)                      | Registration Page                              | Frontend  | High     | TODO   |
-| [AUTH-003](#auth-003--password-recovery-page)                 | Password Recovery Page                         | Frontend  | Medium   | TODO   |
-| [AUTH-004](#auth-004--app-layout--sidebar)                    | App Layout & Sidebar                           | Frontend  | High     | TODO   |
+| [AUTH-001](#auth-001--login-page)                             | Login Page                                     | Frontend  | Critical | DONE   |
+| [AUTH-002](#auth-002--registration-page)                      | Registration Page                              | Frontend  | High     | DONE   |
+| [AUTH-003](#auth-003--password-recovery-page)                 | Password Recovery Page                         | Frontend  | Medium   | DONE   |
+| [AUTH-004](#auth-004--app-layout--sidebar)                    | App Layout & Sidebar                           | Frontend  | High     | DONE   |
 | [XACCOUNT-001](#xaccount-001--x-oauth-pkce-service-backend)   | X OAuth PKCE Service                           | Backend   | Critical | TODO   |
 | [XACCOUNT-002](#xaccount-002--x-account-crud-routes-backend)  | X Account CRUD Routes                          | Backend   | Critical | TODO   |
 | [XACCOUNT-003](#xaccount-003--x-accounts-dashboard-frontend)  | X Accounts Dashboard                           | Frontend  | High     | TODO   |
@@ -667,7 +667,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value               |
 | ------------ | ------------------- |
-| Status       | TODO                |
+| Status       | DONE                |
 | Priority     | Critical            |
 | Dependencies | SETUP-003, CORE-001 |
 
@@ -693,7 +693,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | High     |
 | Dependencies | AUTH-001 |
 
@@ -716,7 +716,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Medium   |
 | Dependencies | AUTH-001 |
 
@@ -739,7 +739,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value     |
 | ------------ | --------- |
-| Status       | TODO      |
+| Status       | DONE      |
 | Priority     | High      |
 | Dependencies | SETUP-003 |
 
