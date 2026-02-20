@@ -68,17 +68,17 @@ O **batchNews** é uma plataforma onde cada usuário pode:
 
 ### Decisões de Arquitetura
 
-| Decisão | Escolha | Motivo |
-|---------|---------|--------|
-| Frontend | Next.js 14+ (App Router) | SSR, UI rica, integração Supabase |
-| Backend | Fastify (Node.js) | Rápido, TypeScript nativo, Swagger auto, plugins maduros |
-| Auth | Supabase Auth | JWT nativo, RLS automático, sessão por cookie |
-| DB | Supabase (PostgreSQL) | RLS por usuário, realtime, migrations via CLI |
-| UI | shadcn/ui + Tailwind | Componentes acessíveis e customizáveis |
-| Scraping | RSS-first → Cheerio fallback | RSS é legalmente seguro; Cheerio para sites sem RSS |
-| Jobs | node-cron (no backend) | Roda dentro do processo Fastify, sem infra extra |
-| AI | OpenAI ou Anthropic | Configurável via env var |
-| Posting | X API v2 (OAuth 2.0 PKCE) | Único método oficial |
+| Decisão  | Escolha                      | Motivo                                                   |
+| -------- | ---------------------------- | -------------------------------------------------------- |
+| Frontend | Next.js 16 (App Router)      | SSR, UI rica, integração Supabase                        |
+| Backend  | Fastify (Node.js)            | Rápido, TypeScript nativo, Swagger auto, plugins maduros |
+| Auth     | Supabase Auth                | JWT nativo, RLS automático, sessão por cookie            |
+| DB       | Supabase (PostgreSQL)        | RLS por usuário, realtime, migrations via CLI            |
+| UI       | shadcn/ui + Tailwind         | Componentes acessíveis e customizáveis                   |
+| Scraping | RSS-first → Cheerio fallback | RSS é legalmente seguro; Cheerio para sites sem RSS      |
+| Jobs     | node-cron (no backend)       | Roda dentro do processo Fastify, sem infra extra         |
+| AI       | OpenAI ou Anthropic          | Configurável via env var                                 |
+| Posting  | X API v2 (OAuth 2.0 PKCE)    | Único método oficial                                     |
 
 ---
 
@@ -104,69 +104,74 @@ users (Supabase Auth)
 ---
 
 #### `user_profiles`
+
 Extensão da tabela `auth.users` do Supabase.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | Mesmo ID do `auth.users` |
-| display_name | text | Nome de exibição |
-| avatar_url | text | URL do avatar |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| Coluna       | Tipo        | Descrição                |
+| ------------ | ----------- | ------------------------ |
+| id           | uuid PK     | Mesmo ID do `auth.users` |
+| display_name | text        | Nome de exibição         |
+| avatar_url   | text        | URL do avatar            |
+| created_at   | timestamptz |                          |
+| updated_at   | timestamptz |                          |
 
 ---
 
 #### `user_roles`
+
 Controle de acesso por papel.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| user_id | uuid FK → auth.users | |
-| role | text | `'admin'` \| `'member'` |
-| created_at | timestamptz | |
+| Coluna     | Tipo                 | Descrição               |
+| ---------- | -------------------- | ----------------------- |
+| id         | uuid PK              |                         |
+| user_id    | uuid FK → auth.users |                         |
+| role       | text                 | `'admin'` \| `'member'` |
+| created_at | timestamptz          |                         |
 
 ---
 
 #### `x_accounts`
+
 Contas do X registradas no sistema.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| user_id | uuid FK → auth.users | Dono da conta |
-| username | text | Handle do X (ex: `@minhaempresa`) |
-| display_name | text | Nome de exibição |
-| profile_image_url | text | Foto do perfil (cache) |
-| oauth_access_token_enc | text | Token de acesso (criptografado — ver seção 11) |
-| oauth_refresh_token_enc | text | Refresh token (criptografado) |
-| oauth_token_expires_at | timestamptz | Expiração do access token |
-| x_user_id | text | ID do usuário na API do X |
-| is_active | boolean | Conta ativa? |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| Coluna                  | Tipo                 | Descrição                                      |
+| ----------------------- | -------------------- | ---------------------------------------------- |
+| id                      | uuid PK              |                                                |
+| user_id                 | uuid FK → auth.users | Dono da conta                                  |
+| username                | text                 | Handle do X (ex: `@minhaempresa`)              |
+| display_name            | text                 | Nome de exibição                               |
+| profile_image_url       | text                 | Foto do perfil (cache)                         |
+| oauth_access_token_enc  | text                 | Token de acesso (criptografado — ver seção 11) |
+| oauth_refresh_token_enc | text                 | Refresh token (criptografado)                  |
+| oauth_token_expires_at  | timestamptz          | Expiração do access token                      |
+| x_user_id               | text                 | ID do usuário na API do X                      |
+| is_active               | boolean              | Conta ativa?                                   |
+| created_at              | timestamptz          |                                                |
+| updated_at              | timestamptz          |                                                |
 
 ---
 
 #### `news_sites`
+
 Sites de notícias cadastrados **manualmente** por conta do X.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| x_account_id | uuid FK → x_accounts | |
-| name | text | Nome amigável (ex: "G1 Tecnologia") |
-| url | text | URL base do site |
-| feed_url | text (nullable) | URL do feed RSS/Atom (preferencial) |
-| scraping_config | jsonb (nullable) | Configuração HTML fallback (seletores CSS) |
-| source_type | text | `'rss'` \| `'html'` \| `'auto'` (tenta RSS, cai para HTML) |
-| scraping_interval_hours | integer | Frequência (padrão: 4h) |
-| last_scraped_at | timestamptz | Última execução bem-sucedida |
-| is_active | boolean | Habilitar/desabilitar coleta |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| Coluna                  | Tipo                 | Descrição                                                  |
+| ----------------------- | -------------------- | ---------------------------------------------------------- |
+| id                      | uuid PK              |                                                            |
+| x_account_id            | uuid FK → x_accounts |                                                            |
+| name                    | text                 | Nome amigável (ex: "G1 Tecnologia")                        |
+| url                     | text                 | URL base do site                                           |
+| feed_url                | text (nullable)      | URL do feed RSS/Atom (preferencial)                        |
+| scraping_config         | jsonb (nullable)     | Configuração HTML fallback (seletores CSS)                 |
+| source_type             | text                 | `'rss'` \| `'html'` \| `'auto'` (tenta RSS, cai para HTML) |
+| scraping_interval_hours | integer              | Frequência (padrão: 4h)                                    |
+| last_scraped_at         | timestamptz          | Última execução bem-sucedida                               |
+| is_active               | boolean              | Habilitar/desabilitar coleta                               |
+| created_at              | timestamptz          |                                                            |
+| updated_at              | timestamptz          |                                                            |
 
 **Exemplo de `scraping_config` (usado somente no fallback HTML):**
+
 ```json
 {
   "article_selector": "article.post",
@@ -180,19 +185,20 @@ Sites de notícias cadastrados **manualmente** por conta do X.
 ---
 
 #### `scraped_articles`
+
 Artigos coletados (via RSS ou HTML scraping).
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| news_site_id | uuid FK → news_sites | |
-| source_type | text | `'rss'` \| `'html'` — qual método coletou |
-| url | text | URL do artigo |
-| title | text | Título |
-| summary | text | Resumo/lead (máx ~500 chars) |
-| published_at | timestamptz | Data de publicação original |
-| scraped_at | timestamptz | Data da coleta |
-| is_processed | boolean | Já foi enviado para IA? |
+| Coluna       | Tipo                 | Descrição                                 |
+| ------------ | -------------------- | ----------------------------------------- |
+| id           | uuid PK              |                                           |
+| news_site_id | uuid FK → news_sites |                                           |
+| source_type  | text                 | `'rss'` \| `'html'` — qual método coletou |
+| url          | text                 | URL do artigo                             |
+| title        | text                 | Título                                    |
+| summary      | text                 | Resumo/lead (máx ~500 chars)              |
+| published_at | timestamptz          | Data de publicação original               |
+| scraped_at   | timestamptz          | Data da coleta                            |
+| is_processed | boolean              | Já foi enviado para IA?                   |
 
 > **Constraint:** `UNIQUE(news_site_id, url)` — evita duplicatas.
 > **Nota:** salvar apenas título + resumo, não o artigo completo, para economizar espaço e tokens de IA.
@@ -200,95 +206,105 @@ Artigos coletados (via RSS ou HTML scraping).
 ---
 
 #### `ai_suggestions`
+
 Sugestões de posts geradas pela IA.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| scraped_article_id | uuid FK → scraped_articles | |
-| x_account_id | uuid FK → x_accounts | |
-| suggestion_text | text | Texto sugerido (≤ 280 chars) |
-| hashtags | text[] | Hashtags sugeridas |
-| status | text | `'pending'` \| `'approved'` \| `'rejected'` \| `'posted'` |
-| ai_model_used | text | Modelo utilizado (ex: `gpt-4o-mini`) |
-| created_at | timestamptz | |
-| reviewed_at | timestamptz | Quando o usuário aprovou/rejeitou |
-| reviewed_by | uuid FK → auth.users | |
+| Coluna             | Tipo                       | Descrição                                                 |
+| ------------------ | -------------------------- | --------------------------------------------------------- |
+| id                 | uuid PK                    |                                                           |
+| scraped_article_id | uuid FK → scraped_articles |                                                           |
+| x_account_id       | uuid FK → x_accounts       |                                                           |
+| suggestion_text    | text                       | Texto sugerido (≤ 280 chars)                              |
+| hashtags           | text[]                     | Hashtags sugeridas                                        |
+| status             | text                       | `'pending'` \| `'approved'` \| `'rejected'` \| `'posted'` |
+| ai_model_used      | text                       | Modelo utilizado (ex: `gpt-4o-mini`)                      |
+| created_at         | timestamptz                |                                                           |
+| reviewed_at        | timestamptz                | Quando o usuário aprovou/rejeitou                         |
+| reviewed_by        | uuid FK → auth.users       |                                                           |
 
 ---
 
 #### `posts`
+
 Histórico de posts publicados no X.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| x_account_id | uuid FK → x_accounts | |
-| ai_suggestion_id | uuid FK → ai_suggestions (nullable) | Sugestão usada (se houver) |
-| content | text | Conteúdo final postado |
-| x_post_id | text | ID do tweet no X |
-| x_post_url | text | URL pública do post |
-| posted_at | timestamptz | |
-| status | text | `'published'` \| `'failed'` |
-| error_message | text | Detalhe do erro (se falhou) |
-| metrics | jsonb | Likes, retweets (populado via polling) |
+| Coluna           | Tipo                                | Descrição                              |
+| ---------------- | ----------------------------------- | -------------------------------------- |
+| id               | uuid PK                             |                                        |
+| x_account_id     | uuid FK → x_accounts                |                                        |
+| ai_suggestion_id | uuid FK → ai_suggestions (nullable) | Sugestão usada (se houver)             |
+| content          | text                                | Conteúdo final postado                 |
+| x_post_id        | text                                | ID do tweet no X                       |
+| x_post_url       | text                                | URL pública do post                    |
+| posted_at        | timestamptz                         |                                        |
+| status           | text                                | `'published'` \| `'failed'`            |
+| error_message    | text                                | Detalhe do erro (se falhou)            |
+| metrics          | jsonb                               | Likes, retweets (populado via polling) |
 
 ---
 
 #### `scraping_runs`
+
 Log de cada execução do processo de coleta.
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| id | uuid PK | |
-| news_site_id | uuid FK → news_sites | |
-| started_at | timestamptz | |
-| finished_at | timestamptz | |
-| source_type_used | text | `'rss'` \| `'html'` — qual foi usado na execução |
-| status | text | `'running'` \| `'success'` \| `'failed'` |
-| articles_found | integer | Novos artigos coletados |
-| error_message | text | Erro se falhou |
+| Coluna           | Tipo                 | Descrição                                        |
+| ---------------- | -------------------- | ------------------------------------------------ |
+| id               | uuid PK              |                                                  |
+| news_site_id     | uuid FK → news_sites |                                                  |
+| started_at       | timestamptz          |                                                  |
+| finished_at      | timestamptz          |                                                  |
+| source_type_used | text                 | `'rss'` \| `'html'` — qual foi usado na execução |
+| status           | text                 | `'running'` \| `'success'` \| `'failed'`         |
+| articles_found   | integer              | Novos artigos coletados                          |
+| error_message    | text                 | Erro se falhou                                   |
 
 ---
 
 ## 4. Módulos do Sistema
 
 ### 4.1 Auth (Autenticação)
+
 - **Provider**: Supabase Auth (email/senha)
 - Login, cadastro, recuperação de senha
 - Proteção de rotas: middleware Next.js para o frontend + JWT Bearer no Fastify
 - Sessão gerenciada com cookies HTTPOnly via `@supabase/ssr`
 
 ### 4.2 Controle de Acesso
+
 - Roles: `admin` e `member`
 - **RLS no Supabase** garante isolamento por `user_id` — mesmo se a API for bypassada, o banco bloqueia
 - O Fastify verifica o JWT da Supabase em cada request e injeta o `user_id` no contexto
 - Admins têm visão global; members só veem seus próprios dados
 
 ### 4.3 Gerenciamento de Contas do X
+
 - Fluxo **OAuth 2.0 com PKCE** — iniciado pelo backend Fastify
 - Tokens armazenados criptografados (AES-256-GCM — ver seção 11)
 - Refresh automático de tokens expirados antes de cada postagem
 - Revogar acesso e desconectar conta
 
 ### 4.4 Gerenciamento de Sites de Notícias
+
 - CRUD completo de sites por conta do X
 - Ao cadastrar: sistema tenta descobrir automaticamente o feed RSS (`<link rel="alternate" type="application/rss+xml">`)
 - Se não encontrar RSS: exibe formulário de configuração de seletores HTML
 - Botão "Testar agora" para visualizar preview do que seria coletado
 
 ### 4.5 Coleta de Notícias (RSS + HTML)
+
 - Ver seção 10 para detalhes da estratégia
 - Executado no backend Fastify (Node.js — sem restrições de binários)
 - Agendado via `node-cron` rodando dentro do próprio processo Fastify
 
 ### 4.6 Processamento por IA
+
 - Disparado automaticamente após cada coleta bem-sucedida
 - Prompt: recebe título + resumo do artigo, retorna sugestão de post ≤ 280 chars + hashtags
 - Provider configurável via `AI_PROVIDER=openai|anthropic`
 - Registra modelo usado para auditoria
 
 ### 4.7 Timeline
+
 - Exibe em ordem cronológica reversa (por conta do X):
   - Sugestões pendentes de aprovação
   - Sugestões aprovadas/rejeitadas
@@ -297,6 +313,7 @@ Log de cada execução do processo de coleta.
 - Ações diretas na timeline: aprovar, editar texto, publicar, rejeitar
 
 ### 4.8 Publicação no X
+
 - Backend chama `POST /2/tweets` via X API v2
 - Preview antes de publicar
 - Custo por requisição (X API pay-per-use — ver seção 14)
@@ -441,14 +458,14 @@ PATCH  /api/admin/users/:id/role   → Altera role do usuário
 
 ### Políticas RLS por tabela
 
-| Tabela | SELECT | INSERT | UPDATE | DELETE |
-|--------|--------|--------|--------|--------|
-| x_accounts | próprio user_id | próprio user_id | próprio user_id | próprio user_id |
-| news_sites | via x_account | via x_account | via x_account | via x_account |
-| scraped_articles | via news_site → x_account | sistema | sistema | admin |
-| ai_suggestions | via x_account | sistema | próprio user | admin |
-| posts | via x_account | sistema | — | admin |
-| user_roles | admin | admin | admin | admin |
+| Tabela           | SELECT                    | INSERT          | UPDATE          | DELETE          |
+| ---------------- | ------------------------- | --------------- | --------------- | --------------- |
+| x_accounts       | próprio user_id           | próprio user_id | próprio user_id | próprio user_id |
+| news_sites       | via x_account             | via x_account   | via x_account   | via x_account   |
+| scraped_articles | via news_site → x_account | sistema         | sistema         | admin           |
+| ai_suggestions   | via x_account             | sistema         | próprio user    | admin           |
+| posts            | via x_account             | sistema         | —               | admin           |
+| user_roles       | admin                     | admin           | admin           | admin           |
 
 ### Exemplo de política RLS
 
@@ -512,6 +529,7 @@ export function registerScrapingJob() {
 ```
 
 Registrado no startup do servidor:
+
 ```typescript
 // backend/src/server.ts
 import { registerScrapingJob } from './jobs/scraping.job';
@@ -536,20 +554,22 @@ news_site.source_type
 ### Detecção automática de RSS
 
 Ao cadastrar um site, o backend faz fetch da URL e procura por:
+
 ```html
-<link rel="alternate" type="application/rss+xml" href="...">
-<link rel="alternate" type="application/atom+xml" href="...">
+<link rel="alternate" type="application/rss+xml" href="..." />
+<link rel="alternate" type="application/atom+xml" href="..." />
 ```
+
 Se encontrar, salva em `feed_url` e define `source_type = 'rss'`.
 
 ### Por que RSS primeiro?
 
-| Critério | RSS | HTML Scraping |
-|----------|-----|---------------|
-| Legalidade | Geralmente permitido (feed é público) | Pode violar ToS |
-| Confiabilidade | Alta (formato estruturado) | Frágil (muda com redesign) |
-| Performance | Baixa (parse simples) | Mais custoso |
-| Manutenção | Mínima | Exige atualizar seletores |
+| Critério       | RSS                                   | HTML Scraping              |
+| -------------- | ------------------------------------- | -------------------------- |
+| Legalidade     | Geralmente permitido (feed é público) | Pode violar ToS            |
+| Confiabilidade | Alta (formato estruturado)            | Frágil (muda com redesign) |
+| Performance    | Baixa (parse simples)                 | Mais custoso               |
+| Manutenção     | Mínima                                | Exige atualizar seletores  |
 
 ### Scraping HTML (fallback)
 
@@ -579,10 +599,7 @@ export function encrypt(plaintext: string): string {
   const iv = randomBytes(12); // 96 bits para GCM
   const cipher = createCipheriv(ALGORITHM, KEY, iv);
 
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final()
-  ]);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
   // Formato: iv(12B) + authTag(16B) + ciphertext — tudo em hex
@@ -598,10 +615,7 @@ export function decrypt(ciphertext: string): string {
   const decipher = createDecipheriv(ALGORITHM, KEY, iv);
   decipher.setAuthTag(authTag);
 
-  return Buffer.concat([
-    decipher.update(encrypted),
-    decipher.final()
-  ]).toString('utf8');
+  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
 }
 ```
 
@@ -624,23 +638,23 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 12. Componentes de UI (shadcn)
 
-| Componente | Onde usar |
-|------------|-----------|
-| `Card` | Cards de conta do X, cards de artigo/sugestão |
-| `Table` | Lista de sites, histórico de posts |
-| `Dialog` | Criar/editar site, confirmar publicação |
-| `Form` + `Input` | Login, cadastro, configuração de site |
-| `Badge` | Status da sugestão (`pending`, `approved`, `posted`) |
-| `Tabs` | Dashboard: Timeline / Sites / Settings |
-| `Button` | Ações primárias |
-| `Avatar` | Foto de perfil da conta do X |
-| `Skeleton` | Loading states |
-| `Sonner` (Toast) | Feedback de publicação, erros |
-| `DropdownMenu` | Ações por item da timeline |
-| `Select` | Filtros da timeline |
-| `Switch` | Ativar/desativar site |
-| `Separator` | Divisores visuais |
-| `Textarea` | Edição da sugestão antes de publicar |
+| Componente       | Onde usar                                            |
+| ---------------- | ---------------------------------------------------- |
+| `Card`           | Cards de conta do X, cards de artigo/sugestão        |
+| `Table`          | Lista de sites, histórico de posts                   |
+| `Dialog`         | Criar/editar site, confirmar publicação              |
+| `Form` + `Input` | Login, cadastro, configuração de site                |
+| `Badge`          | Status da sugestão (`pending`, `approved`, `posted`) |
+| `Tabs`           | Dashboard: Timeline / Sites / Settings               |
+| `Button`         | Ações primárias                                      |
+| `Avatar`         | Foto de perfil da conta do X                         |
+| `Skeleton`       | Loading states                                       |
+| `Sonner` (Toast) | Feedback de publicação, erros                        |
+| `DropdownMenu`   | Ações por item da timeline                           |
+| `Select`         | Filtros da timeline                                  |
+| `Switch`         | Ativar/desativar site                                |
+| `Separator`      | Divisores visuais                                    |
+| `Textarea`       | Edição da sugestão antes de publicar                 |
 
 > Timeline é um componente **custom** composto com primitivos shadcn (não há `Timeline` nativo).
 
@@ -724,6 +738,7 @@ batchNews/
 >
 > Agendamento de jobs usa `node-cron` dentro do processo Fastify.
 > Se no futuro for necessário scraping de sites com JavaScript dinâmico:
+>
 > - Opção A: Serviço externo (**ScrapingBee**, **Browserless.io**)
 > - Opção B: Adicionar Playwright como serviço separado
 
@@ -748,6 +763,7 @@ batchNews/
 ## 15. Roadmap de Implementação
 
 ### Fase 1 — Fundação (semana 1-2)
+
 - [ ] Setup monorepo (`frontend/` + `backend/`)
 - [ ] Configurar Supabase (projeto, CLI, tipos gerados)
 - [ ] Criar migrations SQL (todas as tabelas + RLS)
@@ -758,12 +774,14 @@ batchNews/
 - [ ] Layout base (sidebar, header)
 
 ### Fase 2 — Contas do X (semana 2-3)
+
 - [ ] Fluxo OAuth 2.0 PKCE com X
 - [ ] Criptografia de tokens (AES-256-GCM)
 - [ ] CRUD de contas do X
 - [ ] Dashboard listando contas
 
 ### Fase 3 — Sites e Coleta (semana 3-4)
+
 - [ ] CRUD de sites de notícias
 - [ ] Detecção automática de feed RSS
 - [ ] Scraper RSS (`rss-parser`)
@@ -773,17 +791,20 @@ batchNews/
 - [ ] Log de execuções (`scraping_runs`)
 
 ### Fase 4 — IA e Sugestões (semana 4-5)
+
 - [ ] Integração OpenAI ou Anthropic
 - [ ] Geração automática pós-coleta
 - [ ] Interface para aprovar/editar/rejeitar sugestões
 
 ### Fase 5 — Timeline e Publicação (semana 5-6)
+
 - [ ] Timeline unificada por conta do X
 - [ ] Publicação no X via API v2
 - [ ] Histórico de posts com status
 - [ ] Filtros e busca na timeline
 
 ### Fase 6 — Admin e Polimento (semana 6-7)
+
 - [ ] Painel admin (gestão de usuários e roles)
 - [ ] Notificações de erro (scraping falhou, post falhou)
 - [ ] Testes de integração
@@ -794,10 +815,11 @@ batchNews/
 ## 16. Dependências NPM
 
 ### Frontend (`frontend/package.json`)
+
 ```json
 {
   "dependencies": {
-    "next": "^14.x",
+    "next": "^16.x",
     "react": "^18.x",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
@@ -811,10 +833,11 @@ batchNews/
 ```
 
 ### Backend (`backend/package.json`)
+
 ```json
 {
   "dependencies": {
-    "fastify": "^4.x",
+    "fastify": "^5.x",
     "@fastify/cors": "latest",
     "@fastify/jwt": "latest",
     "@fastify/swagger": "latest",
@@ -839,4 +862,4 @@ batchNews/
 
 ---
 
-*Documento de planejamento — revisar com o time antes de iniciar a implementação.*
+_Documento de planejamento — revisar com o time antes de iniciar a implementação._

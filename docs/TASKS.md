@@ -27,11 +27,11 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [DB-004](#db-004--news-sites-articles-suggestions-posts-runs) | News Sites, Articles, Suggestions, Posts, Runs | Database  | Critical | DONE   |
 | [DB-005](#db-005--rls-policies)                               | RLS Policies                                   | Database  | Critical | DONE   |
 | [DB-006](#db-006--generate-typescript-types)                  | Generate TypeScript Types                      | Backend   | High     | DONE   |
-| [CORE-001](#core-001--authentication-plugin-fastify)          | Authentication Plugin (Fastify)                | Backend   | Critical | TODO   |
-| [CORE-002](#core-002--authorization-plugin-fastify)           | Authorization Plugin (Fastify)                 | Backend   | High     | TODO   |
-| [CORE-003](#core-003--crypto-service)                         | Crypto Service                                 | Backend   | Critical | TODO   |
-| [CORE-004](#core-004--supabase-service-client)                | Supabase Service Client                        | Backend   | Critical | TODO   |
-| [CORE-005](#core-005--standard-error-handling)                | Standard Error Handling                        | Backend   | High     | TODO   |
+| [CORE-001](#core-001--authentication-plugin-fastify)          | Authentication Plugin (Fastify)                | Backend   | Critical | DONE   |
+| [CORE-002](#core-002--authorization-plugin-fastify)           | Authorization Plugin (Fastify)                 | Backend   | High     | DONE   |
+| [CORE-003](#core-003--crypto-service)                         | Crypto Service                                 | Backend   | Critical | DONE   |
+| [CORE-004](#core-004--supabase-service-client)                | Supabase Service Client                        | Backend   | Critical | DONE   |
+| [CORE-005](#core-005--standard-error-handling)                | Standard Error Handling                        | Backend   | High     | DONE   |
 | [AUTH-001](#auth-001--login-page)                             | Login Page                                     | Frontend  | Critical | TODO   |
 | [AUTH-002](#auth-002--registration-page)                      | Registration Page                              | Frontend  | High     | TODO   |
 | [AUTH-003](#auth-003--password-recovery-page)                 | Password Recovery Page                         | Frontend  | Medium   | TODO   |
@@ -504,7 +504,7 @@ Enable RLS with `ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;` on every table.
 
 | Field        | Value             |
 | ------------ | ----------------- |
-| Status       | TODO              |
+| Status       | DONE              |
 | Priority     | Critical          |
 | Dependencies | SETUP-002, DB-002 |
 
@@ -548,7 +548,7 @@ fastify.get('/api/v1/accounts', { preHandler: [fastify.authenticate] }, handler)
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | High     |
 | Dependencies | CORE-001 |
 
@@ -574,7 +574,7 @@ fastify.get('/api/v1/accounts', { preHandler: [fastify.authenticate] }, handler)
 
 | Field        | Value     |
 | ------------ | --------- |
-| Status       | TODO      |
+| Status       | DONE      |
 | Priority     | Critical  |
 | Dependencies | SETUP-002 |
 
@@ -597,7 +597,7 @@ fastify.get('/api/v1/accounts', { preHandler: [fastify.authenticate] }, handler)
 
 | Field        | Value     |
 | ------------ | --------- |
-| Status       | TODO      |
+| Status       | DONE      |
 | Priority     | Critical  |
 | Dependencies | SETUP-002 |
 
@@ -633,7 +633,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value     |
 | ------------ | --------- |
-| Status       | TODO      |
+| Status       | DONE      |
 | Priority     | High      |
 | Dependencies | SETUP-002 |
 

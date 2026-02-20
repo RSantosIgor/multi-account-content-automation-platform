@@ -45,10 +45,10 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ### Summary
 
-Full Next.js 14 App Router frontend scaffold with TypeScript strict mode, Tailwind CSS, shadcn/ui, Supabase SSR auth, and middleware-based route protection. All backend calls go through `lib/api/client.ts` which automatically attaches the Supabase JWT.
+Full Next.js 16 App Router frontend scaffold with TypeScript strict mode, Tailwind CSS, shadcn/ui, Supabase SSR auth, and middleware-based route protection. All backend calls go through `lib/api/client.ts` which automatically attaches the Supabase JWT.
 
 ### Notes
 
 - shadcn/ui components were added via `npx shadcn@latest add` — do not edit files in `components/ui/` manually
 - `middleware.ts` protects all routes except static assets; add new public paths to `isAuthRoute` if needed
-- Next.js 14.2.0 is used (LTS); upgrade when 15.x becomes stable
+- Next.js 16 is used

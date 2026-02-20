@@ -20,7 +20,10 @@ export default [
     files: ['backend/src/**/*.ts'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: { project: true, tsconfigRootDir: import.meta.dirname },
+      parserOptions: {
+        project: './backend/tsconfig.eslint.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
       globals: { ...globals.node, ...globals.es2022 },
     },
     plugins: { '@typescript-eslint': tsPlugin },

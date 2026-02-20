@@ -18,16 +18,16 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 14 (App Router) · TypeScript · Tailwind CSS · shadcn/ui |
-| Backend | Fastify · Node.js 20 · TypeScript |
-| Database | Supabase (PostgreSQL + Auth) |
-| AI | OpenAI (`gpt-4o-mini`) or Anthropic (`claude-haiku`) — configurable |
-| X Integration | X API v2 · OAuth 2.0 PKCE |
-| Scraping | `rss-parser` (RSS/Atom) · `cheerio` (HTML fallback) |
-| Scheduler | `node-cron` |
-| Package manager | pnpm workspaces |
+| Layer           | Technology                                                          |
+| --------------- | ------------------------------------------------------------------- |
+| Frontend        | Next.js 16 (App Router) · TypeScript · Tailwind CSS · shadcn/ui     |
+| Backend         | Fastify · Node.js 20 · TypeScript                                   |
+| Database        | Supabase (PostgreSQL + Auth)                                        |
+| AI              | OpenAI (`gpt-4o-mini`) or Anthropic (`claude-haiku`) — configurable |
+| X Integration   | X API v2 · OAuth 2.0 PKCE                                           |
+| Scraping        | `rss-parser` (RSS/Atom) · `cheerio` (HTML fallback)                 |
+| Scheduler       | `node-cron`                                                         |
+| Package manager | pnpm workspaces                                                     |
 
 ---
 
@@ -149,17 +149,17 @@ pnpm dev:backend    # http://localhost:3001
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Start frontend and backend in parallel |
-| `pnpm dev:frontend` | Start only the Next.js frontend |
-| `pnpm dev:backend` | Start only the Fastify backend |
-| `pnpm build` | Build both workspaces for production |
-| `pnpm lint` | Run ESLint on all workspaces |
-| `pnpm format` | Run Prettier on all files |
-| `pnpm test` | Run tests on all workspaces |
-| `pnpm db:push` | Apply Supabase migrations |
-| `pnpm db:types` | Regenerate TypeScript types from schema |
+| Script              | Description                             |
+| ------------------- | --------------------------------------- |
+| `pnpm dev`          | Start frontend and backend in parallel  |
+| `pnpm dev:frontend` | Start only the Next.js frontend         |
+| `pnpm dev:backend`  | Start only the Fastify backend          |
+| `pnpm build`        | Build both workspaces for production    |
+| `pnpm lint`         | Run ESLint on all workspaces            |
+| `pnpm format`       | Run Prettier on all files               |
+| `pnpm test`         | Run tests on all workspaces             |
+| `pnpm db:push`      | Apply Supabase migrations               |
+| `pnpm db:types`     | Regenerate TypeScript types from schema |
 
 ---
 

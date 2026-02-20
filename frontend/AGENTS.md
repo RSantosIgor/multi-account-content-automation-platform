@@ -7,11 +7,11 @@
 
 ## 1. Workspace Overview
 
-This is the **Next.js 14 (App Router)** frontend for the batchNews platform.
+This is the **Next.js 16 (App Router)** frontend for the batchNews platform.
 It is responsible exclusively for **UI rendering and client-side authentication**.
 All business logic lives in the backend workspace (`../backend`).
 
-**Stack:** Next.js 14 · TypeScript · Tailwind CSS · shadcn/ui · Supabase SSR
+**Stack:** Next.js 16 · TypeScript · Tailwind CSS · shadcn/ui · Supabase SSR
 
 ---
 

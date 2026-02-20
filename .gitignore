@@ -39,3 +39,7 @@ Thumbs.db
 # Coverage
 coverage/
 .nyc_output/
+
+# Claude Code / AI tooling
+.claude/
+.agents/

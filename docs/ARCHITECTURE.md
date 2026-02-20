@@ -41,7 +41,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                  FRONTEND (Next.js 14)               │
+│                  FRONTEND (Next.js 16)               │
 │   App Router · shadcn/ui · Supabase SSR Auth         │
 │   No direct DB access — all requests go to backend   │
 └────────────────────────┬─────────────────────────────┘
@@ -112,21 +112,21 @@
 
 ## 4. Tech Stack & Rationale
 
-| Layer                 | Technology                            | Version          | Rationale                                                           |
-| --------------------- | ------------------------------------- | ---------------- | ------------------------------------------------------------------- |
-| Frontend framework    | Next.js                               | 14+ (App Router) | SSR, file-based routing, built-in optimizations                     |
-| UI library            | shadcn/ui + Tailwind CSS              | latest           | Accessible, unstyled primitives, full ownership of code             |
-| Backend framework     | Fastify                               | 4.x              | Fast, TypeScript-native, plugin ecosystem, auto Swagger docs        |
-| Database              | Supabase (PostgreSQL)                 | latest           | Managed Postgres, built-in Auth, RLS, CLI tooling                   |
-| Auth                  | Supabase Auth                         | —                | JWT-based, integrates with RLS, no custom auth to maintain          |
-| Scraping (structured) | rss-parser                            | latest           | Reliable RSS/Atom parsing, lightweight                              |
-| Scraping (HTML)       | cheerio                               | latest           | jQuery-like HTML parsing, runs in Node (no browser needed)          |
-| AI                    | openai / @anthropic-ai/sdk            | latest           | Configurable via env var; both SDKs have compatible APIs            |
-| X integration         | twitter-api-v2                        | latest           | Full X API v2 support, OAuth 2.0 PKCE, typed responses              |
-| Cron scheduler        | node-cron                             | latest           | Simple, zero-dependency cron inside the Fastify process             |
-| Validation            | zod                                   | latest           | TypeScript-first schema validation, shared between frontend/backend |
-| Form handling         | react-hook-form + @hookform/resolvers | latest           | Performant forms with Zod integration                               |
-| Package manager       | pnpm                                  | latest           | Faster than npm, native workspace support                           |
+| Layer                 | Technology                            | Version         | Rationale                                                           |
+| --------------------- | ------------------------------------- | --------------- | ------------------------------------------------------------------- |
+| Frontend framework    | Next.js                               | 16 (App Router) | SSR, file-based routing, built-in optimizations                     |
+| UI library            | shadcn/ui + Tailwind CSS              | latest          | Accessible, unstyled primitives, full ownership of code             |
+| Backend framework     | Fastify                               | 5.x             | Fast, TypeScript-native, plugin ecosystem, auto Swagger docs        |
+| Database              | Supabase (PostgreSQL)                 | latest          | Managed Postgres, built-in Auth, RLS, CLI tooling                   |
+| Auth                  | Supabase Auth                         | —               | JWT-based, integrates with RLS, no custom auth to maintain          |
+| Scraping (structured) | rss-parser                            | latest          | Reliable RSS/Atom parsing, lightweight                              |
+| Scraping (HTML)       | cheerio                               | latest          | jQuery-like HTML parsing, runs in Node (no browser needed)          |
+| AI                    | openai / @anthropic-ai/sdk            | latest          | Configurable via env var; both SDKs have compatible APIs            |
+| X integration         | twitter-api-v2                        | latest          | Full X API v2 support, OAuth 2.0 PKCE, typed responses              |
+| Cron scheduler        | node-cron                             | latest          | Simple, zero-dependency cron inside the Fastify process             |
+| Validation            | zod                                   | latest          | TypeScript-first schema validation, shared between frontend/backend |
+| Form handling         | react-hook-form + @hookform/resolvers | latest          | Performant forms with Zod integration                               |
+| Package manager       | pnpm                                  | latest          | Faster than npm, native workspace support                           |
 
 ---
 

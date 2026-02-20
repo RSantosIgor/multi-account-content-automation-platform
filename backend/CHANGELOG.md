@@ -6,13 +6,40 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-20 10:45 UTC] CORE-001 to CORE-005 — Core Backend Services
+
+**Agent:** Claude Sonnet 4.5
+**Task:** CORE-001, CORE-002, CORE-003, CORE-004, CORE-005
+**Commit:** PENDING
+
+### Files Created
+
+- `src/plugins/authenticate.ts` — Fastify plugin that verifies Supabase JWTs via `supabase.auth.getUser()`, looks up `user_roles` for role, and populates `request.user`
+- `src/plugins/authenticate.test.ts` — 5 tests: missing JWT, malformed header, invalid token, valid token with admin role, default member role
+- `src/plugins/authorize.ts` — Role-based authorization factory function `authorize(...roles)` returning a preHandler hook; returns 403 for insufficient permissions
+- `src/plugins/authorize.test.ts` — 3 tests: admin access, member 403, member-or-admin route
+- `src/lib/crypto.ts` — AES-256-GCM encrypt/decrypt using `ENCRYPTION_KEY` from config; random IV per call; hex format output
+- `src/lib/crypto.test.ts` — 5 tests: roundtrip, unique IVs, empty string, unicode, tampered ciphertext
+- `src/lib/supabase.ts` — Singleton Supabase client using `createClient<Database>` with service role key
+- `src/types/fastify.d.ts` — Type augmentation for `FastifyRequest.user` and `FastifyInstance.authenticate`
+
+### Files Modified
+
+- `src/app.ts` — Registered authenticate plugin; added global error handler (ZodError→400, HTTP errors, unhandled 500 with stack in dev only); disabled logger in test env
+- `src/test/helpers/app.ts` — Updated to align with new authenticate plugin API (overrides decorator with mock user injection)
+- `package.json` — Added `fastify-plugin` dependency
+
+### Summary
+
+Implemented all 5 Core Backend Services tasks. Authentication verifies Supabase JWTs and populates `request.user` with `id`, `email`, `role`. Authorization provides a reusable `authorize('admin')` preHandler factory. Crypto uses AES-256-GCM with random IVs for token encryption at rest. Global error handler ensures consistent JSON error responses across all routes. All 13 tests pass.
+
 <!-- NEW ENTRIES GO HERE — insert above this line -->
 
 ## [2026-02-19 02:00 UTC] DB-003 / DB-004 / DB-005 / DB-006 — Full DB Schema & TypeScript Types
 
 **Agent:** claude-sonnet-4-5-20250929
 **Task:** DB-003, DB-004, DB-005, DB-006
-**Commit:** PENDING
+**Commit:** 783e17b
 
 ### Files Created
 
@@ -41,7 +68,7 @@ Complete database schema: 9 tables across 11 migration files. All tables have `u
 
 **Agent:** claude-sonnet-4-5-20250929
 **Task:** DB-001, DB-002
-**Commit:** PENDING
+**Commit:** 783e17b
 
 ### Files Created
 

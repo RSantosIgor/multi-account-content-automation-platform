@@ -10,7 +10,7 @@
 This is the **Fastify + Node.js** backend for the batchNews platform.
 It owns all business logic: authentication verification, scraping, AI processing, X API integration, and scheduled jobs.
 
-**Stack:** Fastify 4 · Node.js 20 · TypeScript · Supabase (Auth + PostgreSQL) · node-cron
+**Stack:** Fastify 5 · Node.js 20 · TypeScript · Supabase (Auth + PostgreSQL) · node-cron
 
 **Supabase usage:** Auth verification + PostgreSQL only. No Edge Functions, no Storage, no Realtime.
 
