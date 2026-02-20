@@ -6,6 +6,42 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-20 17:45 UTC] ad-hoc — Error Message Language Standardization
+
+**Agent:** gpt-5-codex
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Modified
+
+- `app/(app)/dashboard/page.tsx` — Standardized dashboard fallback error text to English.
+- `components/accounts/ConnectXButton.tsx` — Standardized OAuth start error text to English and avoided exposing raw API error messages.
+- `components/auth/LoginForm.tsx` — Standardized login auth error text to English.
+
+### Summary
+
+Updated technical/error-facing messages in this flow to English, keeping user-facing UI content in Portuguese where appropriate.
+
+## [2026-02-20 17:33 UTC] XACCOUNT-003 — X Accounts Dashboard
+
+**Agent:** gpt-5-codex
+**Task:** XACCOUNT-003
+**Commit:** PENDING
+
+### Files Created
+
+- `app/(app)/dashboard/page.tsx` — Implemented dashboard view with account loading, empty state, loading skeleton, and error handling.
+- `components/accounts/AccountCard.tsx` — Added account card UI (avatar, username/display name, status, sites/posts counters, account link).
+- `components/accounts/ConnectXButton.tsx` — Added button that calls OAuth start endpoint and redirects user to X authorization URL.
+
+### Summary
+
+Built the X Accounts dashboard page and components to list connected accounts and start the X OAuth flow directly from the UI.
+
+### Notes
+
+- Dashboard consumes `GET /api/v1/accounts` and expects normalized fields from backend (`username`, `displayName`, `sitesCount`, `postsCount`).
+
 ## [2026-02-20] AUTH-001 to AUTH-004 — Frontend Authentication & Design System
 
 **Agent:** claude-opus-4-6

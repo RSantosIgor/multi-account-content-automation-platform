@@ -36,9 +36,9 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [AUTH-002](#auth-002--registration-page)                      | Registration Page                              | Frontend  | High     | DONE   |
 | [AUTH-003](#auth-003--password-recovery-page)                 | Password Recovery Page                         | Frontend  | Medium   | DONE   |
 | [AUTH-004](#auth-004--app-layout--sidebar)                    | App Layout & Sidebar                           | Frontend  | High     | DONE   |
-| [XACCOUNT-001](#xaccount-001--x-oauth-pkce-service-backend)   | X OAuth PKCE Service                           | Backend   | Critical | TODO   |
-| [XACCOUNT-002](#xaccount-002--x-account-crud-routes-backend)  | X Account CRUD Routes                          | Backend   | Critical | TODO   |
-| [XACCOUNT-003](#xaccount-003--x-accounts-dashboard-frontend)  | X Accounts Dashboard                           | Frontend  | High     | TODO   |
+| [XACCOUNT-001](#xaccount-001--x-oauth-pkce-service-backend)   | X OAuth PKCE Service                           | Backend   | Critical | DONE   |
+| [XACCOUNT-002](#xaccount-002--x-account-crud-routes-backend)  | X Account CRUD Routes                          | Backend   | Critical | DONE   |
+| [XACCOUNT-003](#xaccount-003--x-accounts-dashboard-frontend)  | X Accounts Dashboard                           | Frontend  | High     | DONE   |
 | [SITES-001](#sites-001--rss-auto-detection-service-backend)   | RSS Auto-Detection Service                     | Backend   | High     | TODO   |
 | [SITES-002](#sites-002--news-sites-crud-routes-backend)       | News Sites CRUD Routes                         | Backend   | Critical | TODO   |
 | [SITES-003](#sites-003--news-sites-ui-frontend)               | News Sites UI                                  | Frontend  | High     | TODO   |
@@ -775,7 +775,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value                      |
 | ------------ | -------------------------- |
-| Status       | TODO                       |
+| Status       | DONE                       |
 | Priority     | Critical                   |
 | Dependencies | CORE-001, CORE-003, DB-003 |
 
@@ -806,7 +806,7 @@ export const supabase = createClient<Database>(
 
 | Field        | Value        |
 | ------------ | ------------ |
-| Status       | TODO         |
+| Status       | DONE         |
 | Priority     | Critical     |
 | Dependencies | XACCOUNT-001 |
 
@@ -837,7 +837,7 @@ GET    /api/v1/accounts/:id          → get single account details
 
 | Field        | Value                  |
 | ------------ | ---------------------- |
-| Status       | TODO                   |
+| Status       | DONE                   |
 | Priority     | High                   |
 | Dependencies | XACCOUNT-002, AUTH-004 |
 

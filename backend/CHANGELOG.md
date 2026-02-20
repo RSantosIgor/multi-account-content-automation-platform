@@ -6,6 +6,33 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-20 17:33 UTC] XACCOUNT-001 / XACCOUNT-002 — OAuth PKCE + X Accounts API
+
+**Agent:** gpt-5-codex
+**Task:** XACCOUNT-001, XACCOUNT-002
+**Commit:** PENDING
+
+### Files Created
+
+- `src/services/x-api/oauth.ts` — Implemented PKCE generation, OAuth state persistence/validation, token exchange, X profile fetch, encrypted account upsert, and state cleanup.
+- `src/routes/x-oauth.ts` — Added `GET /api/v1/x/oauth/start` and `GET /api/v1/x/oauth/callback` endpoints for OAuth start/callback flow.
+- `src/routes/accounts.ts` — Added `GET /api/v1/accounts`, `GET /api/v1/accounts/:id`, and `DELETE /api/v1/accounts/:id` with ownership checks and token-safe responses.
+- `src/routes/index.ts` — Central route registration for backend modules.
+
+### Files Modified
+
+- `src/app.ts` — Registered API routes plugin.
+- `src/types/fastify.d.ts` — Fixed Fastify module augmentation to preserve framework types while extending `request.user` and `fastify.authenticate`.
+
+### Summary
+
+Implemented end-to-end X OAuth (PKCE) in the backend and account management routes with strict ownership checks, encrypted token persistence, callback state expiration handling, and token revocation on account removal.
+
+### Notes
+
+- `oauth_state` expiration now returns 400 on callback and stale rows are deleted.
+- Account responses intentionally omit encrypted token fields.
+
 ## [2026-02-20 10:45 UTC] CORE-001 to CORE-005 — Core Backend Services
 
 **Agent:** Claude Sonnet 4.5

@@ -53,7 +53,7 @@ export function LoginForm() {
     });
 
     if (authError) {
-      setError('Email ou senha inv\u00e1lidos');
+      setError('Invalid email or password.');
       return;
     }
 

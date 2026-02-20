@@ -7,6 +7,14 @@ import swaggerUi from '@fastify/swagger-ui';
 import { ZodError } from 'zod';
 import { config } from './config.js';
 import authenticatePlugin from './plugins/authenticate.js';
+import routes from './routes/index.js';
+
+type HttpError = {
+  statusCode?: number;
+  name: string;
+  message: string;
+  stack?: string;
+};
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -51,6 +59,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Global error handler
   app.setErrorHandler((error, _request, reply) => {
+    const err = error as HttpError;
     // Zod validation errors → 400
     if (error instanceof ZodError) {
       return reply.status(400).send({
@@ -61,16 +70,16 @@ export async function buildApp(): Promise<FastifyInstance> {
     }
 
     // Fastify HTTP errors (from @fastify/sensible)
-    if (error.statusCode && error.statusCode < 500) {
-      return reply.status(error.statusCode).send({
-        statusCode: error.statusCode,
-        error: error.name,
-        message: error.message,
+    if (typeof err.statusCode === 'number' && err.statusCode < 500) {
+      return reply.status(err.statusCode).send({
+        statusCode: err.statusCode,
+        error: err.name,
+        message: err.message,
       });
     }
 
     // Unhandled errors
-    const statusCode = error.statusCode ?? 500;
+    const statusCode = err.statusCode ?? 500;
 
     if (config.NODE_ENV === 'production') {
       app.log.error(error);
@@ -85,14 +94,17 @@ export async function buildApp(): Promise<FastifyInstance> {
     app.log.error(error);
     return reply.status(statusCode).send({
       statusCode,
-      error: error.name,
-      message: error.message,
-      stack: error.stack,
+      error: err.name,
+      message: err.message,
+      stack: err.stack,
     });
   });
 
   // Health check
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
+
+  // API routes
+  await app.register(routes);
 
   return app;
 }
