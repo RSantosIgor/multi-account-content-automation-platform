@@ -6,11 +6,34 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-21] SITES-003 — News Sites UI & Account Overview Page
+
+**Agent:** Claude Sonnet 4.5
+**Task:** SITES-003
+
+### Files Created
+
+- `app/(app)/accounts/[accountId]/page.tsx` — Account overview page (Server Component). Shows avatar, username, stats (sites/posts), and navigation cards to Sites and Timeline.
+- `app/(app)/accounts/[accountId]/sites/page.tsx` — Sites list page (Server Component). Fetches sites from backend API, renders SiteTable.
+- `app/(app)/accounts/[accountId]/sites/new/page.tsx` — Create site page. Renders SiteForm in create mode.
+- `app/(app)/accounts/[accountId]/sites/[siteId]/page.tsx` — Edit site page. Renders SiteForm in edit mode with ScraperPreview.
+- `components/sites/SiteTable.tsx` — Sites table with inline Switch toggle, AlertDialog delete confirmation, and edit link. Optimistic local state updates.
+- `components/sites/SiteForm.tsx` — Site form with react-hook-form + Zod. Shows RSS detection alert on create, ScraperPreview on edit.
+- `components/sites/ScraperPreview.tsx` — Preview component (placeholder until SCRAPER-001/002).
+- `components/ui/alert-dialog.tsx` — shadcn/ui AlertDialog.
+- `components/ui/table.tsx` — shadcn/ui Table.
+- `components/ui/switch.tsx` — shadcn/ui Switch.
+- `components/ui/alert.tsx` — shadcn/ui Alert.
+
+### Summary
+
+Built complete news sites management UI and account overview page. Dashboard AccountCard links to `/accounts/:id` which shows stats and navigation to Sites/Timeline. Sites section supports full CRUD with inline toggle and delete confirmation. All pages follow batchNews design system (dark theme, gold accents, Playfair Display headings).
+
 ## [2026-02-20 17:45 UTC] ad-hoc — Error Message Language Standardization
 
 **Agent:** gpt-5-codex
 **Task:** ad-hoc
-**Commit:** PENDING
+**Commit:** ca588e5
 
 ### Files Modified
 
@@ -26,7 +49,7 @@ Updated technical/error-facing messages in this flow to English, keeping user-fa
 
 **Agent:** gpt-5-codex
 **Task:** XACCOUNT-003
-**Commit:** PENDING
+**Commit:** ca588e5
 
 ### Files Created
 

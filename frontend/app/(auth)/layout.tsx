@@ -17,14 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Content */}
       <div className="relative z-10 w-full max-w-md px-4">
         <div className="mb-8 flex flex-col items-center text-center">
-          <Image
-            src="/images/logo_dark.png"
-            alt="batchNews"
-            width={200}
-            height={60}
-            priority
-            className="mb-3"
-          />
+          <Image src="/images/logo_dark.png" alt="batchNews" width={200} height={60} priority />
           <p className="mt-2 text-sm text-white/60">Multi-account X content automation</p>
         </div>
         {children}

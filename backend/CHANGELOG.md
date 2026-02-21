@@ -6,11 +6,43 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-21] SITES-001 / SITES-002 — News Sites Management (RSS Auto-Detection + CRUD Routes)
+
+**Agent:** Claude Sonnet 4.5
+**Task:** SITES-001, SITES-002
+
+### Files Created
+
+- `src/services/scraper/rss-detector.ts` — RSS/Atom feed auto-detection service. Fetches site HTML with cheerio, looks for `<link rel="alternate" type="application/rss+xml|atom+xml">`. Returns `{ feedUrl: string | null }`. 10s timeout, graceful failure.
+- `src/routes/sites.ts` — News sites CRUD routes:
+  - `GET /api/v1/accounts/:accountId/sites` — List all sites for an X account
+  - `POST /api/v1/accounts/:accountId/sites` — Create site with automatic RSS detection
+  - `PUT /api/v1/accounts/:accountId/sites/:siteId` — Update site
+  - `DELETE /api/v1/accounts/:accountId/sites/:siteId` — Delete site
+  - `POST /api/v1/accounts/:accountId/sites/:siteId/test` — Test scraper (preview placeholder for SCRAPER-001/002)
+- `src/schemas/sites.schema.ts` — Zod validation schemas for site creation and updates (`scrapingConfigSchema` for HTML selectors).
+- `src/scripts/seed-mock-account.ts` — Seed script to create a mock X Account for local testing without OAuth. Run via `pnpm --filter backend seed`.
+
+### Files Modified
+
+- `src/routes/index.ts` — Registered `sitesRoutes` plugin.
+- `package.json` — Added `--env-file=.env` to `dev`/`start` scripts; added `seed` script.
+
+### Summary
+
+Implemented RSS auto-detection and full CRUD routes for news sites management. On site creation, the backend auto-detects RSS/Atom feeds: if found, `source_type = 'rss'`; if HTML config provided, `source_type = 'html'`; otherwise `'auto'`. All routes enforce ownership checks. Added seed script for local development without X OAuth.
+
+### Notes
+
+- `verifyAccountOwnership()` helper ensures users can only access sites for their own X accounts.
+- HTML scraping config requires: `article_selector`, `title_selector`, `summary_selector`, `link_selector`.
+- Seed script uses service role key to insert a mock X Account with encrypted dummy tokens.
+
 ## [2026-02-20 17:33 UTC] XACCOUNT-001 / XACCOUNT-002 — OAuth PKCE + X Accounts API
 
 **Agent:** gpt-5-codex
 **Task:** XACCOUNT-001, XACCOUNT-002
-**Commit:** PENDING
+**Commit:** ca588e5
 
 ### Files Created
 

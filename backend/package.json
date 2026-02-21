@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node --env-file=.env dist/server.js",
     "lint": "eslint src --ext .ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "seed": "tsx --env-file=.env src/scripts/seed-mock-account.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

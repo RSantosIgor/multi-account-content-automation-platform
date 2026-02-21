@@ -123,7 +123,7 @@ export function RegisterForm() {
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="M\u00ednimo 8 caracteres"
+                      placeholder="Mínimo 8 caracteres"
                       autoComplete="new-password"
                       {...field}
                     />
