@@ -6,6 +6,37 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-21] SCRAPER-001 to SCRAPER-005 — Scraping Engine
+
+**Agent:** Claude Opus 4.6
+**Task:** SCRAPER-001, SCRAPER-002, SCRAPER-003, SCRAPER-004, SCRAPER-005
+
+### Files Created
+
+- `src/services/scraper/rss.ts` — RSS/Atom feed scraper using `rss-parser`. Extracts title, summary (HTML-stripped, max 500 chars), URL, and published date. Handles `content:encoded`, `contentSnippet`, and `content` fields.
+- `src/services/scraper/rss.test.ts` — 7 unit tests: valid feed parsing, network error handling, HTML stripping, summary truncation, missing fields, maxArticles limit, empty feed.
+- `src/services/scraper/html.ts` — HTML scraper using `cheerio` with CSS selector config. Resolves relative URLs, 2s polite delay, 15s timeout. Exports `parseHtml()` separately for testing without HTTP.
+- `src/services/scraper/html.test.ts` — 7 unit tests: selector extraction, relative URL resolution, no-match selectors, missing title/link, maxArticles, empty summary.
+- `src/services/scraper/runner.ts` — `ScraperRunner` orchestrator: `runAll()` processes all active sites, `runSite()` handles a single site with `scraping_runs` logging, `previewSite()` returns preview without DB save. Uses `upsert` with `ignoreDuplicates` for deduplication.
+- `src/routes/scrape.ts` — Scraping routes: `POST /api/v1/scrape/run` (admin or cron secret), `POST /api/v1/scrape/run/:siteId` (owner auth), `GET /api/v1/accounts/:accountId/sites/:siteId/runs` (paginated run history).
+- `src/jobs/index.ts` — `registerJobs()` registers a cron job (`0 */4 * * *`) that runs `ScraperRunner.runAll()` every 4 hours. Catches exceptions to prevent server crashes.
+
+### Files Modified
+
+- `src/routes/index.ts` — Registered `scrapeRoutes` plugin.
+- `src/routes/sites.ts` — Updated test/preview endpoint to use real `ScraperRunner.previewSite()` instead of placeholder.
+- `src/server.ts` — Calls `registerJobs(app.log)` before `fastify.listen()`.
+
+### Summary
+
+Complete scraping engine: RSS scraper (rss-parser), HTML scraper (cheerio + CSS selectors), orchestrator with deduplication (`ON CONFLICT DO NOTHING`), execution logging (`scraping_runs`), API routes for manual and scheduled runs, and cron scheduler (every 4 hours). Source type decision tree: `rss` → feed_url, `html` → selectors, `auto` → try RSS then HTML fallback. All 27 backend tests pass.
+
+### Notes
+
+- `ScraperRunner.previewSite()` enables the sites test endpoint to return real article previews without saving to DB.
+- Cron secret header (`x-cron-secret`) allows triggering runs without JWT auth.
+- HTML scraper adds a 2-second polite delay before each request.
+
 ## [2026-02-21] SITES-001 / SITES-002 — News Sites Management (RSS Auto-Detection + CRUD Routes)
 
 **Agent:** Claude Sonnet 4.5

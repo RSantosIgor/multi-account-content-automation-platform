@@ -39,14 +39,14 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [XACCOUNT-001](#xaccount-001--x-oauth-pkce-service-backend)   | X OAuth PKCE Service                           | Backend   | Critical | DONE   |
 | [XACCOUNT-002](#xaccount-002--x-account-crud-routes-backend)  | X Account CRUD Routes                          | Backend   | Critical | DONE   |
 | [XACCOUNT-003](#xaccount-003--x-accounts-dashboard-frontend)  | X Accounts Dashboard                           | Frontend  | High     | DONE   |
-| [SITES-001](#sites-001--rss-auto-detection-service-backend)   | RSS Auto-Detection Service                     | Backend   | High     | TODO   |
-| [SITES-002](#sites-002--news-sites-crud-routes-backend)       | News Sites CRUD Routes                         | Backend   | Critical | TODO   |
-| [SITES-003](#sites-003--news-sites-ui-frontend)               | News Sites UI                                  | Frontend  | High     | TODO   |
-| [SCRAPER-001](#scraper-001--rss-scraper-service)              | RSS Scraper Service                            | Backend   | Critical | TODO   |
-| [SCRAPER-002](#scraper-002--html-scraper-service)             | HTML Scraper Service                           | Backend   | High     | TODO   |
-| [SCRAPER-003](#scraper-003--scraper-runner--orchestrator)     | Scraper Runner & Orchestrator                  | Backend   | Critical | TODO   |
-| [SCRAPER-004](#scraper-004--scraping-routes-backend)          | Scraping Routes                                | Backend   | High     | TODO   |
-| [SCRAPER-005](#scraper-005--cron-job-scheduler)               | Cron Job Scheduler                             | Backend   | Critical | TODO   |
+| [SITES-001](#sites-001--rss-auto-detection-service-backend)   | RSS Auto-Detection Service                     | Backend   | High     | DONE   |
+| [SITES-002](#sites-002--news-sites-crud-routes-backend)       | News Sites CRUD Routes                         | Backend   | Critical | DONE   |
+| [SITES-003](#sites-003--news-sites-ui-frontend)               | News Sites UI                                  | Frontend  | High     | DONE   |
+| [SCRAPER-001](#scraper-001--rss-scraper-service)              | RSS Scraper Service                            | Backend   | Critical | DONE   |
+| [SCRAPER-002](#scraper-002--html-scraper-service)             | HTML Scraper Service                           | Backend   | High     | DONE   |
+| [SCRAPER-003](#scraper-003--scraper-runner--orchestrator)     | Scraper Runner & Orchestrator                  | Backend   | Critical | DONE   |
+| [SCRAPER-004](#scraper-004--scraping-routes-backend)          | Scraping Routes                                | Backend   | High     | DONE   |
+| [SCRAPER-005](#scraper-005--cron-job-scheduler)               | Cron Job Scheduler                             | Backend   | Critical | DONE   |
 | [AI-001](#ai-001--ai-provider-abstraction)                    | AI Provider Abstraction                        | Backend   | Critical | TODO   |
 | [AI-002](#ai-002--prompt-templates)                           | Prompt Templates                               | Backend   | High     | TODO   |
 | [AI-003](#ai-003--ai-processing-pipeline)                     | AI Processing Pipeline                         | Backend   | Critical | TODO   |
@@ -869,7 +869,7 @@ GET    /api/v1/accounts/:id          → get single account details
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | High     |
 | Dependencies | CORE-004 |
 
@@ -894,7 +894,7 @@ GET    /api/v1/accounts/:id          → get single account details
 
 | Field        | Value               |
 | ------------ | ------------------- |
-| Status       | TODO                |
+| Status       | DONE                |
 | Priority     | Critical            |
 | Dependencies | SITES-001, CORE-001 |
 
@@ -935,7 +935,7 @@ z.object({
 
 | Field        | Value               |
 | ------------ | ------------------- |
-| Status       | TODO                |
+| Status       | DONE                |
 | Priority     | High                |
 | Dependencies | SITES-002, AUTH-004 |
 
@@ -971,7 +971,7 @@ z.object({
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | CORE-004 |
 
@@ -1006,7 +1006,7 @@ export async function scrapeRss(
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | High     |
 | Dependencies | CORE-004 |
 
@@ -1054,7 +1054,7 @@ interface ScrapingConfig {
 
 | Field        | Value                              |
 | ------------ | ---------------------------------- |
-| Status       | TODO                               |
+| Status       | DONE                               |
 | Priority     | Critical                           |
 | Dependencies | SCRAPER-001, SCRAPER-002, CORE-004 |
 
@@ -1090,7 +1090,7 @@ export class ScraperRunner {
 
 | Field        | Value       |
 | ------------ | ----------- |
-| Status       | TODO        |
+| Status       | DONE        |
 | Priority     | High        |
 | Dependencies | SCRAPER-003 |
 
@@ -1121,7 +1121,7 @@ GET  /api/v1/accounts/:id/sites/:siteId/runs  → list run history
 
 | Field        | Value                  |
 | ------------ | ---------------------- |
-| Status       | TODO                   |
+| Status       | DONE                   |
 | Priority     | Critical               |
 | Dependencies | SCRAPER-003, SETUP-002 |
 

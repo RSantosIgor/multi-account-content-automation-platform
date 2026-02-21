@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { supabase } from '../lib/supabase.js';
 import { createSiteSchema, updateSiteSchema } from '../schemas/sites.schema.js';
 import { detectRssFeed } from '../services/scraper/rss-detector.js';
+import { ScraperRunner } from '../services/scraper/runner.js';
 import type { Database } from '../types/database.js';
 
 type NewsSiteRow = Database['public']['Tables']['news_sites']['Row'];
@@ -276,8 +277,7 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * POST /api/v1/accounts/:accountId/sites/:siteId/test
-   * Test scraper and return preview (up to 5 articles)
-   * Note: Full implementation requires SCRAPER-001 and SCRAPER-002
+   * Test scraper and return preview (up to 5 articles, no DB save)
    */
   fastify.post(
     '/api/v1/accounts/:accountId/sites/:siteId/test',
@@ -306,34 +306,14 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
         throw fastify.httpErrors.notFound('Site not found');
       }
 
-      // TODO: Implement scraper preview when SCRAPER-001 and SCRAPER-002 are done
-      // For now, return a basic validation response
-      if (site.source_type === 'rss' && site.feed_url) {
-        return {
-          data: {
-            message: 'RSS feed URL found',
-            feedUrl: site.feed_url,
-            preview: [],
-            note: 'Full scraper preview will be available after SCRAPER-001 implementation',
-          },
-        };
-      }
-
-      if (site.source_type === 'html' && site.scraping_config) {
-        return {
-          data: {
-            message: 'HTML scraping config found',
-            config: site.scraping_config,
-            preview: [],
-            note: 'Full scraper preview will be available after SCRAPER-002 implementation',
-          },
-        };
-      }
+      const preview = await ScraperRunner.previewSite(site, 5);
 
       return {
         data: {
-          message: 'Site configuration incomplete',
-          preview: [],
+          sourceType: site.source_type,
+          feedUrl: site.feed_url,
+          articlesFound: preview.length,
+          preview,
         },
       };
     },
