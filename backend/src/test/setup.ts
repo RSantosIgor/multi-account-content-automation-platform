@@ -12,6 +12,7 @@ process.env['X_CLIENT_SECRET'] = 'test-client-secret';
 process.env['X_CALLBACK_URL'] = 'http://localhost:3001/api/v1/x/oauth/callback';
 process.env['AI_PROVIDER'] = 'openai';
 process.env['OPENAI_API_KEY'] = 'sk-test';
+process.env['DEEPSEEK_API_KEY'] = 'sk-deepseek-test';
 process.env['CRON_SECRET'] = 'test-cron-secret';
 
 // Silence logger output during tests

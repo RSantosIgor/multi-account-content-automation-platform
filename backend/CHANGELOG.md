@@ -6,6 +6,78 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-22 00:24 UTC] ad-hoc — Add DeepSeek AI Provider Support
+
+**Agent:** gpt-5-codex
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Created
+
+- `src/services/ai/deepseek.ts` — Implemented DeepSeek provider using OpenAI-compatible client with `baseURL=https://api.deepseek.com`.
+- `src/services/ai/deepseek.test.ts` — Added unit tests for DeepSeek prompt call and malformed JSON fallback handling.
+
+### Files Modified
+
+- `src/config.ts` — Added `deepseek` to `AI_PROVIDER` enum and introduced optional `DEEPSEEK_API_KEY`.
+- `src/services/ai/provider.ts` — Extended AI provider factory to return `DeepseekProvider`.
+- `src/services/ai/provider.test.ts` — Added coverage for DeepSeek provider selection.
+- `src/test/setup.ts` — Added test env seed for `DEEPSEEK_API_KEY`.
+- `../backend/.env.example` — Added DeepSeek provider option and `DEEPSEEK_API_KEY` example.
+- `../docs/ARCHITECTURE.md` — Updated AI provider/env documentation to include DeepSeek.
+
+### Summary
+
+Added DeepSeek as a first-class AI provider option in the backend AI abstraction and configuration, preserving the same interface and fallback behavior used by OpenAI/Anthropic.
+
+## [2026-02-22 00:18 UTC] AI-001 / AI-002 / AI-003 / AI-004 — AI Providers, Pipeline, and Routes
+
+**Agent:** gpt-5-codex
+**Task:** AI-001, AI-002, AI-003, AI-004
+**Commit:** PENDING
+
+### Files Created
+
+- `src/services/ai/provider.ts` — Defined `AiProvider` interface and factory (`createAiProvider`) with runtime selection by `AI_PROVIDER`.
+- `src/services/ai/openai.ts` — Implemented OpenAI provider (`gpt-4o-mini`) with prompt usage, JSON parsing, and graceful fallback for malformed responses.
+- `src/services/ai/anthropic.ts` — Implemented Anthropic provider (`claude-haiku-4-5-20251001`) with shared prompt/parse flow and graceful fallback.
+- `src/services/ai/prompts.ts` — Added pure prompt builders plus safe AI JSON parsing/normalization utilities.
+- `src/services/ai/suggest.ts` — Added AI processing pipeline for batch article processing and manual per-article suggestion generation.
+- `src/routes/ai.ts` — Added routes:
+  - `POST /api/v1/ai/suggest/:articleId`
+  - `PATCH /api/v1/suggestions/:id/status`
+- `src/services/ai/openai.test.ts` — Unit tests for OpenAI provider prompt usage and malformed JSON handling.
+- `src/services/ai/anthropic.test.ts` — Unit tests for Anthropic provider prompt usage and malformed JSON handling.
+- `src/services/ai/provider.test.ts` — Unit tests for provider factory selection by env config.
+
+### Files Modified
+
+- `src/routes/index.ts` — Registered AI routes module.
+- `src/services/scraper/runner.ts` — Triggered AI processing after successful article insertion in scraper runs.
+
+### Summary
+
+Implemented the full AI epic: provider abstraction, prompt templates, suggestion generation pipeline with batching, and protected suggestion routes with ownership checks. Added unit tests covering provider calls and malformed AI payload handling without throwing.
+
+### Notes
+
+- Backend `vitest` suite passes with new AI tests.
+- `backend build` still reports pre-existing typing issues in scraper/sites modules unrelated to this AI implementation.
+
+## [2026-02-21 22:44 UTC] ad-hoc — Fix Site Edit Scraper Strategy Recalculation
+
+**Agent:** gpt-5-codex
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Modified
+
+- `src/routes/sites.ts` — Recomputed `source_type` and `feed_url` on site update when URL or `scraping_config` changes, applying RSS detection and HTML fallback consistently.
+
+### Summary
+
+Fixed site update behavior so editing URL/selectors now refreshes scraper strategy instead of keeping stale mode/feed settings that could break preview and scraping.
+
 ## [2026-02-21] SCRAPER-001 to SCRAPER-005 — Scraping Engine
 
 **Agent:** Claude Opus 4.6

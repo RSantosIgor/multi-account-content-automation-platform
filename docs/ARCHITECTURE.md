@@ -288,7 +288,7 @@ On conflict → `ON CONFLICT DO NOTHING` (PostgreSQL upsert).
 
 3. For each unprocessed article:
    a. Build prompt: title + summary → target: 280-char post + hashtags
-   b. Call AI provider (OpenAI or Anthropic based on AI_PROVIDER env var)
+   b. Call AI provider (OpenAI, Anthropic, or DeepSeek based on AI_PROVIDER env var)
    c. Parse response → extract post text + hashtags array
    d. Save to ai_suggestions (status: 'pending')
    e. Mark scraped_articles.is_processed = true
@@ -304,7 +304,7 @@ interface AiProvider {
   generateSuggestion(title: string, summary: string): Promise<AiSuggestion>;
 }
 
-// Implementations: OpenAiProvider, AnthropicProvider
+// Implementations: OpenAiProvider, AnthropicProvider, DeepseekProvider
 // Selected at runtime via AI_PROVIDER env var
 ```
 
@@ -654,9 +654,10 @@ X_CLIENT_SECRET=<oauth2_client_secret>
 X_CALLBACK_URL=http://localhost:3001/api/v1/x/oauth/callback
 
 # AI Provider
-AI_PROVIDER=openai         # or 'anthropic'
+AI_PROVIDER=openai         # or 'anthropic' or 'deepseek'
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
+DEEPSEEK_API_KEY=sk-...
 
 # Cron secret (for manual trigger via API)
 CRON_SECRET=<random_secret>

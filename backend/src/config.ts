@@ -12,9 +12,10 @@ const schema = z.object({
   X_CLIENT_ID: z.string().min(1),
   X_CLIENT_SECRET: z.string().min(1),
   X_CALLBACK_URL: z.string().url(),
-  AI_PROVIDER: z.enum(['openai', 'anthropic']),
+  AI_PROVIDER: z.enum(['openai', 'anthropic', 'deepseek']),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  DEEPSEEK_API_KEY: z.string().optional(),
   CRON_SECRET: z.string().min(1),
 });
 

@@ -47,10 +47,10 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [SCRAPER-003](#scraper-003--scraper-runner--orchestrator)     | Scraper Runner & Orchestrator                  | Backend   | Critical | DONE   |
 | [SCRAPER-004](#scraper-004--scraping-routes-backend)          | Scraping Routes                                | Backend   | High     | DONE   |
 | [SCRAPER-005](#scraper-005--cron-job-scheduler)               | Cron Job Scheduler                             | Backend   | Critical | DONE   |
-| [AI-001](#ai-001--ai-provider-abstraction)                    | AI Provider Abstraction                        | Backend   | Critical | TODO   |
-| [AI-002](#ai-002--prompt-templates)                           | Prompt Templates                               | Backend   | High     | TODO   |
-| [AI-003](#ai-003--ai-processing-pipeline)                     | AI Processing Pipeline                         | Backend   | Critical | TODO   |
-| [AI-004](#ai-004--ai-suggestion-routes-backend)               | AI Suggestion Routes                           | Backend   | High     | TODO   |
+| [AI-001](#ai-001--ai-provider-abstraction)                    | AI Provider Abstraction                        | Backend   | Critical | DONE   |
+| [AI-002](#ai-002--prompt-templates)                           | Prompt Templates                               | Backend   | High     | DONE   |
+| [AI-003](#ai-003--ai-processing-pipeline)                     | AI Processing Pipeline                         | Backend   | Critical | DONE   |
+| [AI-004](#ai-004--ai-suggestion-routes-backend)               | AI Suggestion Routes                           | Backend   | High     | DONE   |
 | [TIMELINE-001](#timeline-001--timeline-api-route-backend)     | Timeline API Route                             | Backend   | Critical | TODO   |
 | [TIMELINE-002](#timeline-002--timeline-page-frontend)         | Timeline Page                                  | Frontend  | Critical | TODO   |
 | [TIMELINE-003](#timeline-003--timeline-filters-frontend)      | Timeline Filters                               | Frontend  | Medium   | TODO   |
@@ -1158,7 +1158,7 @@ Called in `backend/src/server.ts` before `fastify.listen()`.
 
 | Field        | Value               |
 | ------------ | ------------------- |
-| Status       | TODO                |
+| Status       | DONE                |
 | Priority     | Critical            |
 | Dependencies | CORE-004, SETUP-002 |
 
@@ -1199,7 +1199,7 @@ export function createAiProvider(): AiProvider {
 
 | Field        | Value  |
 | ------------ | ------ |
-| Status       | TODO   |
+| Status       | DONE   |
 | Priority     | High   |
 | Dependencies | AI-001 |
 
@@ -1233,7 +1233,7 @@ Respond ONLY with valid JSON: { "text": "...", "hashtags": ["...", "..."] }
 
 | Field        | Value          |
 | ------------ | -------------- |
-| Status       | TODO           |
+| Status       | DONE           |
 | Priority     | Critical       |
 | Dependencies | AI-001, AI-002 |
 
@@ -1262,7 +1262,7 @@ Called by `ScraperRunner` after articles are saved.
 
 | Field        | Value  |
 | ------------ | ------ |
-| Status       | TODO   |
+| Status       | DONE   |
 | Priority     | High   |
 | Dependencies | AI-003 |
 
