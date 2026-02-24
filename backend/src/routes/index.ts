@@ -6,6 +6,7 @@ import sitesRoutes from './sites.js';
 import scrapeRoutes from './scrape.js';
 import timelineRoutes from './timeline.js';
 import postsRoutes from './posts.js';
+import promptRulesRoutes from './prompt-rules.js';
 import xOAuthRoutes from './x-oauth.js';
 
 const routes: FastifyPluginAsync = async (fastify) => {
@@ -17,6 +18,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(scrapeRoutes);
   await fastify.register(timelineRoutes);
   await fastify.register(postsRoutes);
+  await fastify.register(promptRulesRoutes);
 };
 
 export default routes;

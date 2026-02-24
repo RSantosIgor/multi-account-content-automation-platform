@@ -1,266 +1,77 @@
-// ============================================================
-// DB-006: Database Types
-// ============================================================
-// Generated from the Supabase schema.
-// Re-run with: pnpm db:types
-// Do NOT edit manually — regenerate after schema changes.
-// ============================================================
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.1';
+  };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
-      user_profiles: {
-        Row: {
-          id: string;
-          display_name: string | null;
-          avatar_url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id: string;
-          display_name?: string | null;
-          avatar_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          display_name?: string | null;
-          avatar_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'user_profiles_id_fkey';
-            columns: ['id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      user_roles: {
-        Row: {
-          id: string;
-          user_id: string;
-          role: 'admin' | 'member';
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          role?: 'admin' | 'member';
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          role?: 'admin' | 'member';
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'user_roles_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      x_accounts: {
-        Row: {
-          id: string;
-          user_id: string;
-          x_user_id: string;
-          x_username: string;
-          x_display_name: string | null;
-          x_profile_image_url: string | null;
-          oauth_access_token_enc: string;
-          oauth_refresh_token_enc: string;
-          token_expires_at: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          x_user_id: string;
-          x_username: string;
-          x_display_name?: string | null;
-          x_profile_image_url?: string | null;
-          oauth_access_token_enc: string;
-          oauth_refresh_token_enc: string;
-          token_expires_at?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          x_user_id?: string;
-          x_username?: string;
-          x_display_name?: string | null;
-          x_profile_image_url?: string | null;
-          oauth_access_token_enc?: string;
-          oauth_refresh_token_enc?: string;
-          token_expires_at?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'x_accounts_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      news_sites: {
-        Row: {
-          id: string;
-          x_account_id: string;
-          name: string;
-          url: string;
-          source_type: 'rss' | 'html' | 'auto';
-          feed_url: string | null;
-          scraping_config: Json | null;
-          scraping_interval_hours: number;
-          is_active: boolean;
-          last_scraped_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          x_account_id: string;
-          name: string;
-          url: string;
-          source_type?: 'rss' | 'html' | 'auto';
-          feed_url?: string | null;
-          scraping_config?: Json | null;
-          scraping_interval_hours?: number;
-          is_active?: boolean;
-          last_scraped_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          x_account_id?: string;
-          name?: string;
-          url?: string;
-          source_type?: 'rss' | 'html' | 'auto';
-          feed_url?: string | null;
-          scraping_config?: Json | null;
-          scraping_interval_hours?: number;
-          is_active?: boolean;
-          last_scraped_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'news_sites_x_account_id_fkey';
-            columns: ['x_account_id'];
-            isOneToOne: false;
-            referencedRelation: 'x_accounts';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      scraped_articles: {
-        Row: {
-          id: string;
-          news_site_id: string;
-          url: string;
-          title: string;
-          summary: string | null;
-          published_at: string | null;
-          is_processed: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          news_site_id: string;
-          url: string;
-          title: string;
-          summary?: string | null;
-          published_at?: string | null;
-          is_processed?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          news_site_id?: string;
-          url?: string;
-          title?: string;
-          summary?: string | null;
-          published_at?: string | null;
-          is_processed?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'scraped_articles_news_site_id_fkey';
-            columns: ['news_site_id'];
-            isOneToOne: false;
-            referencedRelation: 'news_sites';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       ai_suggestions: {
         Row: {
-          id: string;
           article_id: string;
-          x_account_id: string;
-          suggestion_text: string;
+          article_summary: Json | null;
+          created_at: string;
           hashtags: string[];
-          status: 'pending' | 'approved' | 'rejected' | 'posted';
+          id: string;
           reviewed_at: string | null;
           reviewed_by: string | null;
-          created_at: string;
+          status: string;
+          suggestion_text: string;
           updated_at: string;
+          x_account_id: string;
         };
         Insert: {
-          id?: string;
           article_id: string;
-          x_account_id: string;
-          suggestion_text: string;
+          article_summary?: Json | null;
+          created_at?: string;
           hashtags?: string[];
-          status?: 'pending' | 'approved' | 'rejected' | 'posted';
+          id?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
-          created_at?: string;
+          status?: string;
+          suggestion_text: string;
           updated_at?: string;
+          x_account_id: string;
         };
         Update: {
-          id?: string;
           article_id?: string;
-          x_account_id?: string;
-          suggestion_text?: string;
+          article_summary?: Json | null;
+          created_at?: string;
           hashtags?: string[];
-          status?: 'pending' | 'approved' | 'rejected' | 'posted';
+          id?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
-          created_at?: string;
+          status?: string;
+          suggestion_text?: string;
           updated_at?: string;
+          x_account_id?: string;
         };
         Relationships: [
           {
@@ -277,63 +88,123 @@ export type Database = {
             referencedRelation: 'x_accounts';
             referencedColumns: ['id'];
           },
-          {
-            foreignKeyName: 'ai_suggestions_reviewed_by_fkey';
-            columns: ['reviewed_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
         ];
       };
-      posts: {
+      news_sites: {
         Row: {
-          id: string;
-          x_account_id: string;
-          ai_suggestion_id: string | null;
-          content: string;
-          x_post_id: string | null;
-          x_post_url: string | null;
-          status: 'published' | 'failed';
-          error_message: string | null;
-          published_at: string | null;
           created_at: string;
+          feed_url: string | null;
+          id: string;
+          is_active: boolean;
+          last_scraped_at: string | null;
+          name: string;
+          scraping_config: Json | null;
+          scraping_interval_hours: number;
+          source_type: string;
           updated_at: string;
+          url: string;
+          x_account_id: string;
         };
         Insert: {
-          id?: string;
-          x_account_id: string;
-          ai_suggestion_id?: string | null;
-          content: string;
-          x_post_id?: string | null;
-          x_post_url?: string | null;
-          status: 'published' | 'failed';
-          error_message?: string | null;
-          published_at?: string | null;
           created_at?: string;
+          feed_url?: string | null;
+          id?: string;
+          is_active?: boolean;
+          last_scraped_at?: string | null;
+          name: string;
+          scraping_config?: Json | null;
+          scraping_interval_hours?: number;
+          source_type?: string;
           updated_at?: string;
+          url: string;
+          x_account_id: string;
         };
         Update: {
-          id?: string;
-          x_account_id?: string;
-          ai_suggestion_id?: string | null;
-          content?: string;
-          x_post_id?: string | null;
-          x_post_url?: string | null;
-          status?: 'published' | 'failed';
-          error_message?: string | null;
-          published_at?: string | null;
           created_at?: string;
+          feed_url?: string | null;
+          id?: string;
+          is_active?: boolean;
+          last_scraped_at?: string | null;
+          name?: string;
+          scraping_config?: Json | null;
+          scraping_interval_hours?: number;
+          source_type?: string;
           updated_at?: string;
+          url?: string;
+          x_account_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'posts_x_account_id_fkey';
+            foreignKeyName: 'news_sites_x_account_id_fkey';
             columns: ['x_account_id'];
             isOneToOne: false;
             referencedRelation: 'x_accounts';
             referencedColumns: ['id'];
           },
+        ];
+      };
+      oauth_state: {
+        Row: {
+          code_verifier: string;
+          expires_at: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          code_verifier: string;
+          expires_at: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          code_verifier?: string;
+          expires_at?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      posts: {
+        Row: {
+          ai_suggestion_id: string | null;
+          content: string;
+          created_at: string;
+          error_message: string | null;
+          id: string;
+          published_at: string | null;
+          status: string;
+          updated_at: string;
+          x_account_id: string;
+          x_post_id: string | null;
+          x_post_url: string | null;
+        };
+        Insert: {
+          ai_suggestion_id?: string | null;
+          content: string;
+          created_at?: string;
+          error_message?: string | null;
+          id?: string;
+          published_at?: string | null;
+          status: string;
+          updated_at?: string;
+          x_account_id: string;
+          x_post_id?: string | null;
+          x_post_url?: string | null;
+        };
+        Update: {
+          ai_suggestion_id?: string | null;
+          content?: string;
+          created_at?: string;
+          error_message?: string | null;
+          id?: string;
+          published_at?: string | null;
+          status?: string;
+          updated_at?: string;
+          x_account_id?: string;
+          x_post_id?: string | null;
+          x_post_url?: string | null;
+        };
+        Relationships: [
           {
             foreignKeyName: 'posts_ai_suggestion_id_fkey';
             columns: ['ai_suggestion_id'];
@@ -341,40 +212,138 @@ export type Database = {
             referencedRelation: 'ai_suggestions';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'posts_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      prompt_rules: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          priority: number;
+          prompt_text: string;
+          rule_name: string;
+          rule_type: string;
+          updated_at: string;
+          x_account_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          priority?: number;
+          prompt_text: string;
+          rule_name: string;
+          rule_type: string;
+          updated_at?: string;
+          x_account_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          priority?: number;
+          prompt_text?: string;
+          rule_name?: string;
+          rule_type?: string;
+          updated_at?: string;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'prompt_rules_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      scraped_articles: {
+        Row: {
+          created_at: string;
+          full_article_content: string | null;
+          id: string;
+          is_processed: boolean;
+          news_site_id: string;
+          published_at: string | null;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          url: string;
+        };
+        Insert: {
+          created_at?: string;
+          full_article_content?: string | null;
+          id?: string;
+          is_processed?: boolean;
+          news_site_id: string;
+          published_at?: string | null;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          url: string;
+        };
+        Update: {
+          created_at?: string;
+          full_article_content?: string | null;
+          id?: string;
+          is_processed?: boolean;
+          news_site_id?: string;
+          published_at?: string | null;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'scraped_articles_news_site_id_fkey';
+            columns: ['news_site_id'];
+            isOneToOne: false;
+            referencedRelation: 'news_sites';
+            referencedColumns: ['id'];
+          },
         ];
       };
       scraping_runs: {
         Row: {
+          articles_found: number;
+          created_at: string;
+          error_message: string | null;
+          finished_at: string | null;
           id: string;
           news_site_id: string;
-          status: 'running' | 'success' | 'failed';
-          articles_found: number;
           started_at: string;
-          finished_at: string | null;
-          error_message: string | null;
-          created_at: string;
+          status: string;
           updated_at: string;
         };
         Insert: {
+          articles_found?: number;
+          created_at?: string;
+          error_message?: string | null;
+          finished_at?: string | null;
           id?: string;
           news_site_id: string;
-          status?: 'running' | 'success' | 'failed';
-          articles_found?: number;
           started_at?: string;
-          finished_at?: string | null;
-          error_message?: string | null;
-          created_at?: string;
+          status?: string;
           updated_at?: string;
         };
         Update: {
+          articles_found?: number;
+          created_at?: string;
+          error_message?: string | null;
+          finished_at?: string | null;
           id?: string;
           news_site_id?: string;
-          status?: 'running' | 'success' | 'failed';
-          articles_found?: number;
           started_at?: string;
-          finished_at?: string | null;
-          error_message?: string | null;
-          created_at?: string;
+          status?: string;
           updated_at?: string;
         };
         Relationships: [
@@ -387,55 +356,235 @@ export type Database = {
           },
         ];
       };
-      oauth_state: {
+      user_profiles: {
         Row: {
+          avatar_url: string | null;
+          created_at: string;
+          display_name: string | null;
           id: string;
-          user_id: string;
-          code_verifier: string;
-          expires_at: string;
+          updated_at: string;
         };
         Insert: {
-          id?: string;
-          user_id: string;
-          code_verifier: string;
-          expires_at: string;
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          id: string;
+          updated_at?: string;
         };
         Update: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
           id?: string;
-          user_id?: string;
-          code_verifier?: string;
-          expires_at?: string;
+          updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'oauth_state_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
+      };
+      user_roles: {
+        Row: {
+          created_at: string;
+          id: string;
+          role: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          role?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          role?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      x_accounts: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          oauth_access_token_enc: string;
+          oauth_refresh_token_enc: string;
+          token_expires_at: string | null;
+          updated_at: string;
+          user_id: string;
+          x_display_name: string | null;
+          x_profile_image_url: string | null;
+          x_user_id: string;
+          x_username: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          oauth_access_token_enc: string;
+          oauth_refresh_token_enc: string;
+          token_expires_at?: string | null;
+          updated_at?: string;
+          user_id: string;
+          x_display_name?: string | null;
+          x_profile_image_url?: string | null;
+          x_user_id: string;
+          x_username: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          oauth_access_token_enc?: string;
+          oauth_refresh_token_enc?: string;
+          token_expires_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          x_display_name?: string | null;
+          x_profile_image_url?: string | null;
+          x_user_id?: string;
+          x_username?: string;
+        };
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 };
 
-// ============================================================
-// Convenience type aliases for use throughout the backend
-// ============================================================
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
-type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>];
 
-export type UserProfile = Tables<'user_profiles'>;
-export type UserRole = Tables<'user_roles'>;
-export type XAccount = Tables<'x_accounts'>;
-export type NewsSite = Tables<'news_sites'>;
-export type ScrapedArticle = Tables<'scraped_articles'>;
-export type AiSuggestion = Tables<'ai_suggestions'>;
-export type Post = Tables<'posts'>;
-export type ScrapingRun = Tables<'scraping_runs'>;
-export type OauthState = Tables<'oauth_state'>;
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema['Tables']
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema['Tables']
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema['Enums']
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema['CompositeTypes']
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const;

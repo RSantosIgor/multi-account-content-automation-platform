@@ -2,6 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { supabase } from '../lib/supabase.js';
 import { AiSuggestionService } from '../services/ai/suggest.js';
+import { fetchArticleContent } from '../services/scraper/article-fetcher.js';
+import { generateArticleSummary } from '../services/ai/summarizer.js';
+import { createAiProvider } from '../services/ai/provider.js';
+import type { Json } from '../types/database.js';
 
 const suggestParamsSchema = z.object({
   articleId: z.string().uuid(),
@@ -148,6 +152,7 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
         );
       }
 
+      // Update suggestion status
       const { data: updated, error: updateError } = await supabase
         .from('ai_suggestions')
         .update({
@@ -157,7 +162,7 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
         })
         .eq('id', paramsResult.data.id)
         .select(
-          'id, article_id, x_account_id, suggestion_text, hashtags, status, reviewed_at, reviewed_by, created_at, updated_at',
+          'id, article_id, x_account_id, suggestion_text, hashtags, status, reviewed_at, reviewed_by, created_at, updated_at, article_summary',
         )
         .single();
 
@@ -165,6 +170,57 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
         throw fastify.httpErrors.internalServerError(
           updateError?.message ?? 'Failed to update suggestion status',
         );
+      }
+
+      // If approved and no article_summary yet, generate it
+      if (bodyResult.data.status === 'approved' && !updated.article_summary) {
+        try {
+          // Fetch article details
+          const { data: article, error: articleError } = await supabase
+            .from('scraped_articles')
+            .select('id, url, title, full_article_content')
+            .eq('id', updated.article_id)
+            .single();
+
+          if (!articleError && article) {
+            let content = article.full_article_content;
+
+            // If no cached content, fetch it
+            if (!content) {
+              try {
+                const fetched = await fetchArticleContent(article.url);
+                content = fetched.content;
+
+                // Cache the full content
+                await supabase
+                  .from('scraped_articles')
+                  .update({ full_article_content: content })
+                  .eq('id', article.id);
+              } catch (fetchError) {
+                console.error('[AI Routes] Failed to fetch article content:', fetchError);
+                // Continue with title as fallback
+                content = article.title;
+              }
+            }
+
+            // Generate summary
+            const aiProvider = createAiProvider();
+            const summary = await generateArticleSummary(aiProvider, article.title, content);
+
+            // Update suggestion with summary (cast to Json type for Supabase)
+            await supabase
+              .from('ai_suggestions')
+              .update({ article_summary: summary as Json })
+              .eq('id', updated.id);
+
+            // Add summary to response
+            (updated as typeof updated & { article_summary: typeof summary }).article_summary =
+              summary;
+          }
+        } catch (error) {
+          // Log error but don't fail the request
+          console.error('[AI Routes] Failed to generate article summary:', error);
+        }
       }
 
       return {
@@ -179,6 +235,7 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
           reviewedBy: updated.reviewed_by,
           createdAt: updated.created_at,
           updatedAt: updated.updated_at,
+          articleSummary: updated.article_summary,
         },
       };
     },

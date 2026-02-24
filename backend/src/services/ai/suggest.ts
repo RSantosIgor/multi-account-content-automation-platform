@@ -1,5 +1,7 @@
 import { supabase } from '../../lib/supabase.js';
 import { createAiProvider } from './provider.js';
+import { buildPublicationPrompt } from './prompt-builder.js';
+import { buildSystemPrompt, buildUserPrompt, parseAiSuggestionResponse } from './prompts.js';
 
 type ProcessingSummary = {
   processed: number;
@@ -39,14 +41,26 @@ export class AiSuggestionService {
       return summary;
     }
 
+    // Build custom prompt with user's publication rules
+    const customSystemPrompt = await buildPublicationPrompt(xAccountId, buildSystemPrompt());
+
     for (let i = 0; i < articles.length; i += batchSize) {
       const batch = articles.slice(i, i + batchSize);
       for (const article of batch) {
         try {
-          const suggestion = await provider.generateSuggestion(
-            article.title,
-            article.summary ?? '',
+          // Use generateRaw with custom prompt
+          const rawResponse = await provider.generateRaw(
+            customSystemPrompt,
+            buildUserPrompt(article.title, article.summary ?? ''),
           );
+
+          // Parse AI response
+          const parsed = parseAiSuggestionResponse(rawResponse);
+          if (!parsed.ok) {
+            throw new Error('Failed to parse AI response');
+          }
+
+          const suggestion = parsed.data;
 
           const { error: insertError } = await supabase.from('ai_suggestions').insert({
             article_id: article.id,
@@ -121,7 +135,23 @@ export class AiSuggestionService {
     }
 
     const provider = createAiProvider();
-    const suggestion = await provider.generateSuggestion(article.title, article.summary ?? '');
+
+    // Build custom prompt with user's publication rules
+    const customSystemPrompt = await buildPublicationPrompt(site.x_account_id, buildSystemPrompt());
+
+    // Use generateRaw with custom prompt
+    const rawResponse = await provider.generateRaw(
+      customSystemPrompt,
+      buildUserPrompt(article.title, article.summary ?? ''),
+    );
+
+    // Parse AI response
+    const parsed = parseAiSuggestionResponse(rawResponse);
+    if (!parsed.ok) {
+      throw new Error('Failed to parse AI response');
+    }
+
+    const suggestion = parsed.data;
 
     const { data: inserted, error: insertError } = await supabase
       .from('ai_suggestions')
@@ -149,7 +179,7 @@ export class AiSuggestionService {
       xAccountId: inserted.x_account_id,
       suggestionText: inserted.suggestion_text,
       hashtags: inserted.hashtags,
-      status: inserted.status,
+      status: inserted.status as 'pending' | 'approved' | 'rejected' | 'posted',
       reviewedAt: inserted.reviewed_at,
       reviewedBy: inserted.reviewed_by,
       createdAt: inserted.created_at,

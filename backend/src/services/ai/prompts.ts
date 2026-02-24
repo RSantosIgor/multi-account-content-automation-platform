@@ -82,3 +82,19 @@ export function parseAiSuggestionResponse(rawText: string): ParsedAiSuggestionRe
     return { ok: false, error: 'AI response is not valid JSON' };
   }
 }
+
+/**
+ * Parse generic JSON response from AI (for article summaries, etc.)
+ */
+export function parseAiJsonResponse(rawText: string): { bullets?: string[] } {
+  const jsonText = extractJsonObject(rawText);
+  if (!jsonText) {
+    throw new Error('No JSON object found in AI response');
+  }
+
+  try {
+    return JSON.parse(jsonText) as { bullets?: string[] };
+  } catch {
+    throw new Error('AI response is not valid JSON');
+  }
+}
