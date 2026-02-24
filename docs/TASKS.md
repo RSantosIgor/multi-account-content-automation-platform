@@ -62,6 +62,14 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [INFRA-001](#infra-001--docker-setup-backend)                 | Docker Setup                                   | Backend   | Medium   | TODO   |
 | [INFRA-002](#infra-002--testing-setup)                        | Testing Setup                                  | Both      | Medium   | TODO   |
 | [INFRA-003](#infra-003--readmemd)                             | README.md                                      | Both      | Medium   | TODO   |
+| [UX-001](#ux-001--breadcrumb-navigation)                      | Breadcrumb Navigation                          | Frontend  | Medium   | TODO   |
+| [UX-002](#ux-002--full-article-summary-generation)            | Full Article Summary Generation                | Both      | High     | TODO   |
+| [UX-003](#ux-003--dashboard-reorganization)                   | Dashboard Reorganization                       | Frontend  | High     | TODO   |
+| [UX-004](#ux-004--account-settings-page)                      | Account Settings Page                          | Both      | High     | TODO   |
+| [UX-005](#ux-005--ai-prompt-rules-system)                     | AI Prompt Rules System                         | Both      | Critical | TODO   |
+| [UX-006](#ux-006--article-detail-page)                        | Article Detail Page                            | Both      | High     | TODO   |
+| [UX-007](#ux-007--dashboard-redesign)                         | Dashboard Redesign                             | Frontend  | Critical | TODO   |
+| [UX-008](#ux-008--statistics-dashboard)                       | Statistics Dashboard                           | Both      | High     | TODO   |
 
 **Workspace legend:** `Backend` = Fastify API · `Frontend` = Next.js UI · `Database` = SQL migrations in `supabase/migrations/` · `Both` = touches both workspaces or root config
 
@@ -83,6 +91,7 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [X Posting](#epic-posts-x-posting)                              | POSTS     | Publish to X, post history                    |
 | [Admin Panel](#epic-admin-admin-panel)                          | ADMIN     | User management, role assignment              |
 | [Infrastructure & Quality](#epic-infra-infrastructure--quality) | INFRA     | Docker, README, testing setup                 |
+| [User Experience](#epic-ux-user-experience)                     | UX        | UI improvements, breadcrumbs, settings        |
 
 ---
 
@@ -1719,4 +1728,393 @@ export default defineConfig({
 
 ---
 
-_Last updated: 2026-02-19_
+## EPIC UX — User Experience
+
+---
+
+### UX-001 — Breadcrumb Navigation
+
+| Field        | Value    |
+| ------------ | -------- |
+| Status       | TODO     |
+| Priority     | Medium   |
+| Dependencies | AUTH-004 |
+
+**Goal:** Add breadcrumb navigation to all pages that are not direct sidebar routes.
+
+**Deliverables:**
+
+- `frontend/components/layout/Breadcrumb.tsx`
+- Breadcrumb component integrated in all non-sidebar pages
+
+**Implementation Notes:**
+
+- Use shadcn/ui Breadcrumb component
+- Breadcrumbs should be dynamically generated based on current route
+- Format: Home > Parent Page > Current Page
+- Exclude direct sidebar routes (Dashboard, Admin, etc.)
+
+**Acceptance Criteria:**
+
+- [ ] Breadcrumb appears on all non-sidebar pages
+- [ ] Each breadcrumb item is clickable and navigates correctly
+- [ ] Active page is not clickable
+- [ ] Responsive design works on mobile
+
+---
+
+### UX-002 — Full Article Summary Generation
+
+| Field        | Value               |
+| ------------ | ------------------- |
+| Status       | TODO                |
+| Priority     | High                |
+| Dependencies | SCRAPER-003, AI-003 |
+
+**Goal:** Store full article URL and generate bullet-point summaries when articles are approved for publication.
+
+**Deliverables:**
+
+- `scraped_articles` table: add `full_article_url` column
+- `ai_suggestions` table: add `article_summary` JSONB column for bullet points
+- `backend/src/services/scraper/article-fetcher.ts` — fetch and parse full article
+- `backend/src/services/ai/summarizer.ts` — generate bullet-point summary
+
+**Implementation Notes:**
+
+Migration:
+
+```sql
+ALTER TABLE scraped_articles ADD COLUMN full_article_url TEXT;
+ALTER TABLE ai_suggestions ADD COLUMN article_summary JSONB;
+```
+
+When article is approved:
+
+1. Fetch full article content from `full_article_url`
+2. Send to AI with prompt: "Generate a bullet-point summary (3-5 points) of this article"
+3. Store result in `article_summary` as `{ bullets: string[] }`
+
+**Acceptance Criteria:**
+
+- [ ] Scraper stores full article URL when available
+- [ ] On approval, full article is fetched and parsed
+- [ ] AI generates 3-5 bullet points in Portuguese/article language
+- [ ] Summary is stored in `article_summary` column
+- [ ] Frontend displays bullet points in article detail view
+
+---
+
+### UX-003 — Dashboard Reorganization
+
+| Field        | Value        |
+| ------------ | ------------ |
+| Status       | TODO         |
+| Priority     | High         |
+| Dependencies | XACCOUNT-003 |
+
+**Goal:** Move current dashboard to a new "Accounts" route and prepare for dashboard redesign.
+
+**Deliverables:**
+
+- `frontend/app/(app)/accounts/page.tsx` — move current dashboard here
+- Update sidebar to show both Dashboard and Accounts routes
+- Redirect logic from `/dashboard` to new home
+
+**Implementation Notes:**
+
+- Current `/dashboard` shows list of X accounts → move to `/accounts`
+- Sidebar structure:
+  - Dashboard (new, will be home after UX-007)
+  - Accounts (current dashboard content)
+  - Admin (if admin role)
+
+**Acceptance Criteria:**
+
+- [ ] `/accounts` shows the list of connected X accounts (current dashboard)
+- [ ] Sidebar shows "Accounts" link below "Dashboard"
+- [ ] All links and navigation updated to use new routes
+- [ ] No broken links or 404s
+
+---
+
+### UX-004 — Account Settings Page
+
+| Field        | Value        |
+| ------------ | ------------ |
+| Status       | TODO         |
+| Priority     | High         |
+| Dependencies | XACCOUNT-003 |
+
+**Goal:** Create account settings page with tabs for account data and prompt configuration.
+
+**Deliverables:**
+
+- `frontend/app/(app)/accounts/[accountId]/settings/page.tsx`
+- `frontend/components/accounts/settings/AccountDataTab.tsx`
+- `frontend/components/accounts/settings/PromptRulesTab.tsx`
+- `backend/src/routes/accounts.ts` — add `PATCH /api/v1/accounts/:id` endpoint
+
+**Implementation Notes:**
+
+- Use shadcn/ui Tabs component
+- Tab 1: Account Data
+  - Display name (editable)
+  - X username (read-only)
+  - Connected date (read-only)
+  - Disconnect button
+- Tab 2: Prompt Rules (see UX-005)
+
+**Acceptance Criteria:**
+
+- [ ] Settings page accessible from account card or account detail page
+- [ ] Account data can be viewed and edited
+- [ ] Changes persist to database
+- [ ] Success/error toasts on save
+- [ ] Navigation between tabs works smoothly
+
+---
+
+### UX-005 — AI Prompt Rules System
+
+| Field        | Value          |
+| ------------ | -------------- |
+| Status       | TODO           |
+| Priority     | Critical       |
+| Dependencies | AI-003, UX-004 |
+
+**Goal:** Allow users to configure custom AI prompts for analysis and publication.
+
+**Deliverables:**
+
+- Database migration: create `prompt_rules` table
+- `backend/src/routes/prompt-rules.ts` — CRUD endpoints
+- `frontend/components/accounts/settings/PromptRuleForm.tsx`
+- `backend/src/services/ai/prompt-builder.ts` — combine rules with base prompts
+
+**Implementation Notes:**
+
+Migration:
+
+```sql
+CREATE TABLE prompt_rules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  x_account_id UUID NOT NULL REFERENCES x_accounts(id) ON DELETE CASCADE,
+  rule_type TEXT NOT NULL CHECK (rule_type IN ('analysis', 'publication')),
+  prompt_text TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  priority INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_prompt_rules_account ON prompt_rules(x_account_id);
+```
+
+Rule Types:
+
+- `analysis`: Used to decide if article should be suggested or discarded
+- `publication`: Used to generate the final X post text
+
+When processing articles:
+
+1. Load all active `analysis` rules for the account (ordered by priority)
+2. Append rules to base analysis prompt
+3. AI decides: suggest or discard
+4. If suggested, load `publication` rules and generate post
+
+**Acceptance Criteria:**
+
+- [ ] Users can create, edit, delete, and toggle prompt rules
+- [ ] Rules are ordered by priority
+- [ ] Analysis rules filter which articles become suggestions
+- [ ] Publication rules influence the generated post text
+- [ ] Rules are applied in the AI processing pipeline
+- [ ] Frontend shows rule type badge and priority
+
+---
+
+### UX-006 — Article Detail Page
+
+| Field        | Value                           |
+| ------------ | ------------------------------- |
+| Status       | TODO                            |
+| Priority     | High                            |
+| Dependencies | TIMELINE-002, UX-002, POSTS-002 |
+
+**Goal:** Create a detailed view for each article/suggestion/post with vertical stepper showing progression.
+
+**Deliverables:**
+
+- `frontend/app/(app)/accounts/[accountId]/timeline/[itemId]/page.tsx`
+- `frontend/components/timeline/detail/DetailStepper.tsx`
+- `frontend/components/timeline/detail/OriginalArticleStep.tsx`
+- `frontend/components/timeline/detail/SuggestionStep.tsx`
+- `frontend/components/timeline/detail/PublicationStep.tsx`
+- `backend/src/routes/timeline.ts` — add `GET /api/v1/timeline/items/:id` endpoint
+
+**Implementation Notes:**
+
+Vertical Stepper steps:
+
+1. **Original Article**
+   - Article title, source site, published date
+   - Full article URL (link)
+   - Summary (bullet points from UX-002)
+   - Scraped date
+
+2. **AI Suggestion** (if exists)
+   - Suggestion text
+   - Hashtags
+   - Generated timestamp
+   - Status badge (pending/approved/rejected)
+   - If processed: show AI output and timestamp
+   - If not processed: show "Process Article" button with custom prompt field
+
+3. **Publication** (if exists)
+   - Published text
+   - Published timestamp
+   - X post URL (external link)
+   - Status (published/failed)
+   - If failed: error message
+
+**Acceptance Criteria:**
+
+- [ ] Stepper shows completed steps in green, pending in gray
+- [ ] Each step displays all relevant information
+- [ ] "Process Article" button triggers AI processing with optional custom prompt
+- [ ] X post link opens in new tab
+- [ ] Page is responsive and works on mobile
+- [ ] Back button returns to timeline
+
+---
+
+### UX-007 — Dashboard Redesign
+
+| Field        | Value                           |
+| ------------ | ------------------------------- |
+| Status       | TODO                            |
+| Priority     | Critical                        |
+| Dependencies | UX-003, TIMELINE-002, POSTS-002 |
+
+**Goal:** Redesign dashboard as the main landing page showing posts awaiting approval and recently published posts.
+
+**Deliverables:**
+
+- `frontend/app/(app)/dashboard/page.tsx` — completely rewritten
+- `frontend/components/dashboard/AccountSelector.tsx`
+- `frontend/components/dashboard/PendingPostsSection.tsx`
+- `frontend/components/dashboard/PublishedPostsSection.tsx`
+- `frontend/components/dashboard/RejectedPostsToggle.tsx`
+- Backend: reuse existing timeline/posts endpoints with filters
+
+**Implementation Notes:**
+
+Dashboard sections:
+
+1. **Header**
+   - Account selector dropdown (switch between user's accounts)
+   - Selected account name and avatar
+
+2. **Pending Approval** (default view)
+   - Grid/list of suggestions with status = 'pending'
+   - Quick actions: Approve, Reject, View Detail
+   - Empty state if no pending items
+
+3. **Published** (toggle tab)
+   - Grid/list of posts with status = 'published'
+   - Shows published date and X post link
+
+4. **Rejected** (optional toggle)
+   - Hidden by default
+   - Shows rejected suggestions with reason (if any)
+
+First screen after login:
+
+- Redirect from `/login` to `/dashboard` (already done)
+- If user has no accounts, show onboarding CTA to connect X account
+- If user has accounts, default to first account
+
+**Acceptance Criteria:**
+
+- [ ] Dashboard is the first screen after login
+- [ ] Account selector allows switching between user's accounts
+- [ ] Pending posts section shows all items awaiting approval
+- [ ] Published posts section shows recent posts with links
+- [ ] Rejected posts can be toggled on/off
+- [ ] Quick actions work (approve, reject, view detail)
+- [ ] Empty states have helpful CTAs
+- [ ] Responsive design for mobile and tablet
+
+---
+
+### UX-008 — Statistics Dashboard
+
+| Field        | Value             |
+| ------------ | ----------------- |
+| Status       | TODO              |
+| Priority     | High              |
+| Dependencies | POSTS-002, UX-007 |
+
+**Goal:** Create a statistics page showing posting activity over time with charts and metrics.
+
+**Deliverables:**
+
+- `frontend/app/(app)/accounts/[accountId]/stats/page.tsx`
+- `frontend/components/stats/PostingChart.tsx`
+- `frontend/components/stats/MetricsCards.tsx`
+- `backend/src/routes/stats.ts` — statistics aggregation endpoints
+- Add "Statistics" link to sidebar
+
+**Implementation Notes:**
+
+Endpoint:
+
+```
+GET /api/v1/accounts/:accountId/stats?from=&to=
+```
+
+Response:
+
+```typescript
+{
+  dailyPosts: { date: string, count: number }[],
+  metrics: {
+    avgPerDay: number,
+    avgPerWeek: number,
+    avgPerMonth: number,
+    totalPosts: number
+  }
+}
+```
+
+UI Components:
+
+1. **Date Range Filter**
+   - Presets: Last 7 days, Last 30 days, Last 90 days, Custom range
+   - shadcn/ui DatePicker for custom range
+
+2. **Metrics Cards** (top row)
+   - Total posts in period
+   - Average per day
+   - Average per week
+   - Average per month
+
+3. **Posting Chart** (main)
+   - Use Recharts or similar charting library
+   - Bar/line chart showing posts per day
+   - X-axis: dates, Y-axis: post count
+
+**Acceptance Criteria:**
+
+- [ ] Stats page accessible from sidebar under account context
+- [ ] Date range filter works and updates chart
+- [ ] Metrics cards display accurate averages
+- [ ] Chart renders correctly with data
+- [ ] Empty state when no posts in selected period
+- [ ] Chart is responsive and works on mobile
+- [ ] Data is fetched efficiently (use aggregation, not full post list)
+
+---
+
+_Last updated: 2026-02-24_

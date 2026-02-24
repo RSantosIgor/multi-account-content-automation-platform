@@ -55,4 +55,26 @@ export class AnthropicProvider implements AiProvider {
       return fallbackSuggestion(title);
     }
   }
+
+  async generateRaw(systemPrompt: string, userPrompt: string): Promise<string> {
+    try {
+      const response = await this.client.messages.create({
+        model: this.model,
+        max_tokens: 1000,
+        temperature: 0.4,
+        system: systemPrompt,
+        messages: [
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
+      });
+
+      return getTextContent(response.content);
+    } catch (error) {
+      console.error('[AnthropicProvider] Error in generateRaw:', error);
+      throw error;
+    }
+  }
 }

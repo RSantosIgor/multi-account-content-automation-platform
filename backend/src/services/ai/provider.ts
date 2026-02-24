@@ -10,6 +10,11 @@ export type AiSuggestionOutput = {
 
 export interface AiProvider {
   generateSuggestion(title: string, summary: string): Promise<AiSuggestionOutput>;
+  /**
+   * Generate raw AI completion with custom system and user prompts
+   * Used for custom use cases like article summarization
+   */
+  generateRaw(systemPrompt: string, userPrompt: string): Promise<string>;
 }
 
 export function createAiProvider(): AiProvider {

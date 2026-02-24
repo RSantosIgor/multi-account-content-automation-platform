@@ -70,7 +70,7 @@ const postRoutes: FastifyPluginAsync = async (fastify) => {
           .from('posts')
           .insert({
             x_account_id: accountId,
-            ai_suggestion_id: suggestion_id,
+            ai_suggestion_id: suggestion_id ?? null,
             content,
             status: 'failed',
             error_message: errorMessage,
@@ -97,7 +97,7 @@ const postRoutes: FastifyPluginAsync = async (fastify) => {
         .from('posts')
         .insert({
           x_account_id: accountId,
-          ai_suggestion_id: suggestion_id,
+          ai_suggestion_id: suggestion_id ?? null,
           content,
           status: 'published',
           x_post_id: tweetId,

@@ -44,4 +44,23 @@ export class OpenAiProvider implements AiProvider {
       return fallbackSuggestion(title);
     }
   }
+
+  async generateRaw(systemPrompt: string, userPrompt: string): Promise<string> {
+    try {
+      const completion = await this.client.chat.completions.create({
+        model: this.model,
+        temperature: 0.4,
+        max_tokens: 1000,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      });
+
+      return completion.choices[0]?.message?.content ?? '';
+    } catch (error) {
+      console.error('[OpenAiProvider] Error in generateRaw:', error);
+      throw error;
+    }
+  }
 }
