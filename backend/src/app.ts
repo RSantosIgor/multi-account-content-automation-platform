@@ -34,6 +34,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(cors, {
     origin: config.FRONTEND_URL,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   // Sensible HTTP error helpers (throw fastify.httpErrors.notFound())

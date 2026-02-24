@@ -51,14 +51,14 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [AI-002](#ai-002--prompt-templates)                           | Prompt Templates                               | Backend   | High     | DONE   |
 | [AI-003](#ai-003--ai-processing-pipeline)                     | AI Processing Pipeline                         | Backend   | Critical | DONE   |
 | [AI-004](#ai-004--ai-suggestion-routes-backend)               | AI Suggestion Routes                           | Backend   | High     | DONE   |
-| [TIMELINE-001](#timeline-001--timeline-api-route-backend)     | Timeline API Route                             | Backend   | Critical | TODO   |
-| [TIMELINE-002](#timeline-002--timeline-page-frontend)         | Timeline Page                                  | Frontend  | Critical | TODO   |
-| [TIMELINE-003](#timeline-003--timeline-filters-frontend)      | Timeline Filters                               | Frontend  | Medium   | TODO   |
-| [POSTS-001](#posts-001--x-posting-service-backend)            | X Posting Service                              | Backend   | Critical | TODO   |
-| [POSTS-002](#posts-002--post-routes-backend)                  | Post Routes                                    | Backend   | Critical | TODO   |
-| [POSTS-003](#posts-003--publish-action-frontend)              | Publish Action                                 | Frontend  | Critical | TODO   |
-| [ADMIN-001](#admin-001--admin-layout--guard)                  | Admin Layout & Guard                           | Both      | Medium   | TODO   |
-| [ADMIN-002](#admin-002--user-management-page)                 | User Management Page                           | Both      | Medium   | TODO   |
+| [TIMELINE-001](#timeline-001--timeline-api-route-backend)     | Timeline API Route                             | Backend   | Critical | DONE   |
+| [TIMELINE-002](#timeline-002--timeline-page-frontend)         | Timeline Page                                  | Frontend  | Critical | DONE   |
+| [TIMELINE-003](#timeline-003--timeline-filters-frontend)      | Timeline Filters                               | Frontend  | Medium   | DONE   |
+| [POSTS-001](#posts-001--x-posting-service-backend)            | X Posting Service                              | Backend   | Critical | DONE   |
+| [POSTS-002](#posts-002--post-routes-backend)                  | Post Routes                                    | Backend   | Critical | DONE   |
+| [POSTS-003](#posts-003--publish-action-frontend)              | Publish Action                                 | Frontend  | Critical | DONE   |
+| [ADMIN-001](#admin-001--admin-layout--guard)                  | Admin Layout & Guard                           | Both      | Medium   | DONE   |
+| [ADMIN-002](#admin-002--user-management-page)                 | User Management Page                           | Both      | Medium   | DONE   |
 | [INFRA-001](#infra-001--docker-setup-backend)                 | Docker Setup                                   | Backend   | Medium   | TODO   |
 | [INFRA-002](#infra-002--testing-setup)                        | Testing Setup                                  | Both      | Medium   | TODO   |
 | [INFRA-003](#infra-003--readmemd)                             | README.md                                      | Both      | Medium   | TODO   |
@@ -1297,7 +1297,7 @@ z.object({ status: z.enum(['approved', 'rejected']) });
 
 | Field        | Value             |
 | ------------ | ----------------- |
-| Status       | TODO              |
+| Status       | DONE              |
 | Priority     | Critical          |
 | Dependencies | AI-004, POSTS-002 |
 
@@ -1326,7 +1326,7 @@ Each item includes a `type` discriminator: `'suggestion'` | `'post'`.
 
 | Field        | Value                  |
 | ------------ | ---------------------- |
-| Status       | TODO                   |
+| Status       | DONE                   |
 | Priority     | Critical               |
 | Dependencies | TIMELINE-001, AUTH-004 |
 
@@ -1364,7 +1364,7 @@ Each item includes a `type` discriminator: `'suggestion'` | `'post'`.
 
 | Field        | Value        |
 | ------------ | ------------ |
-| Status       | TODO         |
+| Status       | DONE         |
 | Priority     | Medium       |
 | Dependencies | TIMELINE-002 |
 
@@ -1392,7 +1392,7 @@ Each item includes a `type` discriminator: `'suggestion'` | `'post'`.
 
 | Field        | Value        |
 | ------------ | ------------ |
-| Status       | TODO         |
+| Status       | DONE         |
 | Priority     | Critical     |
 | Dependencies | XACCOUNT-001 |
 
@@ -1426,7 +1426,7 @@ export class XApiClient {
 
 | Field        | Value             |
 | ------------ | ----------------- |
-| Status       | TODO              |
+| Status       | DONE              |
 | Priority     | Critical          |
 | Dependencies | POSTS-001, AI-004 |
 
@@ -1468,7 +1468,7 @@ z.object({
 
 | Field        | Value                   |
 | ------------ | ----------------------- |
-| Status       | TODO                    |
+| Status       | DONE                    |
 | Priority     | Critical                |
 | Dependencies | POSTS-002, TIMELINE-002 |
 
@@ -1500,7 +1500,7 @@ z.object({
 
 | Field        | Value              |
 | ------------ | ------------------ |
-| Status       | TODO               |
+| Status       | DONE               |
 | Priority     | Medium             |
 | Dependencies | AUTH-004, CORE-002 |
 
@@ -1525,7 +1525,7 @@ z.object({
 
 | Field        | Value     |
 | ------------ | --------- |
-| Status       | TODO      |
+| Status       | DONE      |
 | Priority     | Medium    |
 | Dependencies | ADMIN-001 |
 

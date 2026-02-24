@@ -44,6 +44,27 @@ function truncate(text: string, maxLength: number): string {
 }
 
 /**
+ * Clean XML content by removing BOM, leading/trailing whitespace, and non-XML content
+ */
+function cleanXmlContent(content: string): string {
+  // Remove UTF-8 BOM if present
+  if (content.charCodeAt(0) === 0xfeff) {
+    content = content.slice(1);
+  }
+
+  // Trim whitespace
+  content = content.trim();
+
+  // Find the first occurrence of <?xml or <rss or <feed
+  const xmlStart = content.search(/<\?xml|<rss|<feed/i);
+  if (xmlStart > 0) {
+    content = content.slice(xmlStart);
+  }
+
+  return content;
+}
+
+/**
  * Scrape an RSS/Atom feed and return article data
  *
  * @param feedUrl - The URL of the RSS/Atom feed
@@ -55,15 +76,31 @@ export async function scrapeRss(
   maxArticles: number = MAX_ARTICLES_PER_RUN,
 ): Promise<ScrapedArticleInput[]> {
   try {
-    const parser = new Parser({
-      timeout: FETCH_TIMEOUT_MS,
+    // Fetch the feed manually to clean it before parsing
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    const response = await fetch(feedUrl, {
+      signal: controller.signal,
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml',
       },
     });
 
-    const feed = await parser.parseURL(feedUrl);
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const rawContent = await response.text();
+    const cleanedContent = cleanXmlContent(rawContent);
+
+    // Parse the cleaned XML
+    const parser = new Parser();
+    const feed = await parser.parseString(cleanedContent);
 
     const articles: ScrapedArticleInput[] = [];
 
@@ -105,8 +142,12 @@ export async function scrapeRss(
     }
 
     return articles;
-  } catch {
-    // Handle network errors, parse errors, timeouts gracefully
+  } catch (error) {
+    // Log error for debugging but return empty array to not break the flow
+    console.error(
+      `[RSS Scraper] Failed to scrape ${feedUrl}:`,
+      error instanceof Error ? error.message : 'Unknown error',
+    );
     return [];
   }
 }

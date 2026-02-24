@@ -22,11 +22,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api/client';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export type Site = {
   id: string;
@@ -52,6 +53,7 @@ export function SiteTable({ accountId, sites: initialSites }: SiteTableProps) {
   const [sites, setSites] = useState<Site[]>(initialSites);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [scrapingId, setScrapingId] = useState<string | null>(null);
 
   const handleDelete = async (siteId: string) => {
     setDeletingId(siteId);
@@ -86,6 +88,29 @@ export function SiteTable({ accountId, sites: initialSites }: SiteTableProps) {
       toast.error('Failed to update site status');
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleRunScraper = async (siteId: string) => {
+    setScrapingId(siteId);
+    try {
+      const response = await apiClient<{ data: { articlesFound: number; status: string } }>(
+        `/api/v1/scrape/run/${siteId}`,
+        {
+          method: 'POST',
+        },
+      );
+      toast.success(`Scraping concluído! ${response.data.articlesFound} artigo(s) encontrado(s)`);
+      // Update last scraped timestamp
+      setSites((prev) =>
+        prev.map((site) =>
+          site.id === siteId ? { ...site, lastScrapedAt: new Date().toISOString() } : site,
+        ),
+      );
+    } catch {
+      toast.error('Falha ao executar scraper');
+    } finally {
+      setScrapingId(null);
     }
   };
 
@@ -165,6 +190,25 @@ export function SiteTable({ accountId, sites: initialSites }: SiteTableProps) {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRunScraper(site.id)}
+                          disabled={scrapingId === site.id || !site.isActive}
+                        >
+                          <RefreshCw
+                            className={`h-4 w-4 ${scrapingId === site.id ? 'animate-spin' : ''}`}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Forçar scraper agora</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <Link href={`/accounts/${accountId}/sites/${site.id}`}>
                     <Button variant="ghost" size="sm">
                       <Pencil className="h-4 w-4" />

@@ -26,9 +26,13 @@ export async function apiClient<T>(path: string, options: ApiOptions = {}): Prom
   const { skipAuth = false, headers: customHeaders, ...rest } = options;
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(customHeaders as Record<string, string>),
   };
+
+  // Only set JSON content type when a request body is actually present.
+  if (rest.body !== undefined && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (!skipAuth) {
     const authHeader = await getAuthHeader();

@@ -6,6 +6,21 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-21 22:44 UTC] ad-hoc — Fix Site Edit/Preview Scraper Configuration Flow
+
+**Agent:** gpt-5-codex
+**Task:** ad-hoc
+**Commit:** 8592dcf
+
+### Files Modified
+
+- `components/sites/SiteForm.tsx` — Added optional HTML selector inputs, prefill from existing site config, payload normalization, and validation requiring all selector fields when any selector is set.
+- `components/sites/ScraperPreview.tsx` — Replaced outdated placeholder note with actionable guidance about URL/selectors.
+
+### Summary
+
+Fixed the site edit flow so users can configure and persist HTML selectors needed by non-RSS scraping, and improved preview feedback when zero articles are returned.
+
 ## [2026-02-21] SITES-003 — News Sites UI & Account Overview Page
 
 **Agent:** Claude Sonnet 4.5

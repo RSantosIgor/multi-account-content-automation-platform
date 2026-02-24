@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase.js';
 import type { Database } from '../../types/database.js';
+import { AiSuggestionService } from '../ai/suggest.js';
 import { scrapeRss } from './rss.js';
 import { scrapeHtml, type ScrapingConfig } from './html.js';
 import type { ScrapedArticleInput } from './rss.js';
@@ -152,6 +153,10 @@ export class ScraperRunner {
         }
 
         articlesInserted = inserted?.length ?? 0;
+      }
+
+      if (articlesInserted > 0) {
+        await AiSuggestionService.processNewArticles(site.x_account_id);
       }
 
       // Update last_scraped_at on the site

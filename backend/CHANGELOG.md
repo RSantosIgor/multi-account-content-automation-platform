@@ -10,7 +10,7 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 **Agent:** gpt-5-codex
 **Task:** ad-hoc
-**Commit:** PENDING
+**Commit:** 8592dcf
 
 ### Files Created
 
@@ -34,7 +34,7 @@ Added DeepSeek as a first-class AI provider option in the backend AI abstraction
 
 **Agent:** gpt-5-codex
 **Task:** AI-001, AI-002, AI-003, AI-004
-**Commit:** PENDING
+**Commit:** 8592dcf
 
 ### Files Created
 
@@ -68,7 +68,7 @@ Implemented the full AI epic: provider abstraction, prompt templates, suggestion
 
 **Agent:** gpt-5-codex
 **Task:** ad-hoc
-**Commit:** PENDING
+**Commit:** 8592dcf
 
 ### Files Modified
 

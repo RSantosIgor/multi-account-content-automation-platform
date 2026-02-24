@@ -185,7 +185,7 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
       // Verify site exists and belongs to the account
       const { data: existingSite, error: fetchError } = await supabase
         .from('news_sites')
-        .select('id')
+        .select('id, url, scraping_config')
         .eq('id', paramsResult.data.siteId)
         .eq('x_account_id', paramsResult.data.accountId)
         .maybeSingle();
@@ -199,6 +199,8 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const updates: Database['public']['Tables']['news_sites']['Update'] = {};
+      const nextUrl = bodyResult.data.url ?? null;
+      const incomingScrapingConfig = bodyResult.data.scraping_config;
 
       if (bodyResult.data.name !== undefined) updates.name = bodyResult.data.name;
       if (bodyResult.data.url !== undefined) updates.url = bodyResult.data.url;
@@ -210,6 +212,27 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
       }
       if (bodyResult.data.is_active !== undefined) {
         updates.is_active = bodyResult.data.is_active;
+      }
+
+      // Recompute scraping strategy when URL or scraping config changes.
+      if (bodyResult.data.url !== undefined || bodyResult.data.scraping_config !== undefined) {
+        const targetUrl = nextUrl ?? existingSite.url;
+        const effectiveScrapingConfig = incomingScrapingConfig ?? existingSite.scraping_config;
+
+        if (targetUrl) {
+          const { feedUrl } = await detectRssFeed(targetUrl);
+
+          if (feedUrl) {
+            updates.source_type = 'rss';
+            updates.feed_url = feedUrl;
+          } else if (effectiveScrapingConfig) {
+            updates.source_type = 'html';
+            updates.feed_url = null;
+          } else {
+            updates.source_type = 'auto';
+            updates.feed_url = null;
+          }
+        }
       }
 
       const { data: site, error } = await supabase

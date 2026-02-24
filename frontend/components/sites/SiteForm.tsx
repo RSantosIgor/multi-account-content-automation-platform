@@ -32,6 +32,10 @@ const siteFormSchema = z.object({
     .int()
     .min(1, 'Minimum 1 hour')
     .max(168, 'Maximum 168 hours (1 week)'),
+  article_selector: z.string().optional(),
+  title_selector: z.string().optional(),
+  summary_selector: z.string().optional(),
+  link_selector: z.string().optional(),
 });
 
 type SiteFormValues = z.infer<typeof siteFormSchema>;
@@ -43,6 +47,12 @@ type SiteData = {
   sourceType: string;
   feedUrl: string | null;
   scrapingIntervalHours: number;
+  scrapingConfig: {
+    article_selector: string;
+    title_selector: string;
+    summary_selector: string;
+    link_selector: string;
+  } | null;
 };
 
 type SiteFormProps = {
@@ -65,6 +75,10 @@ export function SiteForm({ accountId, site, mode }: SiteFormProps) {
       name: site?.name || '',
       url: site?.url || '',
       scraping_interval_hours: site?.scrapingIntervalHours || 4,
+      article_selector: site?.scrapingConfig?.article_selector || '',
+      title_selector: site?.scrapingConfig?.title_selector || '',
+      summary_selector: site?.scrapingConfig?.summary_selector || '',
+      link_selector: site?.scrapingConfig?.link_selector || '',
     },
   });
 
@@ -90,18 +104,52 @@ export function SiteForm({ accountId, site, mode }: SiteFormProps) {
     setIsSubmitting(true);
 
     try {
+      const hasAnySelector =
+        !!values.article_selector?.trim() ||
+        !!values.title_selector?.trim() ||
+        !!values.summary_selector?.trim() ||
+        !!values.link_selector?.trim();
+
+      if (
+        hasAnySelector &&
+        (!values.article_selector?.trim() ||
+          !values.title_selector?.trim() ||
+          !values.summary_selector?.trim() ||
+          !values.link_selector?.trim())
+      ) {
+        toast.error('All HTML selector fields are required when using custom selectors.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const payload = {
+        name: values.name,
+        url: values.url,
+        scraping_interval_hours: values.scraping_interval_hours,
+        ...(hasAnySelector
+          ? {
+              scraping_config: {
+                article_selector: values.article_selector!.trim(),
+                title_selector: values.title_selector!.trim(),
+                summary_selector: values.summary_selector!.trim(),
+                link_selector: values.link_selector!.trim(),
+              },
+            }
+          : {}),
+      };
+
       if (mode === 'create') {
         await apiClient(`/api/v1/accounts/${accountId}/sites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         toast.success('Site created successfully');
       } else {
         await apiClient(`/api/v1/accounts/${accountId}/sites/${site!.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         toast.success('Site updated successfully');
       }
@@ -210,6 +258,72 @@ export function SiteForm({ accountId, site, mode }: SiteFormProps) {
               </FormItem>
             )}
           />
+
+          <div className="bg-muted/20 space-y-4 rounded-lg border p-4">
+            <div>
+              <h3 className="text-sm font-medium">HTML Fallback Selectors (Optional)</h3>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Use this when a site does not provide RSS. If you fill one selector, all are
+                required.
+              </p>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="article_selector"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Article Selector</FormLabel>
+                  <FormControl>
+                    <Input placeholder="article, .post, .news-item" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="title_selector"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title Selector</FormLabel>
+                  <FormControl>
+                    <Input placeholder="h2 a, .title a" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="summary_selector"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Summary Selector</FormLabel>
+                  <FormControl>
+                    <Input placeholder="p.excerpt, .summary" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="link_selector"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link Selector</FormLabel>
+                  <FormControl>
+                    <Input placeholder="a.read-more, a" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex gap-4">
             <Button type="submit" disabled={isSubmitting}>

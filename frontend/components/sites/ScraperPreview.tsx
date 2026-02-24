@@ -133,8 +133,7 @@ export function ScraperPreview({ accountId, siteId }: ScraperPreviewProps) {
             <div className="text-muted-foreground py-8 text-center">
               <p className="text-sm">No articles found in preview.</p>
               <p className="mt-1 text-xs">
-                The scraper implementation will be available after SCRAPER-001 and SCRAPER-002 are
-                completed.
+                Check the site URL and HTML selectors, then test again.
               </p>
             </div>
           )}
