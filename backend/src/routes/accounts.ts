@@ -181,6 +181,89 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
+  fastify.patch('/api/v1/accounts/:id', { preHandler: [fastify.authenticate] }, async (request) => {
+    const parsed = paramsSchema.safeParse(request.params);
+    if (!parsed.success) {
+      throw fastify.httpErrors.badRequest('Invalid account id');
+    }
+
+    const updateSchema = z.object({
+      is_active: z.boolean().optional(),
+    });
+
+    const bodyResult = updateSchema.safeParse(request.body);
+    if (!bodyResult.success) {
+      throw fastify.httpErrors.badRequest(bodyResult.error.message);
+    }
+
+    // Verify ownership
+    const { data: account, error: verifyError } = await supabase
+      .from('x_accounts')
+      .select('id')
+      .eq('id', parsed.data.id)
+      .eq('user_id', request.user.id)
+      .maybeSingle();
+
+    if (verifyError) {
+      throw fastify.httpErrors.internalServerError(verifyError.message);
+    }
+
+    if (!account) {
+      throw fastify.httpErrors.notFound('Account not found');
+    }
+
+    // Build update object
+    const updateData: { is_active?: boolean } = {};
+    if (bodyResult.data.is_active !== undefined) {
+      updateData.is_active = bodyResult.data.is_active;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw fastify.httpErrors.badRequest('No fields to update');
+    }
+
+    // Update account
+    const { data: updated, error: updateError } = await supabase
+      .from('x_accounts')
+      .update(updateData)
+      .eq('id', parsed.data.id)
+      .select(
+        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, token_expires_at, created_at, updated_at',
+      )
+      .single();
+
+    if (updateError || !updated) {
+      throw fastify.httpErrors.internalServerError(
+        updateError?.message ?? 'Failed to update account',
+      );
+    }
+
+    // Fetch counts
+    const [
+      { count: sitesCount, error: sitesCountError },
+      { count: postsCount, error: postsCountError },
+    ] = await Promise.all([
+      supabase
+        .from('news_sites')
+        .select('id', { count: 'exact', head: true })
+        .eq('x_account_id', updated.id),
+      supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('x_account_id', updated.id),
+    ]);
+
+    if (sitesCountError || postsCountError) {
+      throw fastify.httpErrors.internalServerError(
+        sitesCountError?.message ?? postsCountError?.message ?? 'Failed to fetch account metrics',
+      );
+    }
+
+    return {
+      data: toPublicAccount(updated, sitesCount ?? 0, postsCount ?? 0),
+    };
+  });
+
   fastify.delete(
     '/api/v1/accounts/:id',
     { preHandler: [fastify.authenticate] },

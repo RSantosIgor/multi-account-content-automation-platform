@@ -224,6 +224,180 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
       };
     },
   );
+
+  // Get timeline item detail (suggestion or post)
+  fastify.get(
+    '/api/v1/timeline/items/:id',
+    { preHandler: [fastify.authenticate] },
+    async (request) => {
+      const itemIdSchema = z.object({
+        id: z.string().uuid(),
+      });
+
+      const paramsResult = itemIdSchema.safeParse(request.params);
+      if (!paramsResult.success) {
+        throw fastify.httpErrors.badRequest('Invalid item id');
+      }
+
+      const { id } = paramsResult.data;
+
+      // Try to find as suggestion first
+      const { data: suggestion, error: suggestionError } = await supabase
+        .from('ai_suggestions')
+        .select(
+          `
+          id,
+          article_id,
+          x_account_id,
+          status,
+          suggestion_text,
+          hashtags,
+          article_summary,
+          created_at,
+          reviewed_at,
+          reviewed_by,
+          scraped_articles!ai_suggestions_article_id_fkey (
+            id,
+            url,
+            title,
+            summary,
+            published_at,
+            full_article_content,
+            news_site_id,
+            news_sites!scraped_articles_news_site_id_fkey ( name, url )
+          )
+        `,
+        )
+        .eq('id', id)
+        .maybeSingle();
+
+      if (suggestionError) {
+        throw fastify.httpErrors.internalServerError(suggestionError.message);
+      }
+
+      if (suggestion) {
+        // Verify user owns this via account
+        const { data: account, error: accountError } = await supabase
+          .from('x_accounts')
+          .select('id')
+          .eq('id', suggestion.x_account_id)
+          .eq('user_id', request.user.id)
+          .maybeSingle();
+
+        if (accountError || !account) {
+          throw fastify.httpErrors.notFound('Item not found');
+        }
+
+        // Check if there's a related post
+        const { data: post, error: postError } = await supabase
+          .from('posts')
+          .select(
+            'id, content, status, x_post_url, x_post_id, published_at, created_at, error_message',
+          )
+          .eq('ai_suggestion_id', id)
+          .maybeSingle();
+
+        if (postError && postError.code !== 'PGRST116') {
+          throw fastify.httpErrors.internalServerError(postError.message);
+        }
+
+        return {
+          data: {
+            type: 'suggestion' as const,
+            suggestion: {
+              id: suggestion.id,
+              articleId: suggestion.article_id,
+              xAccountId: suggestion.x_account_id,
+              status: suggestion.status,
+              suggestionText: suggestion.suggestion_text,
+              hashtags: suggestion.hashtags ?? [],
+              articleSummary: suggestion.article_summary,
+              createdAt: suggestion.created_at,
+              reviewedAt: suggestion.reviewed_at,
+              reviewedBy: suggestion.reviewed_by,
+            },
+            article: suggestion.scraped_articles
+              ? {
+                  id: suggestion.scraped_articles.id,
+                  url: suggestion.scraped_articles.url,
+                  title: suggestion.scraped_articles.title,
+                  summary: suggestion.scraped_articles.summary,
+                  publishedAt: suggestion.scraped_articles.published_at,
+                  fullContent: suggestion.scraped_articles.full_article_content,
+                  site: suggestion.scraped_articles.news_sites
+                    ? {
+                        id: suggestion.scraped_articles.news_site_id,
+                        name: suggestion.scraped_articles.news_sites.name,
+                        url: suggestion.scraped_articles.news_sites.url,
+                      }
+                    : null,
+                }
+              : null,
+            post: post
+              ? {
+                  id: post.id,
+                  content: post.content,
+                  status: post.status,
+                  xPostUrl: post.x_post_url,
+                  xPostId: post.x_post_id,
+                  publishedAt: post.published_at,
+                  createdAt: post.created_at,
+                  errorMessage: post.error_message,
+                }
+              : null,
+          },
+        };
+      }
+
+      // If not a suggestion, try as a post
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .select(
+          'id, content, status, x_post_url, x_post_id, published_at, created_at, error_message, x_account_id, ai_suggestion_id',
+        )
+        .eq('id', id)
+        .maybeSingle();
+
+      if (postError) {
+        throw fastify.httpErrors.internalServerError(postError.message);
+      }
+
+      if (!post) {
+        throw fastify.httpErrors.notFound('Item not found');
+      }
+
+      // Verify user owns this via account
+      const { data: account, error: accountError } = await supabase
+        .from('x_accounts')
+        .select('id')
+        .eq('id', post.x_account_id)
+        .eq('user_id', request.user.id)
+        .maybeSingle();
+
+      if (accountError || !account) {
+        throw fastify.httpErrors.notFound('Item not found');
+      }
+
+      return {
+        data: {
+          type: 'post' as const,
+          post: {
+            id: post.id,
+            content: post.content,
+            status: post.status,
+            xPostUrl: post.x_post_url,
+            xPostId: post.x_post_id,
+            publishedAt: post.published_at,
+            createdAt: post.created_at,
+            errorMessage: post.error_message,
+            suggestionId: post.ai_suggestion_id,
+          },
+          suggestion: null,
+          article: null,
+        },
+      };
+    },
+  );
 };
 
 export default timelineRoutes;

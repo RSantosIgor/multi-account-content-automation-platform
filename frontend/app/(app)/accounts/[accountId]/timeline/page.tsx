@@ -5,6 +5,7 @@ import { AlertCircle } from 'lucide-react';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { TimelineFilters, type TimelineFiltersState } from '@/components/timeline/TimelineFilters';
 import { TimelineItem } from '@/components/timeline/TimelineItem';
+import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -119,6 +120,8 @@ export default function TimelinePage({ params }: PageProps) {
 
   return (
     <section className="space-y-6">
+      <Breadcrumb />
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-3xl leading-tight">Timeline</h1>

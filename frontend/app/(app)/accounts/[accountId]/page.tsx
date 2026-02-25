@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Newspaper, FileText, Clock, ArrowRight } from 'lucide-react';
+import { Newspaper, FileText, Clock, Settings, BarChart3, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 type PageProps = {
@@ -56,6 +56,22 @@ export default async function AccountPage({ params }: PageProps) {
       href: `/accounts/${accountId}/timeline`,
       count: account.postsCount,
       countLabel: 'posts',
+    },
+    {
+      title: 'Statistics',
+      description: 'View posting activity and metrics',
+      icon: BarChart3,
+      href: `/accounts/${accountId}/stats`,
+      count: 0,
+      countLabel: '',
+    },
+    {
+      title: 'Settings',
+      description: 'Configure account and AI prompt rules',
+      icon: Settings,
+      href: `/accounts/${accountId}/settings`,
+      count: 0,
+      countLabel: '',
     },
   ];
 

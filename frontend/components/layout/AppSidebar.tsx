@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Shield } from 'lucide-react';
+import { LayoutDashboard, Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -11,7 +11,10 @@ interface AppSidebarProps {
   userRole?: 'admin' | 'member';
 }
 
-const navItems = [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }];
+const navItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/accounts', label: 'Accounts', icon: Users },
+];
 
 const adminItems = [{ href: '/admin', label: 'Admin', icon: Shield }];
 

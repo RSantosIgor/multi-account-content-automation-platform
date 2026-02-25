@@ -1,4 +1,5 @@
 import { SiteForm } from '@/components/sites/SiteForm';
+import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
@@ -75,6 +76,8 @@ export default async function EditSitePage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto max-w-3xl py-8">
+      <Breadcrumb />
+
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold">Edit Site</h1>
         <p className="text-muted-foreground mt-1">
