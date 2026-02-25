@@ -4,6 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { SuggestionCard } from './SuggestionCard';
 import { PostCard } from './PostCard';
 
+type ArticleSummary = {
+  bullets: string[];
+};
+
 type TimelineItemProps = {
   accountId: string;
   item:
@@ -17,6 +21,7 @@ type TimelineItemProps = {
         siteName: string | null;
         suggestionText: string;
         hashtags: string[];
+        articleSummary: ArticleSummary | null;
       }
     | {
         id: string;
