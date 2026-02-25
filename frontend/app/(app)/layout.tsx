@@ -27,8 +27,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar — desktop only */}
-      <aside className="bg-card hidden w-64 flex-col border-r md:flex">
+      {/* Sidebar — desktop only, sticky */}
+      <aside className="bg-card sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r md:flex">
         <AppSidebar userRole={userRole} />
       </aside>
 

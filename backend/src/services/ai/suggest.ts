@@ -11,6 +11,21 @@ type ProcessingSummary = {
 
 const DEFAULT_BATCH_SIZE = 5;
 
+/** HTTP status codes that indicate a non-retryable provider error. */
+const FATAL_HTTP_STATUSES = [400, 401, 403];
+
+/**
+ * Returns true when the error carries an HTTP status that should stop
+ * the entire batch (e.g. invalid API key, no credits, forbidden).
+ */
+function isFatalApiError(error: unknown): boolean {
+  if (typeof error === 'object' && error !== null && 'status' in error) {
+    const status = (error as { status: unknown }).status;
+    return typeof status === 'number' && FATAL_HTTP_STATUSES.includes(status);
+  }
+  return false;
+}
+
 export class AiSuggestionService {
   static async processNewArticles(
     xAccountId: string,
@@ -85,8 +100,12 @@ export class AiSuggestionService {
 
           summary.processed += 1;
           summary.created += 1;
-        } catch {
+        } catch (error) {
           summary.failed += 1;
+
+          if (isFatalApiError(error)) {
+            break;
+          }
         }
       }
     }

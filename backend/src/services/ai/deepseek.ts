@@ -63,7 +63,6 @@ export class DeepseekProvider implements AiProvider {
 
       return completion.choices[0]?.message?.content ?? '';
     } catch (error) {
-      console.error('[DeepseekProvider] Error in generateRaw:', error);
       throw error;
     }
   }

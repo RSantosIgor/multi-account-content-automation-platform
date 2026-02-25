@@ -73,7 +73,6 @@ export class AnthropicProvider implements AiProvider {
 
       return getTextContent(response.content);
     } catch (error) {
-      console.error('[AnthropicProvider] Error in generateRaw:', error);
       throw error;
     }
   }

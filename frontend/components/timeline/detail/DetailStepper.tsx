@@ -1,10 +1,11 @@
 'use client';
 
-import { Check, Circle } from 'lucide-react';
+import { Check, Circle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { OriginalArticleStep } from './OriginalArticleStep';
 import { SuggestionStep } from './SuggestionStep';
 import { PublicationStep } from './PublicationStep';
+import { RejectionStep } from './RejectionStep';
 
 type ArticleSummary = {
   bullets: string[];
@@ -61,6 +62,7 @@ type Step = {
   description: string;
   isCompleted: boolean;
   isCurrent: boolean;
+  isRejected?: boolean;
   component: React.ReactNode;
 };
 
@@ -68,6 +70,30 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
   const hasSuggestion = item.suggestion !== null;
   const hasPost = item.post !== null;
   const hasArticle = item.article !== null;
+  const isRejected = item.suggestion?.status === 'rejected';
+
+  const lastStep: Step = isRejected
+    ? {
+        id: 3,
+        title: 'Rejeitado',
+        description: 'Sugestão não aprovada',
+        isCompleted: true,
+        isCurrent: true,
+        isRejected: true,
+        component: <RejectionStep suggestion={item.suggestion!} />,
+      }
+    : {
+        id: 3,
+        title: 'Publicação',
+        description: 'Post publicado no X',
+        isCompleted: hasPost,
+        isCurrent: hasPost,
+        component: hasPost ? (
+          <PublicationStep post={item.post!} />
+        ) : (
+          <div className="text-muted-foreground text-sm">Post não publicado ainda</div>
+        ),
+      };
 
   const steps: Step[] = [
     {
@@ -88,7 +114,7 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
       title: 'Sugestão de IA',
       description: 'Post gerado pela IA',
       isCompleted: hasSuggestion,
-      isCurrent: hasSuggestion && !hasPost,
+      isCurrent: hasSuggestion && !hasPost && !isRejected,
       component: hasSuggestion ? (
         <SuggestionStep
           suggestion={item.suggestion!}
@@ -99,18 +125,7 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
         <div className="text-muted-foreground text-sm">Sugestão não gerada ainda</div>
       ),
     },
-    {
-      id: 3,
-      title: 'Publicação',
-      description: 'Post publicado no X',
-      isCompleted: hasPost,
-      isCurrent: hasPost,
-      component: hasPost ? (
-        <PublicationStep post={item.post!} />
-      ) : (
-        <div className="text-muted-foreground text-sm">Post não publicado ainda</div>
-      ),
-    },
+    lastStep,
   ];
 
   return (
@@ -124,14 +139,22 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
               <div
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-full border-2',
-                  step.isCompleted
-                    ? 'border-gold bg-gold/20 text-gold'
-                    : step.isCurrent
-                      ? 'border-gold bg-background text-gold'
-                      : 'border-muted bg-background text-muted-foreground',
+                  step.isRejected
+                    ? 'border-red-500 bg-red-500/20 text-red-400'
+                    : step.isCompleted
+                      ? 'border-gold bg-gold/20 text-gold'
+                      : step.isCurrent
+                        ? 'border-gold bg-background text-gold'
+                        : 'border-muted bg-background text-muted-foreground',
                 )}
               >
-                {step.isCompleted ? <Check className="h-5 w-5" /> : <Circle className="h-3 w-3" />}
+                {step.isRejected ? (
+                  <X className="h-5 w-5" />
+                ) : step.isCompleted ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  <Circle className="h-3 w-3" />
+                )}
               </div>
 
               {/* Connector line */}
@@ -139,9 +162,11 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
                 <div
                   className={cn(
                     'my-1 w-0.5 flex-1',
-                    steps[index + 1].isCompleted || steps[index + 1].isCurrent
-                      ? 'bg-gold'
-                      : 'bg-muted',
+                    steps[index + 1].isRejected
+                      ? 'bg-red-500/50'
+                      : steps[index + 1].isCompleted || steps[index + 1].isCurrent
+                        ? 'bg-gold'
+                        : 'bg-muted',
                   )}
                   style={{ minHeight: '100px' }}
                 />
@@ -150,7 +175,9 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
 
             {/* Step label */}
             <div className="ml-4 pb-12">
-              <div className="mb-1 font-semibold">{step.title}</div>
+              <div className={cn('mb-1 font-semibold', step.isRejected && 'text-red-300')}>
+                {step.title}
+              </div>
               <div className="text-muted-foreground text-sm">{step.description}</div>
             </div>
           </div>

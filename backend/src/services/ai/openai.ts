@@ -59,7 +59,6 @@ export class OpenAiProvider implements AiProvider {
 
       return completion.choices[0]?.message?.content ?? '';
     } catch (error) {
-      console.error('[OpenAiProvider] Error in generateRaw:', error);
       throw error;
     }
   }

@@ -6,6 +6,147 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-25 19:12 UTC] ad-hoc — Circuit-breaker for AI provider fatal errors
+
+**Agent:** claude-sonnet-4-6
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Modified
+
+- `src/services/ai/suggest.ts` — added `isFatalApiError()` helper and circuit-breaker in `processNewArticles` loop: on fatal HTTP errors (400, 401, 403) the loop breaks immediately instead of continuing to spam the provider API
+- `src/services/ai/anthropic.ts` — removed `console.error` from `generateRaw()` (violates AGENTS.md §5 logging rules)
+- `src/services/ai/openai.ts` — removed `console.error` from `generateRaw()`
+- `src/services/ai/deepseek.ts` — removed `console.error` from `generateRaw()`
+
+### Summary
+
+Fixed API spam caused by `processNewArticles` silently swallowing fatal errors (e.g. "credit balance too low") while continuing to iterate all unprocessed articles. The loop now detects non-retryable HTTP status codes and breaks immediately. Also cleaned up `console.error` usage in provider `generateRaw()` methods — errors are already re-thrown and handled by the caller.
+
+---
+
+## [2026-02-25 18:00 UTC] ad-hoc — Sidebar fix, rejection stepper, TASKS.md restructure
+
+**Agent:** claude-sonnet-4-6
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Modified
+
+- `src/services/ai/prompts.ts` — extended prompt builders (modification details carried over from Phase 1 work)
+- `../docs/TASKS.md` — added EPIC FLOW (8 tasks for News Flow Redesign), moved INFRA epic to end of order, marked all UX tasks as DONE, added observation to FLOW-004/005 about using full article content for tweet generation
+
+### Summary
+
+Post-UX cleanup: restructured TASKS.md epics order (UX → FLOW → INFRA), marked UX epic complete, and documented the FLOW redesign plan with full article content requirement for tweet generation on approval.
+
+---
+
+## [2026-02-25 13:49 UTC] UX-003 / UX-004 / UX-006 / UX-008 — UX Phases 2–4 Backend
+
+**Agent:** claude-sonnet-4-6
+**Task:** UX-003, UX-004, UX-006, UX-008
+**Commit:** 645774b
+
+### Files Created
+
+- `src/routes/stats.ts` — `GET /api/v1/accounts/:accountId/stats?from=&to=` returning daily post counts and aggregated metrics (avg/day, avg/week, avg/month, total)
+
+### Files Modified
+
+- `src/routes/accounts.ts` — added `PATCH /api/v1/accounts/:id` endpoint to update `is_active` field with ownership check
+- `src/routes/timeline.ts` — added `GET /api/v1/timeline/items/:id` endpoint returning full item detail with article, suggestion, post and news_site joins
+- `src/routes/index.ts` — registered stats routes module
+
+### Summary
+
+Backend support for UX Phases 2–4: account update endpoint, full timeline item detail with all joins, and statistics aggregation route with configurable date range filter.
+
+---
+
+## [2026-02-25 00:03 UTC] UX-002 — Phase 1 Frontend Backend Fixes
+
+**Agent:** claude-sonnet-4-6
+**Task:** UX-002
+**Commit:** 4e64f04
+
+### Files Modified
+
+- `src/routes/timeline.ts` — added `article_summary` field to timeline response payload
+- `src/routes/ai.ts` — fixed `Json` type casting for article summary Supabase insert
+- `src/services/scraper/article-fetcher.ts` — fixed TypeScript types for cheerio element iteration
+
+### Summary
+
+Minor backend fixes required by the frontend article summary display: timeline API now exposes `article_summary`, and TypeScript strict-mode issues in the article fetcher and AI route were resolved.
+
+---
+
+## [2026-02-24 22:55 UTC] UX-002 / UX-005 — Phase 1 Backend: Article Summaries & Prompt Rules
+
+**Agent:** claude-sonnet-4-6
+**Task:** UX-002, UX-005
+**Commit:** 2331cc1
+
+### Files Created
+
+- `supabase/migrations/012_article_summaries.sql` — adds `full_article_content TEXT` to `scraped_articles` and `article_summary JSONB` to `ai_suggestions`
+- `supabase/migrations/013_prompt_rules.sql` — creates `prompt_rules` table with `rule_type CHECK ('analysis'|'publication')`, RLS policies, priority ordering, and `updated_at` trigger
+- `src/services/scraper/article-fetcher.ts` — fetches full article HTML and extracts main text content using cheerio; tries selectors `article`, `.article-content`, `.entry-content`, `main`; strips HTML and returns plain text
+- `src/services/ai/summarizer.ts` — generates 3–5 bullet-point article summary using AI provider; returns `{ bullets: string[] }`; falls back to `[title]` on parse failure
+- `src/services/ai/prompt-builder.ts` — `buildAnalysisPrompt()` and `buildPublicationPrompt()` load active rules ordered by priority and append them to the base system prompt
+- `src/routes/prompt-rules.ts` — CRUD routes for `prompt_rules`: `GET/POST /api/v1/accounts/:accountId/prompt-rules`, `PUT/DELETE /api/v1/accounts/:accountId/prompt-rules/:ruleId` with ownership checks
+
+### Files Modified
+
+- `src/services/ai/anthropic.ts` — implemented `generateRaw(systemPrompt, userPrompt)` method on `AnthropicProvider`
+- `src/services/ai/openai.ts` — implemented `generateRaw()` on `OpenAiProvider`
+- `src/services/ai/deepseek.ts` — implemented `generateRaw()` on `DeepseekProvider`
+- `src/services/ai/provider.ts` — added `generateRaw()` to `AiProvider` interface
+- `src/services/ai/prompts.ts` — added `buildAnalysisSystemPrompt()` and `parseAnalysisResponse()` for eligibility checking
+- `src/services/ai/suggest.ts` — integrated `buildPublicationPrompt()` into `processNewArticles()` and `suggestForArticle()`
+- `src/routes/ai.ts` — on suggestion approval: fetch full article content via `fetchArticleContent()`, cache in `full_article_content`, generate `article_summary` bullets, then update suggestion
+- `src/routes/index.ts` — registered `promptRulesRoutes`
+- `src/types/database.ts` — regenerated types for new columns and `prompt_rules` table; replaced `any` with `Json` type from Supabase helpers
+
+### Summary
+
+Full Phase 1 backend for UX epic: two DB migrations, article content fetching service, AI summarizer, custom prompt rule builder, and complete prompt-rules CRUD API. All AI providers now support `generateRaw()`. On suggestion approval, the system fetches the full article (cached in DB), generates bullet summaries, and uses publication rules for tweet generation.
+
+### Notes
+
+- `full_article_content` is cached on first fetch and reused on subsequent approvals
+- `prompt_rules.rule_type = 'analysis'` rules are reserved for the future FLOW redesign (eligibility phase); currently only `publication` rules are active
+
+---
+
+## [2026-02-24 21:00 UTC] POSTS-001 / POSTS-002 / TIMELINE-001 / ADMIN-001 / ADMIN-002 — Posts, Timeline & Admin
+
+**Agent:** claude-sonnet-4-6
+**Task:** POSTS-001, POSTS-002, TIMELINE-001, ADMIN-001, ADMIN-002
+**Commit:** 81b1e3a
+
+### Files Created
+
+- `src/services/x-api/client.ts` — `XApiClient` service: decrypts OAuth tokens, posts tweets via `twitter-api-v2`, returns `{ xPostId, xPostUrl }`
+- `src/routes/posts.ts` — `POST /api/v1/suggestions/:id/publish` (publish to X), `GET /api/v1/accounts/:accountId/posts` (post history with pagination)
+- `src/routes/timeline.ts` — `GET /api/v1/accounts/:accountId/timeline` unified feed combining `ai_suggestions` + `posts` with status filters, type filters, and pagination
+- `src/routes/admin.ts` — `GET /api/v1/admin/users` (list all users with roles), `PATCH /api/v1/admin/users/:id/role` (change user role); admin-only via `authorize('admin')`
+
+### Files Modified
+
+- `src/routes/ai.ts` — added `PATCH /api/v1/suggestions/:id/status` (approve/reject with ownership check)
+- `src/routes/sites.ts` — added manual scrape trigger; integrated with `ScraperRunner.runSite()`
+- `src/services/scraper/rss-detector.ts` — improved direct feed URL detection; added XML cleaning for BOM and leading whitespace
+- `src/services/scraper/rss.ts` — fixed feed parsing to handle direct feed URLs without requiring HTML link tag
+- `src/routes/index.ts` — registered posts, timeline, admin routes
+
+### Summary
+
+Complete publishing pipeline: X API client with encrypted token handling, publish route, timeline feed API, and admin user management. RSS scraper improvements fix direct feed URL detection and malformed XML feeds.
+
+---
+
 ## [2026-02-22 00:24 UTC] ad-hoc — Add DeepSeek AI Provider Support
 
 **Agent:** gpt-5-codex

@@ -45,7 +45,6 @@ export function buildSystemPrompt(): string {
     'Rules:',
     '- The post must be <= 280 characters (including hashtags)',
     '- Write in the same language as the article',
-    '- End with 2-3 relevant hashtags',
     '- Be engaging and informative',
     '- Do not use emojis unless the brand voice calls for it',
     '',

@@ -27,7 +27,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
     <div className="flex h-full flex-col">
       <div className="flex h-14 items-center border-b px-6">
         <Link href="/dashboard" className="flex items-center">
-          <Image src="/images/logo_dark.png" alt="batchNews" width={120} height={36} priority />
+          <Image src="/images/logo_dark.png" alt="batchNews" width={100} height={36} priority />
         </Link>
       </div>
       <Separator />

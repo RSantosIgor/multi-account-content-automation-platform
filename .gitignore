@@ -44,6 +44,4 @@ coverage/
 .claude/
 .agents/
 
-# Task planning files
 newTasks.md
-tasks.md

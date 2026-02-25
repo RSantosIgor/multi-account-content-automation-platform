@@ -14,62 +14,70 @@
 
 Quick reference for all tasks. Use the **Workspace** column to route tasks to the correct agent.
 
-| Task ID                                                       | Title                                          | Workspace | Priority | Status |
-| ------------------------------------------------------------- | ---------------------------------------------- | --------- | -------- | ------ |
-| [SETUP-001](#setup-001--initialize-monorepo)                  | Initialize Monorepo                            | Both      | Critical | DONE   |
-| [SETUP-002](#setup-002--scaffold-fastify-backend)             | Scaffold Fastify Backend                       | Backend   | Critical | DONE   |
-| [SETUP-003](#setup-003--scaffold-nextjs-frontend)             | Scaffold Next.js Frontend                      | Frontend  | Critical | DONE   |
-| [SETUP-004](#setup-004--configure-supabase-cli--project)      | Configure Supabase CLI & Project               | Both      | Critical | DONE   |
-| [SETUP-005](#setup-005--development-tooling)                  | Development Tooling                            | Both      | High     | DONE   |
-| [DB-001](#db-001--bootstrap-extensions--helpers)              | Bootstrap Extensions & Helpers                 | Database  | Critical | DONE   |
-| [DB-002](#db-002--user-profiles--roles)                       | User Profiles & Roles                          | Database  | Critical | DONE   |
-| [DB-003](#db-003--x-accounts)                                 | X Accounts                                     | Database  | Critical | DONE   |
-| [DB-004](#db-004--news-sites-articles-suggestions-posts-runs) | News Sites, Articles, Suggestions, Posts, Runs | Database  | Critical | DONE   |
-| [DB-005](#db-005--rls-policies)                               | RLS Policies                                   | Database  | Critical | DONE   |
-| [DB-006](#db-006--generate-typescript-types)                  | Generate TypeScript Types                      | Backend   | High     | DONE   |
-| [CORE-001](#core-001--authentication-plugin-fastify)          | Authentication Plugin (Fastify)                | Backend   | Critical | DONE   |
-| [CORE-002](#core-002--authorization-plugin-fastify)           | Authorization Plugin (Fastify)                 | Backend   | High     | DONE   |
-| [CORE-003](#core-003--crypto-service)                         | Crypto Service                                 | Backend   | Critical | DONE   |
-| [CORE-004](#core-004--supabase-service-client)                | Supabase Service Client                        | Backend   | Critical | DONE   |
-| [CORE-005](#core-005--standard-error-handling)                | Standard Error Handling                        | Backend   | High     | DONE   |
-| [AUTH-001](#auth-001--login-page)                             | Login Page                                     | Frontend  | Critical | DONE   |
-| [AUTH-002](#auth-002--registration-page)                      | Registration Page                              | Frontend  | High     | DONE   |
-| [AUTH-003](#auth-003--password-recovery-page)                 | Password Recovery Page                         | Frontend  | Medium   | DONE   |
-| [AUTH-004](#auth-004--app-layout--sidebar)                    | App Layout & Sidebar                           | Frontend  | High     | DONE   |
-| [XACCOUNT-001](#xaccount-001--x-oauth-pkce-service-backend)   | X OAuth PKCE Service                           | Backend   | Critical | DONE   |
-| [XACCOUNT-002](#xaccount-002--x-account-crud-routes-backend)  | X Account CRUD Routes                          | Backend   | Critical | DONE   |
-| [XACCOUNT-003](#xaccount-003--x-accounts-dashboard-frontend)  | X Accounts Dashboard                           | Frontend  | High     | DONE   |
-| [SITES-001](#sites-001--rss-auto-detection-service-backend)   | RSS Auto-Detection Service                     | Backend   | High     | DONE   |
-| [SITES-002](#sites-002--news-sites-crud-routes-backend)       | News Sites CRUD Routes                         | Backend   | Critical | DONE   |
-| [SITES-003](#sites-003--news-sites-ui-frontend)               | News Sites UI                                  | Frontend  | High     | DONE   |
-| [SCRAPER-001](#scraper-001--rss-scraper-service)              | RSS Scraper Service                            | Backend   | Critical | DONE   |
-| [SCRAPER-002](#scraper-002--html-scraper-service)             | HTML Scraper Service                           | Backend   | High     | DONE   |
-| [SCRAPER-003](#scraper-003--scraper-runner--orchestrator)     | Scraper Runner & Orchestrator                  | Backend   | Critical | DONE   |
-| [SCRAPER-004](#scraper-004--scraping-routes-backend)          | Scraping Routes                                | Backend   | High     | DONE   |
-| [SCRAPER-005](#scraper-005--cron-job-scheduler)               | Cron Job Scheduler                             | Backend   | Critical | DONE   |
-| [AI-001](#ai-001--ai-provider-abstraction)                    | AI Provider Abstraction                        | Backend   | Critical | DONE   |
-| [AI-002](#ai-002--prompt-templates)                           | Prompt Templates                               | Backend   | High     | DONE   |
-| [AI-003](#ai-003--ai-processing-pipeline)                     | AI Processing Pipeline                         | Backend   | Critical | DONE   |
-| [AI-004](#ai-004--ai-suggestion-routes-backend)               | AI Suggestion Routes                           | Backend   | High     | DONE   |
-| [TIMELINE-001](#timeline-001--timeline-api-route-backend)     | Timeline API Route                             | Backend   | Critical | DONE   |
-| [TIMELINE-002](#timeline-002--timeline-page-frontend)         | Timeline Page                                  | Frontend  | Critical | DONE   |
-| [TIMELINE-003](#timeline-003--timeline-filters-frontend)      | Timeline Filters                               | Frontend  | Medium   | DONE   |
-| [POSTS-001](#posts-001--x-posting-service-backend)            | X Posting Service                              | Backend   | Critical | DONE   |
-| [POSTS-002](#posts-002--post-routes-backend)                  | Post Routes                                    | Backend   | Critical | DONE   |
-| [POSTS-003](#posts-003--publish-action-frontend)              | Publish Action                                 | Frontend  | Critical | DONE   |
-| [ADMIN-001](#admin-001--admin-layout--guard)                  | Admin Layout & Guard                           | Both      | Medium   | DONE   |
-| [ADMIN-002](#admin-002--user-management-page)                 | User Management Page                           | Both      | Medium   | DONE   |
-| [INFRA-001](#infra-001--docker-setup-backend)                 | Docker Setup                                   | Backend   | Medium   | TODO   |
-| [INFRA-002](#infra-002--testing-setup)                        | Testing Setup                                  | Both      | Medium   | TODO   |
-| [INFRA-003](#infra-003--readmemd)                             | README.md                                      | Both      | Medium   | TODO   |
-| [UX-001](#ux-001--breadcrumb-navigation)                      | Breadcrumb Navigation                          | Frontend  | Medium   | TODO   |
-| [UX-002](#ux-002--full-article-summary-generation)            | Full Article Summary Generation                | Both      | High     | TODO   |
-| [UX-003](#ux-003--dashboard-reorganization)                   | Dashboard Reorganization                       | Frontend  | High     | TODO   |
-| [UX-004](#ux-004--account-settings-page)                      | Account Settings Page                          | Both      | High     | TODO   |
-| [UX-005](#ux-005--ai-prompt-rules-system)                     | AI Prompt Rules System                         | Both      | Critical | TODO   |
-| [UX-006](#ux-006--article-detail-page)                        | Article Detail Page                            | Both      | High     | TODO   |
-| [UX-007](#ux-007--dashboard-redesign)                         | Dashboard Redesign                             | Frontend  | Critical | TODO   |
-| [UX-008](#ux-008--statistics-dashboard)                       | Statistics Dashboard                           | Both      | High     | TODO   |
+| Task ID                                                        | Title                                          | Workspace | Priority | Status |
+| -------------------------------------------------------------- | ---------------------------------------------- | --------- | -------- | ------ |
+| [SETUP-001](#setup-001--initialize-monorepo)                   | Initialize Monorepo                            | Both      | Critical | DONE   |
+| [SETUP-002](#setup-002--scaffold-fastify-backend)              | Scaffold Fastify Backend                       | Backend   | Critical | DONE   |
+| [SETUP-003](#setup-003--scaffold-nextjs-frontend)              | Scaffold Next.js Frontend                      | Frontend  | Critical | DONE   |
+| [SETUP-004](#setup-004--configure-supabase-cli--project)       | Configure Supabase CLI & Project               | Both      | Critical | DONE   |
+| [SETUP-005](#setup-005--development-tooling)                   | Development Tooling                            | Both      | High     | DONE   |
+| [DB-001](#db-001--bootstrap-extensions--helpers)               | Bootstrap Extensions & Helpers                 | Database  | Critical | DONE   |
+| [DB-002](#db-002--user-profiles--roles)                        | User Profiles & Roles                          | Database  | Critical | DONE   |
+| [DB-003](#db-003--x-accounts)                                  | X Accounts                                     | Database  | Critical | DONE   |
+| [DB-004](#db-004--news-sites-articles-suggestions-posts-runs)  | News Sites, Articles, Suggestions, Posts, Runs | Database  | Critical | DONE   |
+| [DB-005](#db-005--rls-policies)                                | RLS Policies                                   | Database  | Critical | DONE   |
+| [DB-006](#db-006--generate-typescript-types)                   | Generate TypeScript Types                      | Backend   | High     | DONE   |
+| [CORE-001](#core-001--authentication-plugin-fastify)           | Authentication Plugin (Fastify)                | Backend   | Critical | DONE   |
+| [CORE-002](#core-002--authorization-plugin-fastify)            | Authorization Plugin (Fastify)                 | Backend   | High     | DONE   |
+| [CORE-003](#core-003--crypto-service)                          | Crypto Service                                 | Backend   | Critical | DONE   |
+| [CORE-004](#core-004--supabase-service-client)                 | Supabase Service Client                        | Backend   | Critical | DONE   |
+| [CORE-005](#core-005--standard-error-handling)                 | Standard Error Handling                        | Backend   | High     | DONE   |
+| [AUTH-001](#auth-001--login-page)                              | Login Page                                     | Frontend  | Critical | DONE   |
+| [AUTH-002](#auth-002--registration-page)                       | Registration Page                              | Frontend  | High     | DONE   |
+| [AUTH-003](#auth-003--password-recovery-page)                  | Password Recovery Page                         | Frontend  | Medium   | DONE   |
+| [AUTH-004](#auth-004--app-layout--sidebar)                     | App Layout & Sidebar                           | Frontend  | High     | DONE   |
+| [XACCOUNT-001](#xaccount-001--x-oauth-pkce-service-backend)    | X OAuth PKCE Service                           | Backend   | Critical | DONE   |
+| [XACCOUNT-002](#xaccount-002--x-account-crud-routes-backend)   | X Account CRUD Routes                          | Backend   | Critical | DONE   |
+| [XACCOUNT-003](#xaccount-003--x-accounts-dashboard-frontend)   | X Accounts Dashboard                           | Frontend  | High     | DONE   |
+| [SITES-001](#sites-001--rss-auto-detection-service-backend)    | RSS Auto-Detection Service                     | Backend   | High     | DONE   |
+| [SITES-002](#sites-002--news-sites-crud-routes-backend)        | News Sites CRUD Routes                         | Backend   | Critical | DONE   |
+| [SITES-003](#sites-003--news-sites-ui-frontend)                | News Sites UI                                  | Frontend  | High     | DONE   |
+| [SCRAPER-001](#scraper-001--rss-scraper-service)               | RSS Scraper Service                            | Backend   | Critical | DONE   |
+| [SCRAPER-002](#scraper-002--html-scraper-service)              | HTML Scraper Service                           | Backend   | High     | DONE   |
+| [SCRAPER-003](#scraper-003--scraper-runner--orchestrator)      | Scraper Runner & Orchestrator                  | Backend   | Critical | DONE   |
+| [SCRAPER-004](#scraper-004--scraping-routes-backend)           | Scraping Routes                                | Backend   | High     | DONE   |
+| [SCRAPER-005](#scraper-005--cron-job-scheduler)                | Cron Job Scheduler                             | Backend   | Critical | DONE   |
+| [AI-001](#ai-001--ai-provider-abstraction)                     | AI Provider Abstraction                        | Backend   | Critical | DONE   |
+| [AI-002](#ai-002--prompt-templates)                            | Prompt Templates                               | Backend   | High     | DONE   |
+| [AI-003](#ai-003--ai-processing-pipeline)                      | AI Processing Pipeline                         | Backend   | Critical | DONE   |
+| [AI-004](#ai-004--ai-suggestion-routes-backend)                | AI Suggestion Routes                           | Backend   | High     | DONE   |
+| [TIMELINE-001](#timeline-001--timeline-api-route-backend)      | Timeline API Route                             | Backend   | Critical | DONE   |
+| [TIMELINE-002](#timeline-002--timeline-page-frontend)          | Timeline Page                                  | Frontend  | Critical | DONE   |
+| [TIMELINE-003](#timeline-003--timeline-filters-frontend)       | Timeline Filters                               | Frontend  | Medium   | DONE   |
+| [POSTS-001](#posts-001--x-posting-service-backend)             | X Posting Service                              | Backend   | Critical | DONE   |
+| [POSTS-002](#posts-002--post-routes-backend)                   | Post Routes                                    | Backend   | Critical | DONE   |
+| [POSTS-003](#posts-003--publish-action-frontend)               | Publish Action                                 | Frontend  | Critical | DONE   |
+| [ADMIN-001](#admin-001--admin-layout--guard)                   | Admin Layout & Guard                           | Both      | Medium   | DONE   |
+| [ADMIN-002](#admin-002--user-management-page)                  | User Management Page                           | Both      | Medium   | DONE   |
+| [UX-001](#ux-001--breadcrumb-navigation)                       | Breadcrumb Navigation                          | Frontend  | Medium   | DONE   |
+| [UX-002](#ux-002--full-article-summary-generation)             | Full Article Summary Generation                | Both      | High     | DONE   |
+| [UX-003](#ux-003--dashboard-reorganization)                    | Dashboard Reorganization                       | Frontend  | High     | DONE   |
+| [UX-004](#ux-004--account-settings-page)                       | Account Settings Page                          | Both      | High     | DONE   |
+| [UX-005](#ux-005--ai-prompt-rules-system)                      | AI Prompt Rules System                         | Both      | Critical | DONE   |
+| [UX-006](#ux-006--article-detail-page)                         | Article Detail Page                            | Both      | High     | DONE   |
+| [UX-007](#ux-007--dashboard-redesign)                          | Dashboard Redesign                             | Frontend  | Critical | DONE   |
+| [UX-008](#ux-008--statistics-dashboard)                        | Statistics Dashboard                           | Both      | High     | DONE   |
+| [FLOW-001](#flow-001--db--auto_flow-em-news_sites)             | DB — auto_flow em news_sites                   | Database  | Critical | TODO   |
+| [FLOW-002](#flow-002--db--suggestion_text-nullable)            | DB — suggestion_text nullable                  | Database  | Critical | TODO   |
+| [FLOW-003](#flow-003--backend--fase-de-análise-elegibilidade)  | Backend — Fase de Análise (Elegibilidade)      | Backend   | Critical | TODO   |
+| [FLOW-004](#flow-004--backend--geração-do-post-na-aprovação)   | Backend — Geração do Post na Aprovação         | Backend   | Critical | TODO   |
+| [FLOW-005](#flow-005--backend--fluxo-automático-por-site)      | Backend — Fluxo Automático por Site            | Backend   | High     | TODO   |
+| [FLOW-006](#flow-006--frontend--suggestioncard-estado-pending) | Frontend — SuggestionCard Estado Pending       | Frontend  | High     | TODO   |
+| [FLOW-007](#flow-007--frontend--siteform--toggle-auto_flow)    | Frontend — SiteForm Toggle auto_flow           | Frontend  | High     | TODO   |
+| [FLOW-008](#flow-008--frontend--detailstepper-4-fases)         | Frontend — DetailStepper 4 Fases               | Frontend  | Medium   | TODO   |
+| [INFRA-001](#infra-001--docker-setup-backend)                  | Docker Setup                                   | Backend   | Medium   | TODO   |
+| [INFRA-002](#infra-002--testing-setup)                         | Testing Setup                                  | Both      | Medium   | TODO   |
+| [INFRA-003](#infra-003--readmemd)                              | README.md                                      | Both      | Medium   | TODO   |
 
 **Workspace legend:** `Backend` = Fastify API · `Frontend` = Next.js UI · `Database` = SQL migrations in `supabase/migrations/` · `Both` = touches both workspaces or root config
 
@@ -90,8 +98,9 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [Timeline](#epic-timeline-timeline)                             | TIMELINE  | Unified feed of suggestions and posts         |
 | [X Posting](#epic-posts-x-posting)                              | POSTS     | Publish to X, post history                    |
 | [Admin Panel](#epic-admin-admin-panel)                          | ADMIN     | User management, role assignment              |
-| [Infrastructure & Quality](#epic-infra-infrastructure--quality) | INFRA     | Docker, README, testing setup                 |
 | [User Experience](#epic-ux-user-experience)                     | UX        | UI improvements, breadcrumbs, settings        |
+| [News Flow Redesign](#epic-flow--news-flow-redesign)            | FLOW      | Realinhamento do ciclo de vida da notícia     |
+| [Infrastructure & Quality](#epic-infra-infrastructure--quality) | INFRA     | Docker, README, testing setup                 |
 
 ---
 
@@ -1557,177 +1566,6 @@ z.object({
 
 ---
 
-## EPIC INFRA — Infrastructure & Quality
-
----
-
-### INFRA-001 — Docker Setup (Backend)
-
-| Field        | Value     |
-| ------------ | --------- |
-| Status       | TODO      |
-| Priority     | Medium    |
-| Dependencies | SETUP-002 |
-
-**Files:**
-
-- `backend/Dockerfile`
-- `docker-compose.yml` (root — for local development)
-
-**Dockerfile:**
-
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-COPY . .
-RUN pnpm build
-
-FROM node:20-alpine AS runner
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json .
-EXPOSE 3001
-CMD ["node", "dist/server.js"]
-```
-
-**Acceptance Criteria:**
-
-- [ ] `docker build` succeeds
-- [ ] `docker run` starts the server and `GET /health` responds
-- [ ] Environment variables are injected at runtime (not baked in)
-
----
-
-### INFRA-002 — Testing Setup
-
-| Field        | Value                          |
-| ------------ | ------------------------------ |
-| Status       | TODO                           |
-| Priority     | Medium                         |
-| Dependencies | SETUP-002, SETUP-003, CORE-003 |
-
-**Goal:** Configure Vitest for backend unit + integration tests and React Testing Library for frontend component tests. Establish mock factories and coverage reporting.
-
-**Files to create:**
-
-- `backend/vitest.config.ts` — Vitest config for backend
-- `backend/src/test/setup.ts` — global test setup (env vars, vi.mock stubs)
-- `backend/src/test/mocks/supabase.ts` — reusable Supabase mock factory
-- `backend/src/test/mocks/x-api.ts` — reusable TwitterApi mock factory
-- `backend/src/test/mocks/ai.ts` — reusable OpenAI / Anthropic mock factories
-- `backend/src/test/helpers/app.ts` — `buildTestApp()` helper (Fastify instance with mocked auth)
-- `frontend/vitest.config.ts` — Vitest config with `@vitejs/plugin-react` and jsdom
-- `frontend/src/test/setup.ts` — `@testing-library/jest-dom` matchers setup
-
-**Backend `vitest.config.ts`:**
-
-```typescript
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-    setupFiles: ['./src/test/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'lcov'],
-      thresholds: { lines: 60 },
-    },
-  },
-});
-```
-
-**Integration test helper:**
-
-```typescript
-// backend/src/test/helpers/app.ts
-import Fastify from 'fastify';
-import { buildApp } from '../../app';
-
-export async function buildTestApp(userOverride?: Partial<RequestUser>) {
-  const app = await buildApp();
-  // Decorate with a mock authenticate hook for protected route tests
-  app.decorateRequest('user', {
-    id: 'test-user-id',
-    email: 'test@example.com',
-    role: 'member',
-    ...userOverride,
-  });
-  return app;
-}
-```
-
-**Frontend `vitest.config.ts`:**
-
-```typescript
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'lcov'],
-      thresholds: { lines: 50 },
-    },
-  },
-});
-```
-
-**Implementation Notes:**
-
-- See `docs/ARCHITECTURE.md §16` for the full testing strategy, mock patterns, and coverage targets
-- Tests are colocated with source files (`*.test.ts` / `*.test.tsx`)
-- Add `"test": "vitest run"` and `"test:watch": "vitest"` to both workspace `package.json` files
-- Add `"test": "pnpm --filter frontend test && pnpm --filter backend test"` to root `package.json`
-
-**Acceptance Criteria:**
-
-- [ ] `pnpm test` from root runs both workspaces and passes
-- [ ] `pnpm --filter backend test -- --coverage` generates a coverage report
-- [ ] `pnpm --filter frontend test -- --coverage` generates a coverage report
-- [ ] Mock factories exist for Supabase, X API, and AI providers
-- [ ] `buildTestApp()` helper allows testing routes without a real JWT
-- [ ] The existing `crypto.test.ts` (CORE-003) passes as part of this run
-
----
-
-### INFRA-003 — README.md
-
-| Field        | Value           |
-| ------------ | --------------- |
-| Status       | TODO            |
-| Priority     | Medium          |
-| Dependencies | All SETUP tasks |
-
-**File:** `README.md` (root)
-
-**Sections:**
-
-1. Project overview + screenshot (placeholder)
-2. Tech stack (linked)
-3. Getting started (prerequisites, clone, install, env setup, `pnpm dev`)
-4. Project structure
-5. Available scripts
-6. Database setup (`supabase db push`, `pnpm db:types`)
-7. Architecture (link to `docs/ARCHITECTURE.md`)
-8. Contributing guide
-
-**Acceptance Criteria:**
-
-- [ ] A new developer can get the project running locally following only the README
-- [ ] All commands listed are tested and working
-
----
-
 ## EPIC UX — User Experience
 
 ---
@@ -2117,4 +1955,503 @@ UI Components:
 
 ---
 
-_Last updated: 2026-02-24_
+## EPIC FLOW — News Flow Redesign
+
+> **Contexto:** O fluxo atual está incorreto. O `processNewArticles()` usa as `publication` rules para gerar o tweet **logo após o scrape**, misturando as fases de análise e publicação. O redesenho separa o ciclo em 4 fases distintas com responsabilidades claras.
+>
+> **Fluxo correto:**
+>
+> ```
+> Scrape → Análise (rules: analysis) → Revisão Manual → Aprovação → Publicação (rules: publication)
+>                                                ↑ auto_flow=true: pula revisão manual
+> ```
+
+---
+
+### FLOW-001 — DB — auto_flow em news_sites
+
+| Field        | Value    |
+| ------------ | -------- |
+| Status       | TODO     |
+| Priority     | Critical |
+| Dependencies | DB-004   |
+
+**Goal:** Adicionar coluna `auto_flow` à tabela `news_sites`. Quando `true`, artigos elegíveis passam diretamente da fase de análise para publicação, sem revisão manual.
+
+**Migration:** `supabase/migrations/014_news_sites_auto_flow.sql`
+
+```sql
+ALTER TABLE public.news_sites
+  ADD COLUMN auto_flow BOOLEAN NOT NULL DEFAULT false;
+```
+
+**Acceptance Criteria:**
+
+- [ ] Migration roda sem erros
+- [ ] Coluna `auto_flow` disponível na tabela `news_sites`
+- [ ] `DEFAULT false` → sites existentes mantêm comportamento manual
+- [ ] Tipos TypeScript regenerados (`pnpm db:types`)
+
+---
+
+### FLOW-002 — DB — suggestion_text nullable
+
+| Field        | Value    |
+| ------------ | -------- |
+| Status       | TODO     |
+| Priority     | Critical |
+| Dependencies | DB-004   |
+
+**Goal:** Tornar `ai_suggestions.suggestion_text` nullable. Na fase de análise, apenas a elegibilidade é determinada — o texto do tweet só é gerado na aprovação (FLOW-004). O campo precisa aceitar `NULL` durante o estado `pending`.
+
+**Migration:** `supabase/migrations/015_ai_suggestions_nullable_text.sql`
+
+```sql
+ALTER TABLE public.ai_suggestions
+  ALTER COLUMN suggestion_text DROP NOT NULL;
+```
+
+**Acceptance Criteria:**
+
+- [ ] Migration roda sem erros
+- [ ] `ai_suggestions` aceita `INSERT` com `suggestion_text = NULL`
+- [ ] Restrição `CHECK (status IN (...))` permanece intacta
+- [ ] Tipos TypeScript regenerados
+
+---
+
+### FLOW-003 — Backend — Fase de Análise (Elegibilidade)
+
+| Field        | Value                      |
+| ------------ | -------------------------- |
+| Status       | TODO                       |
+| Priority     | Critical                   |
+| Dependencies | FLOW-001, FLOW-002, AI-003 |
+
+**Goal:** Substituir o comportamento atual de `processNewArticles()`. Em vez de gerar o tweet imediatamente com `publication` rules, usar `analysis` rules para decidir se o artigo é elegível. Somente artigos elegíveis criam um registro `ai_suggestion`.
+
+**Problema atual:** `suggest.ts` chama `buildPublicationPrompt` no `processNewArticles()` — errado. Deve chamar `buildAnalysisPrompt`.
+
+**Arquivos a modificar:**
+
+- `backend/src/services/ai/suggest.ts` — refatorar `processNewArticles()`
+- `backend/src/services/ai/prompts.ts` — adicionar `buildAnalysisSystemPrompt()` e `parseAnalysisResponse()`
+
+**Novo prompt de análise:**
+
+```
+System: Você é um editor de conteúdo. Avalie se o artigo a seguir é adequado para ser publicado
+como post no X (Twitter) para esta conta, seguindo as regras definidas.
+Responda SOMENTE com JSON: { "eligible": true|false, "reason": "..." }
+
+[+ analysis rules do usuário via buildAnalysisPrompt()]
+```
+
+**Novo comportamento de `processNewArticles()`:**
+
+```typescript
+// Para cada artigo não processado:
+// 1. Chamar AI com buildAnalysisPrompt() (NÃO buildPublicationPrompt)
+// 2. Parsear resposta: { eligible: boolean, reason: string }
+// 3a. Se eligible=true:
+//     - Criar ai_suggestion(status='pending', suggestion_text=NULL)
+//     - NÃO marcar is_processed=true ainda (o texto ainda não foi gerado)
+//     - Se site.auto_flow=true → delegar para FLOW-005
+// 3b. Se eligible=false:
+//     - Marcar scraped_articles.is_processed=true (descartado silenciosamente)
+//     - Não criar ai_suggestion
+```
+
+**Acceptance Criteria:**
+
+- [ ] `processNewArticles()` usa `buildAnalysisPrompt` (não `buildPublicationPrompt`)
+- [ ] Artigos não elegíveis têm `is_processed=true` e nenhuma `ai_suggestion` criada
+- [ ] Artigos elegíveis criam `ai_suggestion(status='pending', suggestion_text=NULL)`
+- [ ] Erros em um artigo não param o processamento dos demais
+- [ ] Sem `auto_flow`: artigo fica em `pending` aguardando revisão manual
+- [ ] Com `auto_flow=true`: delega para o serviço de publicação (FLOW-005)
+
+---
+
+### FLOW-004 — Backend — Geração do Post na Aprovação
+
+| Field        | Value                      |
+| ------------ | -------------------------- |
+| Status       | TODO                       |
+| Priority     | Critical                   |
+| Dependencies | FLOW-002, FLOW-003, AI-003 |
+
+**Goal:** Quando o usuário aprova uma sugestão (`PATCH /api/v1/suggestions/:id/status` com `status='approved'`), a IA deve usar as `publication` rules para gerar o texto do tweet e o `article_summary`. Somente **então** o `suggestion_text` é preenchido.
+
+**Arquivo a modificar:** `backend/src/routes/ai.ts`
+
+**Comportamento atual (errado):** O endpoint de aprovação apenas atualiza o status e chama `generateArticleSummary`. O tweet já existia desde o scrape.
+
+**Comportamento novo (correto):**
+
+```typescript
+// PATCH /api/v1/suggestions/:id/status { status: 'approved' }
+// 1. Buscar suggestion + article (incluindo article.url e article.full_article_content)
+// 2. Obter conteúdo completo do artigo:
+//    a. Se article.full_article_content != null → usar diretamente
+//    b. Se null → chamar fetchArticleContent(article.url) → salvar em scraped_articles.full_article_content
+// 3. Chamar AI com buildPublicationPrompt() passando o conteúdo completo (não o resumo RSS)
+//    → gera tweet text + hashtags baseado no artigo inteiro
+// 4. Chamar generateArticleSummary() com o conteúdo completo → gera bullets do artigo
+// 5. UPDATE ai_suggestions SET
+//      status = 'approved',
+//      suggestion_text = <tweet gerado>,
+//      hashtags = <hashtags geradas>,
+//      article_summary = <bullets>,
+//      reviewed_at = now(),
+//      reviewed_by = user_id
+// 6. Marcar scraped_articles.is_processed = true
+```
+
+> **Observação importante — Conteúdo completo vs. resumo RSS:**
+> Durante a fase de análise (FLOW-003), a IA usa apenas o título + resumo do RSS (rápido, barato).
+> Na geração do post (aprovação manual ou automática), a IA **deve** usar o artigo completo
+> para produzir um tweet de qualidade. O campo `scraped_articles.full_article_content` serve como
+> cache: se já foi buscado, reutilizar. Se não, buscar de `scraped_articles.url` via
+> `fetchArticleContent()` (serviço definido em UX-002 / `article-fetcher.ts`) e persisti-lo antes
+> de chamar a IA. Isso garante que o tweet reflete o conteúdo real do artigo, não só o teaser do RSS.
+
+**Acceptance Criteria:**
+
+- [ ] Aprovação busca o artigo completo via `fetchArticleContent()` se não em cache
+- [ ] Conteúdo completo é persistido em `scraped_articles.full_article_content`
+- [ ] `buildPublicationPrompt` recebe conteúdo completo do artigo (não resumo RSS)
+- [ ] `suggestion_text` preenchido com tweet gerado (≤ 280 chars)
+- [ ] `article_summary` gerado com bullets (3-5 pontos) a partir do conteúdo completo
+- [ ] `is_processed = true` marcado no artigo
+- [ ] Rejeição apenas atualiza status — nenhuma chamada de IA
+
+---
+
+### FLOW-005 — Backend — Fluxo Automático por Site
+
+| Field        | Value                         |
+| ------------ | ----------------------------- |
+| Status       | TODO                          |
+| Priority     | High                          |
+| Dependencies | FLOW-003, FLOW-004, POSTS-002 |
+
+**Goal:** Quando `news_sites.auto_flow = true`, artigos aprovados pela fase de análise são processados e publicados automaticamente, sem revisão manual.
+
+**Arquivo a modificar:** `backend/src/services/ai/suggest.ts`
+
+**Lógica de auto_flow:**
+
+```typescript
+// Após análise confirmar elegibilidade (FLOW-003):
+if (site.auto_flow) {
+  // 1. Buscar conteúdo completo do artigo:
+  //    a. Se article.full_article_content != null → usar diretamente
+  //    b. Se null → fetchArticleContent(article.url) → salvar em scraped_articles.full_article_content
+  // 2. Chamar buildPublicationPrompt() passando o conteúdo completo → gerar tweet
+  // 3. Atualizar ai_suggestion(suggestion_text, status='approved')
+  // 4. Marcar is_processed=true
+  // 5. Chamar XApiClient.postTweet() → publicar
+  // 6. Salvar post em posts(status='published' ou 'failed')
+  // 7. Atualizar ai_suggestion(status='posted')
+}
+```
+
+> **Observação:** Igual à aprovação manual (FLOW-004), o auto_flow deve usar o conteúdo completo
+> do artigo para gerar o tweet, não o resumo do RSS. Usar a mesma lógica de cache
+> (`full_article_content`) para evitar buscar o artigo duas vezes.
+
+**Acceptance Criteria:**
+
+- [ ] Sites com `auto_flow=true` publicam sem intervenção manual
+- [ ] Sites com `auto_flow=false` (padrão) mantêm revisão manual
+- [ ] Falha na publicação cria `posts(status='failed')` — não lança exceção
+- [ ] Suggestion fica com `status='posted'` após publicação bem-sucedida
+- [ ] Logs claros diferenciando fluxo manual vs. automático
+
+---
+
+### FLOW-006 — Frontend — SuggestionCard Estado Pending
+
+| Field        | Value              |
+| ------------ | ------------------ |
+| Status       | TODO               |
+| Priority     | High               |
+| Dependencies | FLOW-003, FLOW-004 |
+
+**Goal:** Atualizar `SuggestionCard` para refletir o novo estado `pending`: neste estado, o tweet ainda **não foi gerado**. O card deve exibir as informações do **artigo** (título, site, data) e botões de Aprovar / Rejeitar — sem o textarea de edição de tweet.
+
+**Arquivo a modificar:** `frontend/components/timeline/SuggestionCard.tsx`
+
+**Lógica condicional:**
+
+```tsx
+// Se suggestion_text === null → fase de elegibilidade (sem tweet)
+//   Mostrar: título do artigo, site, data, resumo (se disponível)
+//   Ações: [Aprovar] [Rejeitar] [Ver Detalhes]
+
+// Se suggestion_text !== null → tweet gerado (aprovado/revisão final)
+//   Mostrar: textarea com tweet, contador de chars, hashtags
+//   Ações: [Publicar] [Rejeitar] [Ver Detalhes]
+```
+
+**Acceptance Criteria:**
+
+- [ ] `suggestion_text = null` → exibe info do artigo, sem textarea
+- [ ] `suggestion_text` preenchido → exibe textarea editável com tweet
+- [ ] Ação "Aprovar" em pending dispara geração do tweet (FLOW-004) e recarrega
+- [ ] PendingPostsSection do dashboard reflete o novo estado corretamente
+- [ ] DetailStepper reflete a ausência de tweet no estado pending
+
+---
+
+### FLOW-007 — Frontend — SiteForm Toggle auto_flow
+
+| Field        | Value               |
+| ------------ | ------------------- |
+| Status       | TODO                |
+| Priority     | High                |
+| Dependencies | FLOW-001, SITES-003 |
+
+**Goal:** Adicionar campo `auto_flow` no formulário de criação/edição de sites (`SiteForm`).
+
+**Arquivo a modificar:** `frontend/components/sites/SiteForm.tsx`
+
+**UI:**
+
+```tsx
+<div className="flex items-center justify-between rounded-lg border p-4">
+  <div>
+    <Label>Fluxo Automático</Label>
+    <p className="text-muted-foreground text-sm">
+      Artigos elegíveis são publicados automaticamente, sem revisão manual.
+    </p>
+  </div>
+  <Switch checked={autoFlow} onCheckedChange={setAutoFlow} />
+</div>
+```
+
+**Acceptance Criteria:**
+
+- [ ] Toggle visível no formulário de criação e edição de site
+- [ ] Valor salvo corretamente via API (`auto_flow: boolean`)
+- [ ] Valor carregado corretamente ao editar site existente
+- [ ] Tooltip/descrição explica o comportamento do fluxo automático
+
+---
+
+### FLOW-008 — Frontend — DetailStepper 4 Fases
+
+| Field        | Value                      |
+| ------------ | -------------------------- |
+| Status       | TODO                       |
+| Priority     | Medium                     |
+| Dependencies | FLOW-003, FLOW-004, UX-006 |
+
+**Goal:** Atualizar o `DetailStepper` para refletir as 4 fases do novo fluxo. Adicionar o step de **Análise de Elegibilidade** entre "Artigo Original" e "Sugestão".
+
+**Arquivo a modificar:** `frontend/components/timeline/detail/DetailStepper.tsx`
+
+**Novo layout do stepper:**
+
+```
+Step 1 — Artigo Original
+  └─ título, site, data, URL, resumo
+
+Step 2 — Análise de Elegibilidade  ← NOVO
+  └─ Status: Elegível / Não Elegível
+  └─ (se elegível) data da análise
+
+Step 3 — Revisão
+  └─ Status: Pendente / Aprovado / Rejeitado
+  └─ (se aprovado) tweet gerado pelo AI
+  └─ (se rejeitado) → substitui step 4 com RejectionStep (já implementado)
+
+Step 4 — Publicação
+  └─ Status: Publicado / Falhou
+  └─ link para o post no X
+```
+
+**Acceptance Criteria:**
+
+- [ ] Step 2 "Análise" aparece entre Artigo e Revisão
+- [ ] Step 2 mostra resultado da análise (elegível/descartado)
+- [ ] Artigos não elegíveis terminam no step 2 (sem step 3 ou 4)
+- [ ] Artigos rejeitados pelo usuário mostram RejectionStep no step 3
+- [ ] Auto_flow: step 3 marcado como "aprovado automaticamente"
+- [ ] Visual diferenciado: verde (concluído), dourado (atual), vermelho (rejeitado), cinza (pendente)
+
+---
+
+_Last updated: 2026-02-25_
+
+---
+
+## EPIC INFRA — Infrastructure & Quality
+
+---
+
+### INFRA-001 — Docker Setup (Backend)
+
+| Field        | Value     |
+| ------------ | --------- |
+| Status       | TODO      |
+| Priority     | Medium    |
+| Dependencies | SETUP-002 |
+
+**Files:**
+
+- `backend/Dockerfile`
+- `docker-compose.yml` (root — for local development)
+
+**Dockerfile:**
+
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json .
+EXPOSE 3001
+CMD ["node", "dist/server.js"]
+```
+
+**Acceptance Criteria:**
+
+- [ ] `docker build` succeeds
+- [ ] `docker run` starts the server and `GET /health` responds
+- [ ] Environment variables are injected at runtime (not baked in)
+
+---
+
+### INFRA-002 — Testing Setup
+
+| Field        | Value                          |
+| ------------ | ------------------------------ |
+| Status       | TODO                           |
+| Priority     | Medium                         |
+| Dependencies | SETUP-002, SETUP-003, CORE-003 |
+
+**Goal:** Configure Vitest for backend unit + integration tests and React Testing Library for frontend component tests. Establish mock factories and coverage reporting.
+
+**Files to create:**
+
+- `backend/vitest.config.ts` — Vitest config for backend
+- `backend/src/test/setup.ts` — global test setup (env vars, vi.mock stubs)
+- `backend/src/test/mocks/supabase.ts` — reusable Supabase mock factory
+- `backend/src/test/mocks/x-api.ts` — reusable TwitterApi mock factory
+- `backend/src/test/mocks/ai.ts` — reusable OpenAI / Anthropic mock factories
+- `backend/src/test/helpers/app.ts` — `buildTestApp()` helper (Fastify instance with mocked auth)
+- `frontend/vitest.config.ts` — Vitest config with `@vitejs/plugin-react` and jsdom
+- `frontend/src/test/setup.ts` — `@testing-library/jest-dom` matchers setup
+
+**Backend `vitest.config.ts`:**
+
+```typescript
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      thresholds: { lines: 60 },
+    },
+  },
+});
+```
+
+**Integration test helper:**
+
+```typescript
+// backend/src/test/helpers/app.ts
+import Fastify from 'fastify';
+import { buildApp } from '../../app';
+
+export async function buildTestApp(userOverride?: Partial<RequestUser>) {
+  const app = await buildApp();
+  // Decorate with a mock authenticate hook for protected route tests
+  app.decorateRequest('user', {
+    id: 'test-user-id',
+    email: 'test@example.com',
+    role: 'member',
+    ...userOverride,
+  });
+  return app;
+}
+```
+
+**Frontend `vitest.config.ts`:**
+
+```typescript
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      thresholds: { lines: 50 },
+    },
+  },
+});
+```
+
+**Implementation Notes:**
+
+- See `docs/ARCHITECTURE.md §16` for the full testing strategy, mock patterns, and coverage targets
+- Tests are colocated with source files (`*.test.ts` / `*.test.tsx`)
+- Add `"test": "vitest run"` and `"test:watch": "vitest"` to both workspace `package.json` files
+- Add `"test": "pnpm --filter frontend test && pnpm --filter backend test"` to root `package.json`
+
+**Acceptance Criteria:**
+
+- [ ] `pnpm test` from root runs both workspaces and passes
+- [ ] `pnpm --filter backend test -- --coverage` generates a coverage report
+- [ ] `pnpm --filter frontend test -- --coverage` generates a coverage report
+- [ ] Mock factories exist for Supabase, X API, and AI providers
+- [ ] `buildTestApp()` helper allows testing routes without a real JWT
+- [ ] The existing `crypto.test.ts` (CORE-003) passes as part of this run
+
+---
+
+### INFRA-003 — README.md
+
+| Field        | Value           |
+| ------------ | --------------- |
+| Status       | TODO            |
+| Priority     | Medium          |
+| Dependencies | All SETUP tasks |
+
+**File:** `README.md` (root)
+
+**Sections:**
+
+1. Project overview + screenshot (placeholder)
+2. Tech stack (linked)
+3. Getting started (prerequisites, clone, install, env setup, `pnpm dev`)
+4. Project structure
+5. Available scripts
+6. Database setup (`supabase db push`, `pnpm db:types`)
+7. Architecture (link to `docs/ARCHITECTURE.md`)
+8. Contributing guide
+
+**Acceptance Criteria:**
+
+- [ ] A new developer can get the project running locally following only the README
+- [ ] All commands listed are tested and working
