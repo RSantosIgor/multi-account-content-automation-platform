@@ -43,3 +43,7 @@ coverage/
 # Claude Code / AI tooling
 .claude/
 .agents/
+
+# Task planning files
+newTasks.md
+tasks.md
