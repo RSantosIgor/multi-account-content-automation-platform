@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { SiteTable } from '@/components/sites/SiteTable';
+import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -72,6 +73,8 @@ export default async function SitesPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto space-y-6 py-8">
+      <Breadcrumb />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold">News Sites</h1>

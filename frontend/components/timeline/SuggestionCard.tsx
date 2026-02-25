@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -99,10 +101,14 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
         >
           Rejeitar
         </Button>
+        <Link href={`/accounts/${accountId}/timeline/${suggestion.id}`} className="ml-auto">
+          <Button variant="ghost" size="sm" className="gap-1">
+            Ver Detalhes <ExternalLink className="h-3 w-3" />
+          </Button>
+        </Link>
         <Button
           variant="default"
           size="sm"
-          className="ml-auto"
           onClick={() => setPublishDialogOpen(true)}
           disabled={overLimit || isUpdating}
         >

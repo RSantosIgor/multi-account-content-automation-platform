@@ -1,6 +1,9 @@
 'use client';
 
+import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { SuggestionCard } from './SuggestionCard';
 import { PostCard } from './PostCard';
 
@@ -53,8 +56,15 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
     return (
       <div className="space-y-2 rounded-lg border border-white/10 p-4">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-muted-foreground text-sm">
-            {item.siteName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
+          <div className="flex items-center gap-2">
+            <div className="text-muted-foreground text-sm">
+              {item.siteName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
+            </div>
+            <Link href={`/accounts/${accountId}/timeline/${item.id}`}>
+              <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">
+                Ver Detalhes <ExternalLink className="h-3 w-3" />
+              </Button>
+            </Link>
           </div>
           <Badge className={badgeClass}>{item.status}</Badge>
         </div>
@@ -67,8 +77,15 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
   return (
     <div className="space-y-2 rounded-lg border border-white/10 p-4">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-muted-foreground text-sm">
-          {item.siteName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
+        <div className="flex items-center gap-2">
+          <div className="text-muted-foreground text-sm">
+            {item.siteName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
+          </div>
+          <Link href={`/accounts/${accountId}/timeline/${item.id}`}>
+            <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">
+              Ver Detalhes <ExternalLink className="h-3 w-3" />
+            </Button>
+          </Link>
         </div>
         <Badge className={badgeClass}>{item.status}</Badge>
       </div>

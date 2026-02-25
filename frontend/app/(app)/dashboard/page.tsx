@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { apiClient, ApiError } from '@/lib/api/client';
-import { AccountCard, type AccountCardData } from '@/components/accounts/AccountCard';
-import { ConnectXButton } from '@/components/accounts/ConnectXButton';
+import { AccountSelector, type AccountOption } from '@/components/dashboard/AccountSelector';
+import { PendingPostsSection } from '@/components/dashboard/PendingPostsSection';
+import { PublishedPostsSection } from '@/components/dashboard/PublishedPostsSection';
+import { RejectedPostsSection } from '@/components/dashboard/RejectedPostsSection';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 type AccountsResponse = {
   data: Array<{
@@ -13,36 +17,21 @@ type AccountsResponse = {
     username: string;
     displayName: string | null;
     profileImageUrl: string | null;
-    sitesCount: number;
-    postsCount: number;
-    isActive: boolean;
   }>;
 };
 
 function DashboardSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, idx) => (
-        <div key={idx} className="bg-card/90 rounded-xl border border-white/10 p-4">
-          <div className="mb-3 flex items-center gap-3">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-64 w-full" />
     </div>
   );
 }
 
 export default function DashboardPage() {
-  const [accounts, setAccounts] = useState<Array<AccountCardData>>([]);
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,11 +43,16 @@ export default function DashboardPage() {
       try {
         const response = await apiClient<AccountsResponse>('/api/v1/accounts');
         setAccounts(response.data);
+
+        // Select first account by default
+        if (response.data.length > 0) {
+          setSelectedAccountId(response.data[0].id);
+        }
       } catch (err) {
         if (err instanceof ApiError) {
           setError(err.message);
         } else {
-          setError('It was not possible to load connected accounts.');
+          setError('Não foi possível carregar as contas.');
         }
       } finally {
         setIsLoading(false);
@@ -68,49 +62,102 @@ export default function DashboardPage() {
     void loadAccounts();
   }, []);
 
-  return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  if (isLoading) {
+    return (
+      <section className="space-y-6">
         <div>
-          <h1 className="font-display text-3xl leading-tight">X Accounts</h1>
+          <h1 className="font-display text-3xl leading-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Gerencie contas conectadas e acompanhe sites e posts por perfil.
+            Revise e publique sugestões de posts.
           </p>
         </div>
-        <ConnectXButton />
-      </div>
+        <DashboardSkeleton />
+      </section>
+    );
+  }
 
-      {error ? (
+  if (error) {
+    return (
+      <section className="space-y-6">
+        <div>
+          <h1 className="font-display text-3xl leading-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Revise e publique sugestões de posts.
+          </p>
+        </div>
         <div className="border-destructive/30 bg-destructive/10 rounded-lg border p-4">
           <p className="text-destructive flex items-center gap-2 text-sm">
             <AlertCircle className="h-4 w-4" />
             {error}
           </p>
         </div>
-      ) : null}
+      </section>
+    );
+  }
 
-      {isLoading ? <DashboardSkeleton /> : null}
-
-      {!isLoading && accounts.length === 0 ? (
+  if (accounts.length === 0) {
+    return (
+      <section className="space-y-6">
+        <div>
+          <h1 className="font-display text-3xl leading-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Revise e publique sugestões de posts.
+          </p>
+        </div>
         <div className="bg-card/70 rounded-xl border border-dashed border-white/15 p-8 text-center">
           <h2 className="font-display text-2xl">Nenhuma conta conectada</h2>
           <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm">
-            Conecte sua primeira conta do X para iniciar a coleta de noticias, gerar sugestoes e
-            publicar no feed.
+            Conecte uma conta do X para começar a ver sugestões de posts aqui.
           </p>
           <div className="mt-5">
-            <ConnectXButton />
+            <Link
+              href="/accounts"
+              className="bg-gold hover:bg-gold/90 inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-black"
+            >
+              Gerenciar Contas
+            </Link>
           </div>
         </div>
-      ) : null}
+      </section>
+    );
+  }
 
-      {!isLoading && accounts.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {accounts.map((account) => (
-            <AccountCard key={account.id} account={account} />
-          ))}
+  return (
+    <section className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-3xl leading-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Revise e publique sugestões de posts.
+          </p>
         </div>
-      ) : null}
+      </div>
+
+      <AccountSelector
+        accounts={accounts}
+        selected={selectedAccountId}
+        onChange={setSelectedAccountId}
+      />
+
+      <Tabs defaultValue="pending" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="pending">Pendentes</TabsTrigger>
+          <TabsTrigger value="published">Publicados</TabsTrigger>
+          <TabsTrigger value="rejected">Rejeitados</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="mt-4">
+          <PendingPostsSection accountId={selectedAccountId} />
+        </TabsContent>
+
+        <TabsContent value="published" className="mt-4">
+          <PublishedPostsSection accountId={selectedAccountId} />
+        </TabsContent>
+
+        <TabsContent value="rejected" className="mt-4">
+          <RejectedPostsSection accountId={selectedAccountId} />
+        </TabsContent>
+      </Tabs>
     </section>
   );
 }
