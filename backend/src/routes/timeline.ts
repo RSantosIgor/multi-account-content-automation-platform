@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { supabase } from '../lib/supabase.js';
+import type { Json } from '../types/database.js';
 
 const paramsSchema = z.object({
   accountId: z.string().uuid(),
@@ -25,6 +26,7 @@ type TimelineSuggestion = {
   siteName: string | null;
   suggestionText: string;
   hashtags: string[];
+  articleSummary: Json | null;
 };
 
 type TimelinePost = {
@@ -46,6 +48,7 @@ type SuggestionWithRelations = {
   created_at: string;
   suggestion_text: string;
   hashtags: string[] | null;
+  article_summary: Json | null;
   scraped_articles?: {
     title: string;
     news_site_id: string;
@@ -96,6 +99,7 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
             created_at,
             suggestion_text,
             hashtags,
+            article_summary,
             scraped_articles!ai_suggestions_article_id_fkey (
               title,
               news_site_id,
@@ -128,6 +132,7 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
               siteName,
               suggestionText: sug.suggestion_text,
               hashtags: sug.hashtags ?? [],
+              articleSummary: sug.article_summary,
             },
           ];
         }) ?? [];

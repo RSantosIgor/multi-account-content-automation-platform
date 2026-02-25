@@ -8,6 +8,10 @@ import { TimelineItem } from '@/components/timeline/TimelineItem';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
+type ArticleSummary = {
+  bullets: string[];
+};
+
 type TimelineItemData =
   | {
       id: string;
@@ -19,6 +23,7 @@ type TimelineItemData =
       siteName: string | null;
       suggestionText: string;
       hashtags: string[];
+      articleSummary: ArticleSummary | null;
     }
   | {
       id: string;

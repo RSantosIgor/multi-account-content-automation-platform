@@ -47,7 +47,7 @@ export async function fetchArticleContent(url: string): Promise<ArticleContent> 
       'main',
     ];
 
-    let articleElement: cheerio.Cheerio<cheerio.Element> | null = null;
+    let articleElement: ReturnType<typeof $> | null = null;
     for (const selector of contentSelectors) {
       const element = $(selector);
       if (element.length > 0) {
@@ -73,7 +73,7 @@ export async function fetchArticleContent(url: string): Promise<ArticleContent> 
 
     // Extract text from paragraphs, preserving structure
     const paragraphs: string[] = [];
-    articleElement.find('p, h2, h3, h4, h5, h6, li').each((_i: number, elem: cheerio.Element) => {
+    articleElement.find('p, h2, h3, h4, h5, h6, li').each((_i: number, elem) => {
       const text = $(elem).text().trim();
       if (text.length > 20) {
         // Minimum length to avoid noise

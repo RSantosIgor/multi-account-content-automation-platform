@@ -210,12 +210,12 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
             // Update suggestion with summary (cast to Json type for Supabase)
             await supabase
               .from('ai_suggestions')
-              .update({ article_summary: summary as Json })
+              .update({ article_summary: summary as unknown as Json })
               .eq('id', updated.id);
 
             // Add summary to response
-            (updated as typeof updated & { article_summary: typeof summary }).article_summary =
-              summary;
+            (updated as typeof updated & { article_summary: Json | null }).article_summary =
+              summary as unknown as Json;
           }
         } catch (error) {
           // Log error but don't fail the request

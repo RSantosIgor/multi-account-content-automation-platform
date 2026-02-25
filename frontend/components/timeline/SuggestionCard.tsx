@@ -8,6 +8,10 @@ import { apiClient, ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { PublishDialog } from './PublishDialog';
 
+type ArticleSummary = {
+  bullets: string[];
+};
+
 type SuggestionCardProps = {
   accountId: string;
   suggestion: {
@@ -15,6 +19,7 @@ type SuggestionCardProps = {
     suggestionText: string;
     hashtags: string[];
     status: string;
+    articleSummary?: ArticleSummary | null;
   };
 };
 
@@ -61,6 +66,20 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
         </div>
         <span className={overLimit ? 'text-destructive' : ''}>{characters}/280</span>
       </div>
+
+      {suggestion.articleSummary?.bullets && suggestion.articleSummary.bullets.length > 0 && (
+        <div className="bg-muted rounded-md p-3">
+          <h4 className="mb-2 text-sm font-semibold">Resumo do Artigo</h4>
+          <ul className="text-muted-foreground space-y-1 text-sm">
+            {suggestion.articleSummary.bullets.map((bullet, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-gold">•</span>
+                <span>{bullet}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button
