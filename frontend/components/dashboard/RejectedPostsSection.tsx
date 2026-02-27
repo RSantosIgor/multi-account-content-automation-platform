@@ -14,7 +14,7 @@ type RejectedSuggestion = {
   createdAt: string;
   articleTitle: string;
   siteName: string | null;
-  suggestionText: string;
+  suggestionText: string | null;
   hashtags: string[];
 };
 
@@ -26,7 +26,7 @@ type TimelineResponse = {
     createdAt: string;
     articleTitle?: string;
     siteName?: string | null;
-    suggestionText?: string;
+    suggestionText?: string | null;
     hashtags?: string[];
   }>;
 };
@@ -73,7 +73,7 @@ export function RejectedPostsSection({ accountId }: RejectedPostsSectionProps) {
             createdAt: item.createdAt,
             articleTitle: item.articleTitle ?? '',
             siteName: item.siteName ?? null,
-            suggestionText: item.suggestionText ?? '',
+            suggestionText: item.suggestionText ?? null,
             hashtags: item.hashtags ?? [],
           }));
 
@@ -125,7 +125,11 @@ export function RejectedPostsSection({ accountId }: RejectedPostsSectionProps) {
           </div>
           <div className="mb-2 text-sm font-medium">{suggestion.articleTitle}</div>
           <div className="bg-background rounded-md border border-white/10 p-3 text-sm">
-            {suggestion.suggestionText}
+            {suggestion.suggestionText ?? (
+              <span className="text-muted-foreground italic">
+                Tweet não gerado (rejeitado antes da geração)
+              </span>
+            )}
           </div>
           <div className="mt-2 flex items-center justify-between gap-2">
             <div className="flex gap-2">

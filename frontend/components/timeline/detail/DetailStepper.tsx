@@ -3,6 +3,7 @@
 import { Check, Circle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { OriginalArticleStep } from './OriginalArticleStep';
+import { AnalysisStep } from './AnalysisStep';
 import { SuggestionStep } from './SuggestionStep';
 import { PublicationStep } from './PublicationStep';
 import { RejectionStep } from './RejectionStep';
@@ -18,7 +19,7 @@ type TimelineItemDetail = {
     articleId: string;
     xAccountId: string;
     status: string;
-    suggestionText: string;
+    suggestionText: string | null;
     hashtags: string[];
     articleSummary: ArticleSummary | null;
     createdAt: string;
@@ -71,10 +72,11 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
   const hasPost = item.post !== null;
   const hasArticle = item.article !== null;
   const isRejected = item.suggestion?.status === 'rejected';
+  const hasTweetText = !!item.suggestion?.suggestionText;
 
   const lastStep: Step = isRejected
     ? {
-        id: 3,
+        id: 4,
         title: 'Rejeitado',
         description: 'Sugestão não aprovada',
         isCompleted: true,
@@ -83,7 +85,7 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
         component: <RejectionStep suggestion={item.suggestion!} />,
       }
     : {
-        id: 3,
+        id: 4,
         title: 'Publicação',
         description: 'Post publicado no X',
         isCompleted: hasPost,
@@ -111,10 +113,22 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
     },
     {
       id: 2,
-      title: 'Sugestão de IA',
-      description: 'Post gerado pela IA',
+      title: 'Análise',
+      description: 'IA avaliou elegibilidade do artigo',
       isCompleted: hasSuggestion,
-      isCurrent: hasSuggestion && !hasPost && !isRejected,
+      isCurrent: false,
+      component: hasSuggestion ? (
+        <AnalysisStep isEligible={true} articleTitle={item.article?.title ?? 'Artigo'} />
+      ) : (
+        <div className="text-muted-foreground text-sm">Análise não realizada ainda</div>
+      ),
+    },
+    {
+      id: 3,
+      title: 'Sugestão de Tweet',
+      description: hasTweetText ? 'Tweet gerado pela IA' : 'Aguardando aprovação para gerar tweet',
+      isCompleted: hasTweetText,
+      isCurrent: hasSuggestion && !hasTweetText && !isRejected,
       component: hasSuggestion ? (
         <SuggestionStep
           suggestion={item.suggestion!}
@@ -168,13 +182,13 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
                         ? 'bg-gold'
                         : 'bg-muted',
                   )}
-                  style={{ minHeight: '100px' }}
+                  style={{ minHeight: '80px' }}
                 />
               )}
             </div>
 
             {/* Step label */}
-            <div className="ml-4 pb-12">
+            <div className="ml-4 pb-10">
               <div className={cn('mb-1 font-semibold', step.isRejected && 'text-red-300')}>
                 {step.title}
               </div>

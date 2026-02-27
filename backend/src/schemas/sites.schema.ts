@@ -18,6 +18,7 @@ export const createSiteSchema = z.object({
   url: z.string().url(),
   scraping_interval_hours: z.number().int().min(1).max(168).default(4),
   scraping_config: scrapingConfigSchema.optional(),
+  auto_flow: z.boolean().default(false),
 });
 
 /**
@@ -29,6 +30,7 @@ export const updateSiteSchema = z.object({
   scraping_interval_hours: z.number().int().min(1).max(168).optional(),
   scraping_config: scrapingConfigSchema.optional(),
   is_active: z.boolean().optional(),
+  auto_flow: z.boolean().optional(),
 });
 
 export type CreateSiteInput = z.infer<typeof createSiteSchema>;

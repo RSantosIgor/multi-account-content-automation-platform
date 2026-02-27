@@ -17,7 +17,7 @@ type PendingSuggestion = {
   articleTitle: string;
   siteId: string;
   siteName: string | null;
-  suggestionText: string;
+  suggestionText: string | null;
   hashtags: string[];
   articleSummary: ArticleSummary | null;
 };
@@ -31,7 +31,7 @@ type TimelineResponse = {
     articleTitle?: string;
     siteId?: string;
     siteName?: string | null;
-    suggestionText?: string;
+    suggestionText?: string | null;
     hashtags?: string[];
     articleSummary?: ArticleSummary | null;
   }>;
@@ -80,7 +80,7 @@ export function PendingPostsSection({ accountId }: PendingPostsSectionProps) {
             articleTitle: item.articleTitle ?? '',
             siteId: item.siteId ?? '',
             siteName: item.siteName ?? null,
-            suggestionText: item.suggestionText ?? '',
+            suggestionText: item.suggestionText ?? null,
             hashtags: item.hashtags ?? [],
             articleSummary: item.articleSummary ?? null,
           }));

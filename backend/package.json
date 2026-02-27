@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "seed": "tsx --env-file=.env src/scripts/seed-mock-account.ts"
+    "seed": "tsx --env-file=.env src/scripts/seed-mock-account.ts",
+    "test:metropoles": "tsx --env-file=.env src/scripts/test-metropoles.ts",
+    "test:x-token": "tsx --env-file=.env src/scripts/test-x-token.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

@@ -43,7 +43,7 @@ export type Database = {
           reviewed_at: string | null;
           reviewed_by: string | null;
           status: string;
-          suggestion_text: string;
+          suggestion_text: string | null;
           updated_at: string;
           x_account_id: string;
         };
@@ -56,7 +56,7 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           status?: string;
-          suggestion_text: string;
+          suggestion_text?: string | null;
           updated_at?: string;
           x_account_id: string;
         };
@@ -69,7 +69,7 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           status?: string;
-          suggestion_text?: string;
+          suggestion_text?: string | null;
           updated_at?: string;
           x_account_id?: string;
         };
@@ -92,6 +92,7 @@ export type Database = {
       };
       news_sites: {
         Row: {
+          auto_flow: boolean;
           created_at: string;
           feed_url: string | null;
           id: string;
@@ -106,6 +107,7 @@ export type Database = {
           x_account_id: string;
         };
         Insert: {
+          auto_flow?: boolean;
           created_at?: string;
           feed_url?: string | null;
           id?: string;
@@ -120,6 +122,7 @@ export type Database = {
           x_account_id: string;
         };
         Update: {
+          auto_flow?: boolean;
           created_at?: string;
           feed_url?: string | null;
           id?: string;

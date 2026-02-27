@@ -6,6 +6,50 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-25 23:00 UTC] FLOW-006 through FLOW-008 — FLOW epic frontend implementation
+
+**Agent:** claude-opus-4-6
+**Task:** FLOW-006, FLOW-007, FLOW-008
+**Commit:** PENDING
+
+### Files Created
+
+- `frontend/components/timeline/detail/AnalysisStep.tsx` — new step component showing AI eligibility analysis result
+
+### Files Modified
+
+- `frontend/components/timeline/SuggestionCard.tsx` — handles nullable `suggestionText`: shows pending state with "Aguardando aprovação" when tweet not yet generated; updates text after approval response
+- `frontend/components/sites/SiteForm.tsx` — added auto-flow Switch toggle with description; added `auto_flow` to form schema, defaults, and submit payload
+- `frontend/components/timeline/detail/DetailStepper.tsx` — expanded from 3 to 4 phases: Article → Analysis → Suggestion → Publication; `suggestionText` now nullable
+- `frontend/components/timeline/detail/SuggestionStep.tsx` — `suggestionText` nullable; shows placeholder when tweet not yet generated
+- `frontend/app/(app)/accounts/[accountId]/timeline/page.tsx` — `suggestionText: string | null`
+- `frontend/app/(app)/accounts/[accountId]/timeline/[itemId]/page.tsx` — `suggestionText: string | null`
+- `frontend/components/dashboard/PendingPostsSection.tsx` — `suggestionText: string | null`
+- `frontend/components/dashboard/RejectedPostsSection.tsx` — `suggestionText: string | null`; shows italic placeholder for null text
+- `frontend/components/timeline/TimelineItem.tsx` — `suggestionText: string | null`
+
+### Summary
+
+Implemented the FLOW epic frontend (FLOW-006 through FLOW-008). SuggestionCard now shows a pending state when tweet text is null (analysis passed but tweet not yet generated). SiteForm has a new auto-flow toggle. DetailStepper expanded to 4 phases with a new Analysis step. All components updated for nullable `suggestionText`.
+
+---
+
+## [2026-02-25 21:00 UTC] ad-hoc — Root CLAUDE.md + README update + PLANEJAMENTO deprecation
+
+**Agent:** claude-sonnet-4-6
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Modified
+
+- `README.md` — updated to reflect current state: DeepSeek AI provider, recharts, UX epic done, updated feature list, documentation table, AI agent guidelines pointing to CLAUDE.md first
+
+### Summary
+
+Updated project documentation to reflect the current implementation state (UX epic done, 13 migrations, 3 AI providers).
+
+---
+
 ## [2026-02-25 18:00 UTC] ad-hoc — Sticky sidebar & rejection stepper
 
 **Agent:** claude-sonnet-4-6

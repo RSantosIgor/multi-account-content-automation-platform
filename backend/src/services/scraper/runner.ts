@@ -155,9 +155,8 @@ export class ScraperRunner {
         articlesInserted = inserted?.length ?? 0;
       }
 
-      if (articlesInserted > 0) {
-        await AiSuggestionService.processNewArticles(site.x_account_id);
-      }
+      // Always run AI analysis — handles both new articles and any previously unanalyzed ones
+      await AiSuggestionService.processNewArticles(site.x_account_id);
 
       // Update last_scraped_at on the site
       await supabase

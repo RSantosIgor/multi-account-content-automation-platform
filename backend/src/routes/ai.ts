@@ -5,6 +5,12 @@ import { AiSuggestionService } from '../services/ai/suggest.js';
 import { fetchArticleContent } from '../services/scraper/article-fetcher.js';
 import { generateArticleSummary } from '../services/ai/summarizer.js';
 import { createAiProvider } from '../services/ai/provider.js';
+import { buildPublicationPrompt } from '../services/ai/prompt-builder.js';
+import {
+  buildSystemPrompt,
+  buildFullContentUserPrompt,
+  parseAiSuggestionResponse,
+} from '../services/ai/prompts.js';
 import type { Json } from '../types/database.js';
 
 const suggestParamsSchema = z.object({
@@ -172,55 +178,86 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
         );
       }
 
-      // If approved and no article_summary yet, generate it
-      if (bodyResult.data.status === 'approved' && !updated.article_summary) {
+      // FLOW-004: On approval → fetch full content, generate tweet + summary
+      if (bodyResult.data.status === 'approved') {
         try {
-          // Fetch article details
           const { data: article, error: articleError } = await supabase
             .from('scraped_articles')
-            .select('id, url, title, full_article_content')
+            .select('id, url, title, summary, full_article_content')
             .eq('id', updated.article_id)
             .single();
 
-          if (!articleError && article) {
-            let content = article.full_article_content;
-
-            // If no cached content, fetch it
-            if (!content) {
-              try {
-                const fetched = await fetchArticleContent(article.url);
-                content = fetched.content;
-
-                // Cache the full content
-                await supabase
-                  .from('scraped_articles')
-                  .update({ full_article_content: content })
-                  .eq('id', article.id);
-              } catch (fetchError) {
-                console.error('[AI Routes] Failed to fetch article content:', fetchError);
-                // Continue with title as fallback
-                content = article.title;
-              }
-            }
-
-            // Generate summary
-            const aiProvider = createAiProvider();
-            const summary = await generateArticleSummary(aiProvider, article.title, content);
-
-            // Update suggestion with summary (cast to Json type for Supabase)
-            await supabase
-              .from('ai_suggestions')
-              .update({ article_summary: summary as unknown as Json })
-              .eq('id', updated.id);
-
-            // Add summary to response
-            (updated as typeof updated & { article_summary: Json | null }).article_summary =
-              summary as unknown as Json;
+          if (articleError || !article) {
+            throw new Error(articleError?.message ?? 'Article not found');
           }
+
+          // Step 1: Fetch full article content (or reuse cached)
+          let content = article.full_article_content;
+          if (!content) {
+            try {
+              const fetched = await fetchArticleContent(article.url);
+              content = fetched.content;
+
+              // Cache for reuse
+              await supabase
+                .from('scraped_articles')
+                .update({ full_article_content: content })
+                .eq('id', article.id);
+            } catch (fetchError) {
+              console.error('[AI Routes] Failed to fetch article content:', fetchError);
+              content = article.summary ?? article.title;
+            }
+          }
+
+          const aiProvider = createAiProvider();
+
+          // Step 2: Generate tweet using publication rules + full content
+          const publicationPrompt = await buildPublicationPrompt(
+            updated.x_account_id,
+            buildSystemPrompt(),
+          );
+          const rawTweet = await aiProvider.generateRaw(
+            publicationPrompt,
+            buildFullContentUserPrompt(article.title, content, article.summary ?? undefined),
+          );
+          const tweetResult = parseAiSuggestionResponse(rawTweet);
+
+          if (tweetResult.ok) {
+            updated.suggestion_text = tweetResult.data.text;
+            updated.hashtags = tweetResult.data.hashtags;
+          }
+
+          // Step 3: Generate article summary
+          const summary = await generateArticleSummary(aiProvider, article.title, content);
+          updated.article_summary = summary as unknown as Json;
+
+          // Step 4: Persist tweet + summary + mark article as processed
+          await supabase
+            .from('ai_suggestions')
+            .update({
+              suggestion_text: updated.suggestion_text,
+              hashtags: updated.hashtags,
+              article_summary: summary as unknown as Json,
+            })
+            .eq('id', updated.id);
+
+          await supabase
+            .from('scraped_articles')
+            .update({ is_processed: true })
+            .eq('id', article.id);
         } catch (error) {
-          // Log error but don't fail the request
-          console.error('[AI Routes] Failed to generate article summary:', error);
+          console.error('[AI Routes] Approval generation failed:', error);
+          // Status is already 'approved' — tweet text may be null,
+          // frontend should handle this gracefully
         }
+      }
+
+      // On rejection, mark article as processed
+      if (bodyResult.data.status === 'rejected') {
+        await supabase
+          .from('scraped_articles')
+          .update({ is_processed: true })
+          .eq('id', updated.article_id);
       }
 
       return {

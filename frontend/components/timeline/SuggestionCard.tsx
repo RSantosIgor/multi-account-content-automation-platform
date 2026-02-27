@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Clock, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ type SuggestionCardProps = {
   accountId: string;
   suggestion: {
     id: string;
-    suggestionText: string;
+    suggestionText: string | null;
     hashtags: string[];
     status: string;
     articleSummary?: ArticleSummary | null;
@@ -26,19 +26,34 @@ type SuggestionCardProps = {
 };
 
 export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
-  const [text, setText] = useState(suggestion.suggestionText);
+  const [text, setText] = useState(suggestion.suggestionText ?? '');
+  const [localStatus, setLocalStatus] = useState(suggestion.status);
   const [isUpdating, setIsUpdating] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+
+  // Use local state so the component reacts immediately after approve/reject
+  const isPending = localStatus === 'pending' && !text;
 
   const updateStatus = async (status: 'approved' | 'rejected') => {
     setIsUpdating(true);
     try {
-      await apiClient(`/api/v1/suggestions/${suggestion.id}/status`, {
+      const response = await apiClient<{
+        data: { suggestionText: string | null; hashtags: string[] };
+      }>(`/api/v1/suggestions/${suggestion.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
       toast.success(status === 'approved' ? 'Sugestão aprovada' : 'Sugestão rejeitada');
+      if (status === 'approved') {
+        setLocalStatus('approved');
+        if (response.data?.suggestionText) {
+          setText(response.data.suggestionText);
+        }
+      } else {
+        // After rejection, reload to remove the card from the pending list
+        window.location.reload();
+      }
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao atualizar status';
       toast.error(msg);
@@ -49,6 +64,55 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
 
   const characters = text.length;
   const overLimit = characters > 280;
+
+  // Pending state: tweet not yet generated
+  if (isPending) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-muted/50 flex items-center gap-3 rounded-md border border-dashed p-4">
+          <Clock className="text-muted-foreground h-5 w-5" />
+          <div>
+            <p className="text-sm font-medium">Aguardando aprovação</p>
+            <p className="text-muted-foreground text-xs">
+              O tweet será gerado automaticamente quando você aprovar esta sugestão.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isUpdating}
+            onClick={() => updateStatus('approved')}
+          >
+            {isUpdating ? (
+              <>
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                Gerando tweet…
+              </>
+            ) : (
+              'Aprovar e Gerar Tweet'
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive"
+            disabled={isUpdating}
+            onClick={() => updateStatus('rejected')}
+          >
+            Rejeitar
+          </Button>
+          <Link href={`/accounts/${accountId}/timeline/${suggestion.id}`} className="ml-auto">
+            <Button variant="ghost" size="sm" className="gap-1">
+              Ver Detalhes <ExternalLink className="h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

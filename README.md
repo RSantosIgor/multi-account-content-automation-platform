@@ -1,6 +1,6 @@
 # batchNews
 
-> Multi-account X (Twitter) content automation platform. Aggregates news via RSS and web scraping, generates AI-powered post suggestions, and publishes directly to X.
+> Multi-account X (Twitter) content automation platform. Aggregates news via RSS and web scraping, generates AI-powered post suggestions with customizable prompt rules, and publishes directly to X.
 
 ---
 
@@ -8,8 +8,14 @@
 
 - **Multi-account management** — connect and manage multiple X (Twitter) accounts
 - **News aggregation** — RSS-first collection with HTML scraping fallback; manually curate sites per account
-- **AI-powered suggestions** — each article is processed by OpenAI or Anthropic to generate a ready-to-post suggestion (≤ 280 chars + hashtags)
-- **Unified timeline** — review suggestions and post history per account in a single feed
+- **AI-powered suggestions** — articles processed by OpenAI, Anthropic, or DeepSeek to generate ready-to-post suggestions (≤ 280 chars + hashtags)
+- **Custom prompt rules** — per-account AI rules to control writing style and content filters (analysis and publication phases)
+- **Full article content on approval** — when a suggestion is approved, the AI uses the complete article text (not just the RSS summary) to generate a higher-quality final tweet
+- **Article summaries** — bullet-point summaries generated on approval and displayed in the timeline
+- **Unified timeline** — review suggestions and post history per account in a single feed with detail view (article → suggestion → post stepper)
+- **Dashboard** — tabs for Pending / Published / Rejected suggestions across all accounts
+- **Account settings** — manage account data and configure prompt rules per account
+- **Statistics** — daily posting charts with date range filters
 - **One-click publishing** — edit, approve, and publish directly to X from the timeline
 - **Access control** — user roles (`admin` / `member`) with row-level security enforced at the database layer
 - **Scheduled scraping** — automatic periodic collection via `node-cron`, configurable per site
@@ -18,16 +24,16 @@
 
 ## Tech Stack
 
-| Layer           | Technology                                                          |
-| --------------- | ------------------------------------------------------------------- |
-| Frontend        | Next.js 16 (App Router) · TypeScript · Tailwind CSS · shadcn/ui     |
-| Backend         | Fastify · Node.js 20 · TypeScript                                   |
-| Database        | Supabase (PostgreSQL + Auth)                                        |
-| AI              | OpenAI (`gpt-4o-mini`) or Anthropic (`claude-haiku`) — configurable |
-| X Integration   | X API v2 · OAuth 2.0 PKCE                                           |
-| Scraping        | `rss-parser` (RSS/Atom) · `cheerio` (HTML fallback)                 |
-| Scheduler       | `node-cron`                                                         |
-| Package manager | pnpm workspaces                                                     |
+| Layer           | Technology                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| Frontend        | Next.js 16 (App Router) · TypeScript · Tailwind CSS · shadcn/ui · recharts                                  |
+| Backend         | Fastify 5 · Node.js 20 · TypeScript                                                                         |
+| Database        | Supabase (PostgreSQL + Auth)                                                                                |
+| AI              | OpenAI (`gpt-4o-mini`) · Anthropic (`claude-haiku-4-5`) · DeepSeek — configurable via `AI_PROVIDER` env var |
+| X Integration   | X API v2 · OAuth 2.0 PKCE                                                                                   |
+| Scraping        | `rss-parser` (RSS/Atom) · `cheerio` (HTML fallback + full article fetching)                                 |
+| Scheduler       | `node-cron`                                                                                                 |
+| Package manager | pnpm workspaces                                                                                             |
 
 ---
 
@@ -35,6 +41,7 @@
 
 ```
 batchNews/
+├── CLAUDE.md          # AI agent context — business rules, architecture, flow lifecycle
 ├── frontend/          # Next.js application (UI only)
 │   ├── AGENTS.md      # Rules for AI agents working on the frontend
 │   └── CHANGELOG.md   # Frontend change history
@@ -42,7 +49,7 @@ batchNews/
 │   ├── AGENTS.md      # Rules for AI agents working on the backend
 │   └── CHANGELOG.md   # Backend change history
 ├── supabase/
-│   └── migrations/    # SQL migrations (schema + RLS policies)
+│   └── migrations/    # SQL migrations 001–013 (schema + RLS policies)
 └── docs/
     ├── ARCHITECTURE.md # Full architecture reference
     └── TASKS.md        # Development epics and tasks
@@ -57,7 +64,7 @@ batchNews/
 - [Supabase CLI](https://supabase.com/docs/guides/cli)
 - A [Supabase](https://supabase.com/) project (free tier works)
 - A [X Developer account](https://developer.twitter.com/) with OAuth 2.0 app
-- An [OpenAI](https://platform.openai.com/) or [Anthropic](https://console.anthropic.com/) API key
+- An AI provider API key: [OpenAI](https://platform.openai.com/), [Anthropic](https://console.anthropic.com/), or [DeepSeek](https://platform.deepseek.com/)
 
 ---
 
@@ -95,9 +102,12 @@ X_CLIENT_ID=<oauth2_client_id>
 X_CLIENT_SECRET=<oauth2_client_secret>
 X_CALLBACK_URL=http://localhost:3001/api/v1/x/oauth/callback
 
-AI_PROVIDER=openai        # or 'anthropic'
+# AI Provider: 'openai' | 'anthropic' | 'deepseek'
+AI_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
+DEEPSEEK_API_KEY=sk-...
+DEEPSEEK_BASE_URL=https://api.deepseek.com   # only needed for DeepSeek
 
 CRON_SECRET=<random_string>
 ```
@@ -121,7 +131,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 # Link to your Supabase project
 supabase link --project-ref <project-ref>
 
-# Apply all migrations
+# Apply all migrations (001–013)
 pnpm db:push
 ```
 
@@ -173,19 +183,15 @@ http://localhost:3001/docs
 
 ---
 
-## Architecture
+## Documentation
 
-For a detailed breakdown of the system design, data flow, security model, and conventions, see:
-
-**[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
-
----
-
-## Development Tasks
-
-The project is organized into epics and tasks, each self-contained for AI-assisted development:
-
-**[docs/TASKS.md](docs/TASKS.md)**
+| File                                           | Purpose                                                           |
+| ---------------------------------------------- | ----------------------------------------------------------------- |
+| [`CLAUDE.md`](CLAUDE.md)                       | **AI agent context** — business rules, flow lifecycle, data model |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture, security model, conventions                  |
+| [`docs/TASKS.md`](docs/TASKS.md)               | Development epics and task tracking                               |
+| [`frontend/AGENTS.md`](frontend/AGENTS.md)     | Rules for AI agents working on the frontend                       |
+| [`backend/AGENTS.md`](backend/AGENTS.md)       | Rules for AI agents working on the backend                        |
 
 ---
 
@@ -193,8 +199,9 @@ The project is organized into epics and tasks, each self-contained for AI-assist
 
 If you are an AI agent contributing to this codebase:
 
-- **Frontend:** read [`frontend/AGENTS.md`](frontend/AGENTS.md) before making any changes
-- **Backend:** read [`backend/AGENTS.md`](backend/AGENTS.md) before making any changes
+1. **Start here:** read [`CLAUDE.md`](CLAUDE.md) — business rules, flow lifecycle, data model
+2. **Frontend:** read [`frontend/AGENTS.md`](frontend/AGENTS.md) before making any changes
+3. **Backend:** read [`backend/AGENTS.md`](backend/AGENTS.md) before making any changes
 
 All changes must be logged in the respective `CHANGELOG.md`.
 

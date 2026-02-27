@@ -22,6 +22,7 @@ import { apiClient } from '@/lib/api/client';
 import { ScraperPreview } from './ScraperPreview';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 import { Info } from 'lucide-react';
 
 const siteFormSchema = z.object({
@@ -32,6 +33,7 @@ const siteFormSchema = z.object({
     .int()
     .min(1, 'Minimum 1 hour')
     .max(168, 'Maximum 168 hours (1 week)'),
+  auto_flow: z.boolean().default(false),
   article_selector: z.string().optional(),
   title_selector: z.string().optional(),
   summary_selector: z.string().optional(),
@@ -47,6 +49,7 @@ type SiteData = {
   sourceType: string;
   feedUrl: string | null;
   scrapingIntervalHours: number;
+  autoFlow?: boolean;
   scrapingConfig: {
     article_selector: string;
     title_selector: string;
@@ -75,6 +78,7 @@ export function SiteForm({ accountId, site, mode }: SiteFormProps) {
       name: site?.name || '',
       url: site?.url || '',
       scraping_interval_hours: site?.scrapingIntervalHours || 4,
+      auto_flow: site?.autoFlow ?? false,
       article_selector: site?.scrapingConfig?.article_selector || '',
       title_selector: site?.scrapingConfig?.title_selector || '',
       summary_selector: site?.scrapingConfig?.summary_selector || '',
@@ -126,6 +130,7 @@ export function SiteForm({ accountId, site, mode }: SiteFormProps) {
         name: values.name,
         url: values.url,
         scraping_interval_hours: values.scraping_interval_hours,
+        auto_flow: values.auto_flow,
         ...(hasAnySelector
           ? {
               scraping_config: {
@@ -255,6 +260,25 @@ export function SiteForm({ accountId, site, mode }: SiteFormProps) {
                 </FormControl>
                 <FormDescription>How often to check for new articles (1-168 hours)</FormDescription>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="auto_flow"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel>Auto-flow</FormLabel>
+                  <FormDescription>
+                    Publicar automaticamente sem revisão manual. Artigos elegíveis serão
+                    processados, gerados e publicados no X automaticamente.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
               </FormItem>
             )}
           />

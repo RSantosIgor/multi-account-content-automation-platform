@@ -16,7 +16,7 @@ type Suggestion = {
   articleId: string;
   xAccountId: string;
   status: string;
-  suggestionText: string;
+  suggestionText: string | null;
   hashtags: string[];
   articleSummary: ArticleSummary | null;
   createdAt: string;
@@ -90,9 +90,17 @@ export function SuggestionStep({
       </div>
 
       <div className="space-y-4">
-        <div className="bg-background rounded-md border border-white/10 p-4">
-          <p className="text-base">{suggestion.suggestionText}</p>
-        </div>
+        {suggestion.suggestionText ? (
+          <div className="bg-background rounded-md border border-white/10 p-4">
+            <p className="text-base">{suggestion.suggestionText}</p>
+          </div>
+        ) : (
+          <div className="bg-muted/50 rounded-md border border-dashed p-4">
+            <p className="text-muted-foreground text-sm">
+              Tweet ainda não gerado. Será criado automaticamente ao aprovar a sugestão.
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2">
           {suggestion.hashtags.map((tag) => (

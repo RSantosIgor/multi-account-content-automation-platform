@@ -20,7 +20,7 @@ type TimelineItemDetail = {
     articleId: string;
     xAccountId: string;
     status: string;
-    suggestionText: string;
+    suggestionText: string | null;
     hashtags: string[];
     articleSummary: ArticleSummary | null;
     createdAt: string;

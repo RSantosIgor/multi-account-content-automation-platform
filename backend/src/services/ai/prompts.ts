@@ -56,6 +56,19 @@ export function buildUserPrompt(title: string, summary: string): string {
   return ['Title:', title.trim(), '', 'Summary:', summary.trim()].join('\n');
 }
 
+/**
+ * Build user prompt using full article content (used on approval / auto-flow).
+ * Falls back to summary if full content is empty.
+ */
+export function buildFullContentUserPrompt(
+  title: string,
+  fullContent: string,
+  summary?: string,
+): string {
+  const body = fullContent.trim() || summary?.trim() || '';
+  return ['Title:', title.trim(), '', 'Full article:', body].join('\n');
+}
+
 export function parseAiSuggestionResponse(rawText: string): ParsedAiSuggestionResult {
   const jsonText = extractJsonObject(rawText);
   if (!jsonText) {
@@ -79,6 +92,44 @@ export function parseAiSuggestionResponse(rawText: string): ParsedAiSuggestionRe
     };
   } catch {
     return { ok: false, error: 'AI response is not valid JSON' };
+  }
+}
+
+// --- Analysis Phase (FLOW-003) ---
+
+const analysisResponseSchema = z.object({
+  eligible: z.boolean(),
+  reason: z.string().optional().default(''),
+});
+
+export type AnalysisResult = { eligible: boolean; reason: string };
+
+export function buildAnalysisSystemPrompt(): string {
+  return [
+    'You are a content editor. Evaluate if the following news article is suitable for posting on X (Twitter).',
+    'Consider: relevance, timeliness, engagement potential, and appropriateness.',
+    '',
+    'Respond ONLY with valid JSON: { "eligible": true, "reason": "brief explanation" }',
+    'or { "eligible": false, "reason": "brief explanation" }',
+  ].join('\n');
+}
+
+export function parseAnalysisResponse(rawText: string): AnalysisResult {
+  const jsonText = extractJsonObject(rawText);
+  if (!jsonText) {
+    // Default to eligible when we can't parse — don't discard articles silently
+    return { eligible: true, reason: 'Failed to parse analysis response' };
+  }
+
+  try {
+    const parsed = JSON.parse(jsonText) as unknown;
+    const result = analysisResponseSchema.safeParse(parsed);
+    if (!result.success) {
+      return { eligible: true, reason: 'Invalid analysis response format' };
+    }
+    return { eligible: result.data.eligible, reason: result.data.reason };
+  } catch {
+    return { eligible: true, reason: 'Analysis response is not valid JSON' };
   }
 }
 

@@ -6,6 +6,54 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-02-25 23:00 UTC] FLOW-001 through FLOW-005 — FLOW epic backend implementation
+
+**Agent:** claude-opus-4-6
+**Task:** FLOW-001, FLOW-002, FLOW-003, FLOW-004, FLOW-005
+**Commit:** PENDING
+
+### Files Created
+
+- `supabase/migrations/014_news_sites_auto_flow.sql` — adds `auto_flow BOOLEAN NOT NULL DEFAULT false` to `news_sites`
+- `supabase/migrations/015_ai_suggestions_nullable_text.sql` — makes `suggestion_text` nullable in `ai_suggestions`
+- `backend/src/services/ai/auto-flow.ts` — new `AutoFlowService` class: full automatic pipeline (fetch content → generate tweet → generate summary → publish to X)
+
+### Files Modified
+
+- `backend/src/schemas/sites.schema.ts` — added `auto_flow` to create and update Zod schemas
+- `backend/src/routes/sites.ts` — added `autoFlow` to `toPublicSite()` response, create payload, and update handler
+- `backend/src/services/ai/prompts.ts` — added `buildAnalysisSystemPrompt()`, `parseAnalysisResponse()`, `buildFullContentUserPrompt()`, and `AnalysisResult` type
+- `backend/src/services/ai/suggest.ts` — fully rewritten: analysis phase (title+summary only), creates pending suggestions with null text, auto-flow delegation
+- `backend/src/routes/ai.ts` — refactored approval endpoint: fetches full content, generates tweet with publication rules, generates summary, marks article processed; rejection marks processed too
+- `backend/src/types/database.ts` — added `auto_flow` to news_sites types; made `suggestion_text` nullable in ai_suggestions types
+
+### Summary
+
+Implemented the full FLOW epic backend (FLOW-001 through FLOW-005). The AI pipeline now separates analysis (cheap title+summary filtering) from publication (full-content tweet generation on approval). Sites can opt into auto-flow for fully automatic publishing. The approval endpoint now generates both the tweet and article summary using full article content with publication prompt rules.
+
+---
+
+## [2026-02-25 21:00 UTC] ad-hoc — Root CLAUDE.md + README update + PLANEJAMENTO deprecation
+
+**Agent:** claude-sonnet-4-6
+**Task:** ad-hoc
+**Commit:** PENDING
+
+### Files Created
+
+- `CLAUDE.md` (root) — comprehensive AI context file with all business rules, news flow lifecycle (5 phases), data model (migrations 001–013), AI pipeline with prompt rules, API route map, file structure, workspace rules, and environment variables
+
+### Files Modified
+
+- `README.md` — updated features list, tech stack (DeepSeek, recharts), documentation table, AI agent guidelines; added CLAUDE.md as first reading step for agents
+- `PLANEJAMENTO.md` — added deprecation notice at top with pointers to CLAUDE.md and docs/ARCHITECTURE.md; listed key differences from original planning
+
+### Summary
+
+Created the root `CLAUDE.md` file following the Claude Code convention (auto-loaded in every session). It consolidates all business rules — especially the critical full-article-content rule for approval — and is the authoritative context file for any AI agent working on this project. Updated README and deprecated the outdated PLANEJAMENTO.md.
+
+---
+
 ## [2026-02-25 19:12 UTC] ad-hoc — Circuit-breaker for AI provider fatal errors
 
 **Agent:** claude-sonnet-4-6

@@ -67,14 +67,14 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [UX-006](#ux-006--article-detail-page)                         | Article Detail Page                            | Both      | High     | DONE   |
 | [UX-007](#ux-007--dashboard-redesign)                          | Dashboard Redesign                             | Frontend  | Critical | DONE   |
 | [UX-008](#ux-008--statistics-dashboard)                        | Statistics Dashboard                           | Both      | High     | DONE   |
-| [FLOW-001](#flow-001--db--auto_flow-em-news_sites)             | DB — auto_flow em news_sites                   | Database  | Critical | TODO   |
-| [FLOW-002](#flow-002--db--suggestion_text-nullable)            | DB — suggestion_text nullable                  | Database  | Critical | TODO   |
-| [FLOW-003](#flow-003--backend--fase-de-análise-elegibilidade)  | Backend — Fase de Análise (Elegibilidade)      | Backend   | Critical | TODO   |
-| [FLOW-004](#flow-004--backend--geração-do-post-na-aprovação)   | Backend — Geração do Post na Aprovação         | Backend   | Critical | TODO   |
-| [FLOW-005](#flow-005--backend--fluxo-automático-por-site)      | Backend — Fluxo Automático por Site            | Backend   | High     | TODO   |
-| [FLOW-006](#flow-006--frontend--suggestioncard-estado-pending) | Frontend — SuggestionCard Estado Pending       | Frontend  | High     | TODO   |
-| [FLOW-007](#flow-007--frontend--siteform--toggle-auto_flow)    | Frontend — SiteForm Toggle auto_flow           | Frontend  | High     | TODO   |
-| [FLOW-008](#flow-008--frontend--detailstepper-4-fases)         | Frontend — DetailStepper 4 Fases               | Frontend  | Medium   | TODO   |
+| [FLOW-001](#flow-001--db--auto_flow-em-news_sites)             | DB — auto_flow em news_sites                   | Database  | Critical | DONE   |
+| [FLOW-002](#flow-002--db--suggestion_text-nullable)            | DB — suggestion_text nullable                  | Database  | Critical | DONE   |
+| [FLOW-003](#flow-003--backend--fase-de-análise-elegibilidade)  | Backend — Fase de Análise (Elegibilidade)      | Backend   | Critical | DONE   |
+| [FLOW-004](#flow-004--backend--geração-do-post-na-aprovação)   | Backend — Geração do Post na Aprovação         | Backend   | Critical | DONE   |
+| [FLOW-005](#flow-005--backend--fluxo-automático-por-site)      | Backend — Fluxo Automático por Site            | Backend   | High     | DONE   |
+| [FLOW-006](#flow-006--frontend--suggestioncard-estado-pending) | Frontend — SuggestionCard Estado Pending       | Frontend  | High     | DONE   |
+| [FLOW-007](#flow-007--frontend--siteform--toggle-auto_flow)    | Frontend — SiteForm Toggle auto_flow           | Frontend  | High     | DONE   |
+| [FLOW-008](#flow-008--frontend--detailstepper-4-fases)         | Frontend — DetailStepper 4 Fases               | Frontend  | Medium   | DONE   |
 | [INFRA-001](#infra-001--docker-setup-backend)                  | Docker Setup                                   | Backend   | Medium   | TODO   |
 | [INFRA-002](#infra-002--testing-setup)                         | Testing Setup                                  | Both      | Medium   | TODO   |
 | [INFRA-003](#infra-003--readmemd)                              | README.md                                      | Both      | Medium   | TODO   |

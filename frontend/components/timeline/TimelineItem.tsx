@@ -22,7 +22,7 @@ type TimelineItemProps = {
         articleTitle: string;
         siteId: string;
         siteName: string | null;
-        suggestionText: string;
+        suggestionText: string | null;
         hashtags: string[];
         articleSummary: ArticleSummary | null;
       }

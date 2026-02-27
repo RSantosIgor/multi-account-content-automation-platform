@@ -55,6 +55,7 @@ function toPublicSite(site: NewsSiteRow) {
     scrapingConfig: site.scraping_config,
     scrapingIntervalHours: site.scraping_interval_hours,
     isActive: site.is_active,
+    autoFlow: site.auto_flow,
     lastScrapedAt: site.last_scraped_at,
     createdAt: site.created_at,
     updatedAt: site.updated_at,
@@ -113,7 +114,7 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
 
       await verifyAccountOwnership(fastify, request.user.id, paramsResult.data.accountId);
 
-      const { name, url, scraping_interval_hours, scraping_config } = bodyResult.data;
+      const { name, url, scraping_interval_hours, scraping_config, auto_flow } = bodyResult.data;
 
       // Attempt RSS auto-detection
       request.log.info({ url }, 'Attempting RSS auto-detection');
@@ -147,6 +148,7 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
           feed_url: finalFeedUrl,
           scraping_config: scraping_config ?? null,
           scraping_interval_hours,
+          auto_flow,
         })
         .select()
         .single();
@@ -212,6 +214,9 @@ const sitesRoutes: FastifyPluginAsync = async (fastify) => {
       }
       if (bodyResult.data.is_active !== undefined) {
         updates.is_active = bodyResult.data.is_active;
+      }
+      if (bodyResult.data.auto_flow !== undefined) {
+        updates.auto_flow = bodyResult.data.auto_flow;
       }
 
       // Recompute scraping strategy when URL or scraping config changes.

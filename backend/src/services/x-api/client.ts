@@ -1,4 +1,4 @@
-import { TwitterApi } from 'twitter-api-v2';
+import { TwitterApi, ApiResponseError } from 'twitter-api-v2';
 import type { Database } from '../../types/database.js';
 import { decrypt, encrypt } from '../../lib/crypto.js';
 import { supabase } from '../../lib/supabase.js';
@@ -92,6 +92,33 @@ export class XApiClient {
         tweetUrl: `https://x.com/${this.xAccount.x_username}/status/${tweet.data.id}`,
       };
     } catch (error: unknown) {
+      // Extract detailed X API error info if available
+      if (error instanceof ApiResponseError) {
+        const detail = JSON.stringify({
+          statusCode: error.code,
+          errors: error.errors,
+          data: error.data,
+        });
+        // If we get a 401, try refreshing the token once and retry
+        if (error.code === 401) {
+          try {
+            await this.refreshAccessToken();
+            const retryClient = new TwitterApi(this.accessToken);
+            const tweet = await retryClient.v2.tweet(text);
+
+            return {
+              tweetId: tweet.data.id,
+              tweetUrl: `https://x.com/${this.xAccount.x_username}/status/${tweet.data.id}`,
+            };
+          } catch (retryError) {
+            throw new Error(
+              `Failed to post tweet after token refresh: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`,
+            );
+          }
+        }
+        throw new Error(`Failed to post tweet: HTTP ${error.code} — ${detail}`);
+      }
+
       // If we get a 401, try refreshing the token once and retry
       const isUnauthorized =
         (error && typeof error === 'object' && 'code' in error && error.code === 401) ||
