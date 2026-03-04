@@ -6,6 +6,20 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-03-04] SRC-001, SRC-002 — content_items table + bridge trigger
+
+### Added
+
+- `supabase/migrations/018_content_items.sql` — `content_items` table with `UNIQUE(source_type, x_account_id, url)` constraint and optimised indices
+- `supabase/migrations/019_youtube_sources.sql` — `youtube_sources` configuration table
+- `supabase/migrations/020_x_feed_sources.sql` — `x_feed_sources` configuration table
+- `supabase/migrations/021_newsletter_sources.sql` — `newsletter_sources` configuration table
+- `supabase/migrations/022_content_items_rls.sql` — RLS policies (user isolation + service-role bypass) for all four new tables
+- `supabase/migrations/023_bridge_articles_to_content_items.sql` — `BEFORE INSERT OR UPDATE` trigger on `scraped_articles` that upserts a corresponding `content_item` and writes back the FK; includes backfill for existing rows
+- `backend/src/types/database.ts` — added `content_items`, `youtube_sources`, `x_feed_sources`, `newsletter_sources` types; updated `scraped_articles` with `content_item_id` column
+
+---
+
 ## [2026-03-04] FEAT-001, FEAT-002 — X Premium switch + Language selector
 
 **Agent:** claude-opus-4-6

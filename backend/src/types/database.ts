@@ -268,8 +268,115 @@ export type Database = {
           },
         ];
       };
+      content_items: {
+        Row: {
+          created_at: string;
+          full_content: string | null;
+          id: string;
+          ingested_at: string;
+          is_processed: boolean;
+          language: string | null;
+          metadata: Json;
+          published_at: string | null;
+          source_record_id: string | null;
+          source_table: string;
+          source_type: string;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          url: string;
+          x_account_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          full_content?: string | null;
+          id?: string;
+          ingested_at?: string;
+          is_processed?: boolean;
+          language?: string | null;
+          metadata?: Json;
+          published_at?: string | null;
+          source_record_id?: string | null;
+          source_table: string;
+          source_type: string;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          url: string;
+          x_account_id: string;
+        };
+        Update: {
+          created_at?: string;
+          full_content?: string | null;
+          id?: string;
+          ingested_at?: string;
+          is_processed?: boolean;
+          language?: string | null;
+          metadata?: Json;
+          published_at?: string | null;
+          source_record_id?: string | null;
+          source_table?: string;
+          source_type?: string;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          url?: string;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'content_items_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      newsletter_sources: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          sender_email: string;
+          updated_at: string;
+          webhook_secret: string | null;
+          x_account_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          sender_email: string;
+          updated_at?: string;
+          webhook_secret?: string | null;
+          x_account_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          sender_email?: string;
+          updated_at?: string;
+          webhook_secret?: string | null;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'newsletter_sources_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       scraped_articles: {
         Row: {
+          content_item_id: string | null;
           created_at: string;
           full_article_content: string | null;
           id: string;
@@ -282,6 +389,7 @@ export type Database = {
           url: string;
         };
         Insert: {
+          content_item_id?: string | null;
           created_at?: string;
           full_article_content?: string | null;
           id?: string;
@@ -294,6 +402,7 @@ export type Database = {
           url: string;
         };
         Update: {
+          content_item_id?: string | null;
           created_at?: string;
           full_article_content?: string | null;
           id?: string;
@@ -307,10 +416,108 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: 'scraped_articles_content_item_id_fkey';
+            columns: ['content_item_id'];
+            isOneToOne: false;
+            referencedRelation: 'content_items';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'scraped_articles_news_site_id_fkey';
             columns: ['news_site_id'];
             isOneToOne: false;
             referencedRelation: 'news_sites';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      x_feed_sources: {
+        Row: {
+          created_at: string;
+          feed_user_id: string | null;
+          feed_username: string;
+          id: string;
+          is_active: boolean;
+          last_scraped_at: string | null;
+          scraping_interval_hours: number;
+          updated_at: string;
+          x_account_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          feed_user_id?: string | null;
+          feed_username: string;
+          id?: string;
+          is_active?: boolean;
+          last_scraped_at?: string | null;
+          scraping_interval_hours?: number;
+          updated_at?: string;
+          x_account_id: string;
+        };
+        Update: {
+          created_at?: string;
+          feed_user_id?: string | null;
+          feed_username?: string;
+          id?: string;
+          is_active?: boolean;
+          last_scraped_at?: string | null;
+          scraping_interval_hours?: number;
+          updated_at?: string;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'x_feed_sources_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      youtube_sources: {
+        Row: {
+          channel_id: string;
+          channel_name: string;
+          channel_url: string;
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          last_scraped_at: string | null;
+          scraping_interval_hours: number;
+          updated_at: string;
+          x_account_id: string;
+        };
+        Insert: {
+          channel_id: string;
+          channel_name: string;
+          channel_url: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          last_scraped_at?: string | null;
+          scraping_interval_hours?: number;
+          updated_at?: string;
+          x_account_id: string;
+        };
+        Update: {
+          channel_id?: string;
+          channel_name?: string;
+          channel_url?: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          last_scraped_at?: string | null;
+          scraping_interval_hours?: number;
+          updated_at?: string;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'youtube_sources_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
             referencedColumns: ['id'];
           },
         ];

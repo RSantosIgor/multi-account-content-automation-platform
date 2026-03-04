@@ -81,8 +81,8 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [FEAT-004](#feat-004--timeline--publicação-sem-reload)            | Timeline — Publicação sem Reload               | Frontend  | High     | DONE   |
 | [FEAT-005](#feat-005--detail-page--estado-suave)                  | Detail Page — Estado Suave                     | Frontend  | High     | DONE   |
 | [FEAT-006](#feat-006--processar-artigo-inline-na-detail-page)     | Processar Artigo Inline na Detail Page         | Both      | High     | DONE   |
-| [SRC-001](#src-001--tabela-content_items--camada-unificada)       | Tabela content_items + Camada Unificada        | Database  | Critical | TODO   |
-| [SRC-002](#src-002--bridge-scraped_articles--content_items)       | Bridge scraped_articles → content_items        | Backend   | Critical | TODO   |
+| [SRC-001](#src-001--tabela-content_items--camada-unificada)       | Tabela content_items + Camada Unificada        | Database  | Critical | DONE   |
+| [SRC-002](#src-002--bridge-scraped_articles--content_items)       | Bridge scraped_articles → content_items        | Backend   | Critical | DONE   |
 | [SRC-003](#src-003--youtube-channel-ingestion)                    | YouTube Channel Ingestion                      | Backend   | High     | TODO   |
 | [SRC-004](#src-004--x-feed-ingestion)                             | X Feed Ingestion                               | Backend   | High     | TODO   |
 | [SRC-005](#src-005--newsletter--blog-rss-ingestion)               | Newsletter / Blog RSS Ingestion                | Backend   | Medium   | TODO   |
@@ -3010,7 +3010,7 @@ RSS parser (reutiliza rss.ts existente) → para cada item:
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | DB-004   |
 
@@ -3078,7 +3078,7 @@ CREATE POLICY "Users can view own content_items"
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | SRC-001  |
 
