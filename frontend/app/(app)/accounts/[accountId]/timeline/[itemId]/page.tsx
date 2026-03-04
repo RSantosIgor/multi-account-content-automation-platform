@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { DetailStepper } from '@/components/timeline/detail/DetailStepper';
+import { queryKeys } from '@/lib/query-keys';
 
 type ArticleSummary = {
   bullets: string[];
@@ -71,40 +73,14 @@ function DetailSkeleton() {
 }
 
 export default function TimelineItemDetailPage({ params }: PageProps) {
-  const [accountId, setAccountId] = useState<string>('');
-  const [itemId, setItemId] = useState<string>('');
-  const [item, setItem] = useState<TimelineItemDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { accountId, itemId } = use(params);
   const router = useRouter();
 
-  useEffect(() => {
-    params.then((p) => {
-      setAccountId(p.accountId);
-      setItemId(p.itemId);
-    });
-  }, [params]);
-
-  useEffect(() => {
-    if (!itemId) return;
-
-    async function fetchItem() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const res = await apiClient<ItemDetailResponse>(`/api/v1/timeline/items/${itemId}`);
-        setItem(res.data);
-      } catch (err) {
-        const msg = err instanceof ApiError ? err.message : 'Falha ao carregar detalhes';
-        setError(msg);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    void fetchItem();
-  }, [itemId]);
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.timeline.item(itemId),
+    queryFn: () => apiClient<ItemDetailResponse>(`/api/v1/timeline/items/${itemId}`),
+    enabled: !!itemId,
+  });
 
   if (isLoading) {
     return (
@@ -114,7 +90,8 @@ export default function TimelineItemDetailPage({ params }: PageProps) {
     );
   }
 
-  if (error || !item) {
+  if (error || !data) {
+    const msg = error instanceof ApiError ? error.message : 'Falha ao carregar detalhes';
     return (
       <section className="space-y-6">
         <Button variant="ghost" onClick={() => router.back()} className="gap-2">
@@ -124,11 +101,13 @@ export default function TimelineItemDetailPage({ params }: PageProps) {
 
         <div className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg border p-3 text-sm">
           <AlertCircle className="h-4 w-4" />
-          {error ?? 'Item não encontrado'}
+          {msg}
         </div>
       </section>
     );
   }
+
+  const item = data.data;
 
   return (
     <section className="space-y-6">
@@ -148,7 +127,7 @@ export default function TimelineItemDetailPage({ params }: PageProps) {
         )}
       </div>
 
-      <DetailStepper item={item} accountId={accountId} />
+      <DetailStepper item={item} accountId={accountId} itemId={itemId} />
     </section>
   );
 }

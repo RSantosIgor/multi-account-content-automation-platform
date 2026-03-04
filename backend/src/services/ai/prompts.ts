@@ -37,16 +37,18 @@ function extractJsonObject(rawText: string): string | null {
   return rawText.slice(firstBrace, lastBrace + 1);
 }
 
-export function buildSystemPrompt(): string {
+export function buildSystemPrompt(language = 'pt-BR'): string {
   return [
     'You are a social media expert specializing in news content.',
     'Given a news article title and summary, generate a compelling post for X (Twitter).',
     '',
     'Rules:',
     '- The post must be <= 280 characters (including hashtags)',
-    '- Write in the same language as the article',
     '- Be engaging and informative',
     '- Do not use emojis unless the brand voice calls for it',
+    '',
+    `IMPORTANT: Generate all content in the following language: ${language}`,
+    'Ensure the tone and vocabulary are appropriate for native speakers of that language.',
     '',
     'Respond ONLY with valid JSON: { "text": "...", "hashtags": ["...", "..."] }',
   ].join('\n');
@@ -104,10 +106,12 @@ const analysisResponseSchema = z.object({
 
 export type AnalysisResult = { eligible: boolean; reason: string };
 
-export function buildAnalysisSystemPrompt(): string {
+export function buildAnalysisSystemPrompt(language = 'pt-BR'): string {
   return [
     'You are a content editor. Evaluate if the following news article is suitable for posting on X (Twitter).',
     'Consider: relevance, timeliness, engagement potential, and appropriateness.',
+    '',
+    `The target audience communicates in: ${language}`,
     '',
     'Respond ONLY with valid JSON: { "eligible": true, "reason": "brief explanation" }',
     'or { "eligible": false, "reason": "brief explanation" }',

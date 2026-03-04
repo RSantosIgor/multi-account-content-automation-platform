@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { SuggestionCard } from '@/components/timeline/SuggestionCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { queryKeys } from '@/lib/query-keys';
 
 type ArticleSummary = {
   bullets: string[];
@@ -41,6 +42,30 @@ type PendingPostsSectionProps = {
   accountId: string;
 };
 
+async function fetchPendingData(accountId: string) {
+  const [timelineRes, accountRes] = await Promise.all([
+    apiClient<TimelineResponse>(`/api/v1/accounts/${accountId}/timeline?status=pending&limit=50`),
+    apiClient<{ data: { isPremium: boolean } }>(`/api/v1/accounts/${accountId}`),
+  ]);
+
+  const isPremium = accountRes.data.isPremium;
+  const suggestions: PendingSuggestion[] = timelineRes.data
+    .filter((item) => item.type === 'suggestion')
+    .map((item) => ({
+      id: item.id,
+      status: item.status,
+      createdAt: item.createdAt,
+      articleTitle: item.articleTitle ?? '',
+      siteId: item.siteId ?? '',
+      siteName: item.siteName ?? null,
+      suggestionText: item.suggestionText ?? null,
+      hashtags: item.hashtags ?? [],
+      articleSummary: item.articleSummary ?? null,
+    }));
+
+  return { isPremium, suggestions };
+}
+
 function PendingSkeleton() {
   return (
     <div className="space-y-4">
@@ -55,58 +80,26 @@ function PendingSkeleton() {
 }
 
 export function PendingPostsSection({ accountId }: PendingPostsSectionProps) {
-  const [suggestions, setSuggestions] = useState<PendingSuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!accountId) return;
-
-    async function fetchPending() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const res = await apiClient<TimelineResponse>(
-          `/api/v1/accounts/${accountId}/timeline?status=pending&limit=50`,
-        );
-
-        const pendingSuggestions = res.data
-          .filter((item) => item.type === 'suggestion')
-          .map((item) => ({
-            id: item.id,
-            status: item.status,
-            createdAt: item.createdAt,
-            articleTitle: item.articleTitle ?? '',
-            siteId: item.siteId ?? '',
-            siteName: item.siteName ?? null,
-            suggestionText: item.suggestionText ?? null,
-            hashtags: item.hashtags ?? [],
-            articleSummary: item.articleSummary ?? null,
-          }));
-
-        setSuggestions(pendingSuggestions);
-      } catch (err) {
-        const msg = err instanceof ApiError ? err.message : 'Falha ao carregar sugestões pendentes';
-        setError(msg);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    void fetchPending();
-  }, [accountId]);
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.pendingPosts.list(accountId),
+    queryFn: () => fetchPendingData(accountId),
+    enabled: !!accountId,
+  });
 
   if (isLoading) return <PendingSkeleton />;
 
   if (error) {
+    const msg = error instanceof ApiError ? error.message : 'Falha ao carregar sugestões pendentes';
     return (
       <div className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg border p-3 text-sm">
         <AlertCircle className="h-4 w-4" />
-        {error}
+        {msg}
       </div>
     );
   }
+
+  const suggestions = data?.suggestions ?? [];
+  const isPremium = data?.isPremium ?? false;
 
   if (suggestions.length === 0) {
     return (
@@ -127,7 +120,7 @@ export function PendingPostsSection({ accountId }: PendingPostsSectionProps) {
             {suggestion.siteName ?? 'Sem site'} · {new Date(suggestion.createdAt).toLocaleString()}
           </div>
           <div className="mb-3 text-sm font-medium">{suggestion.articleTitle}</div>
-          <SuggestionCard accountId={accountId} suggestion={suggestion} />
+          <SuggestionCard accountId={accountId} isPremium={isPremium} suggestion={suggestion} />
         </div>
       ))}
     </div>

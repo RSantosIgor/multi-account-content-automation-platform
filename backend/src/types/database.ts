@@ -412,6 +412,8 @@ export type Database = {
           created_at: string;
           id: string;
           is_active: boolean;
+          is_premium: boolean;
+          language: string;
           oauth_access_token_enc: string;
           oauth_refresh_token_enc: string;
           token_expires_at: string | null;
@@ -426,6 +428,8 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_active?: boolean;
+          is_premium?: boolean;
+          language?: string;
           oauth_access_token_enc: string;
           oauth_refresh_token_enc: string;
           token_expires_at?: string | null;
@@ -440,6 +444,8 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_active?: boolean;
+          is_premium?: boolean;
+          language?: string;
           oauth_access_token_enc?: string;
           oauth_refresh_token_enc?: string;
           token_expires_at?: string | null;

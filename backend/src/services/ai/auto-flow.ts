@@ -66,8 +66,16 @@ export class AutoFlowService {
 
     const aiProvider = createAiProvider();
 
-    // Step 2: Generate tweet using publication rules + full content
-    const publicationPrompt = await buildPublicationPrompt(xAccountId, buildSystemPrompt());
+    // Fetch account language for AI prompt localization
+    const { data: xAccountMeta } = await supabase
+      .from('x_accounts')
+      .select('language')
+      .eq('id', xAccountId)
+      .maybeSingle();
+    const language = xAccountMeta?.language ?? 'pt-BR';
+
+    // Step 2: Generate tweet using publication rules + full content + language
+    const publicationPrompt = await buildPublicationPrompt(xAccountId, buildSystemPrompt(language));
     const rawTweet = await aiProvider.generateRaw(
       publicationPrompt,
       buildFullContentUserPrompt(article.title, content, article.summary ?? undefined),

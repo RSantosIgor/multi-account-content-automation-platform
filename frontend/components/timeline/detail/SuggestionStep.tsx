@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, User, Sparkles } from 'lucide-react';
+import { Calendar, User, Sparkles, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { PublishDialog } from '@/components/timeline/PublishDialog';
+import { queryKeys } from '@/lib/query-keys';
 
 type ArticleSummary = {
   bullets: string[];
@@ -42,6 +45,7 @@ type SuggestionStepProps = {
   suggestion: Suggestion;
   article: Article;
   accountId: string;
+  itemId: string;
 };
 
 const statusColor: Record<string, string> = {
@@ -51,35 +55,35 @@ const statusColor: Record<string, string> = {
   posted: 'bg-green-500/20 text-green-300 border-green-500/40',
 };
 
-export function SuggestionStep({
-  suggestion,
-  article,
-  accountId: _accountId,
-}: SuggestionStepProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
+export function SuggestionStep({ suggestion, article, accountId, itemId }: SuggestionStepProps) {
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  async function handleProcessArticle() {
-    if (!article) {
-      toast.error('Artigo não encontrado');
-      return;
-    }
+  const { data: accountData } = useQuery({
+    queryKey: queryKeys.accounts.detail(accountId),
+    queryFn: () => apiClient<{ data: { isPremium: boolean } }>(`/api/v1/accounts/${accountId}`),
+    enabled: !!accountId,
+  });
+  const isPremium = accountData?.data?.isPremium ?? false;
 
-    setIsProcessing(true);
-
-    try {
-      await apiClient(`/api/v1/ai/suggest/${article.id}`, {
-        method: 'POST',
-      });
-
-      toast.success('Artigo processado! Recarregue a página para ver o resultado.');
-    } catch (err) {
-      const msg = err instanceof ApiError ? err.message : 'Falha ao processar artigo';
+  const updateStatusMutation = useMutation({
+    mutationFn: (status: 'approved' | 'rejected') =>
+      apiClient(`/api/v1/suggestions/${suggestion.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      }),
+    onSuccess: (_data, status) => {
+      toast.success(status === 'approved' ? 'Aprovado! Gerando tweet…' : 'Sugestão rejeitada');
+      void queryClient.invalidateQueries({ queryKey: queryKeys.timeline.item(itemId) });
+    },
+    onError: (err) => {
+      const msg = err instanceof ApiError ? err.message : 'Falha ao atualizar status';
       toast.error(msg);
-    } finally {
-      setIsProcessing(false);
-    }
-  }
+    },
+  });
 
+  const isUpdating = updateStatusMutation.isPending;
   const badgeClass = statusColor[suggestion.status] ?? 'bg-muted text-foreground';
 
   return (
@@ -139,24 +143,65 @@ export function SuggestionStep({
           </div>
         )}
 
+        {/* Pending: approve to generate tweet */}
         {suggestion.status === 'pending' && article && (
           <div className="bg-muted/50 mt-4 rounded-md border border-dashed border-white/20 p-4">
             <p className="text-muted-foreground mb-3 text-sm">
-              Este artigo ainda não foi processado pela IA. Clique abaixo para gerar uma nova
-              sugestão.
+              Aprove esta sugestão para gerar o tweet com o conteúdo completo do artigo.
             </p>
-            <Button
-              onClick={handleProcessArticle}
-              disabled={isProcessing}
-              size="sm"
-              className="gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              {isProcessing ? 'Processando...' : 'Processar Artigo'}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => updateStatusMutation.mutate('approved')}
+                disabled={isUpdating}
+                size="sm"
+                className="gap-2"
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Gerando tweet…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Aprovar e Gerar Tweet
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
+                onClick={() => updateStatusMutation.mutate('rejected')}
+                disabled={isUpdating}
+              >
+                Rejeitar
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Approved: show Publish button */}
+        {suggestion.status === 'approved' && suggestion.suggestionText && (
+          <div className="mt-4 flex gap-2">
+            <Button size="sm" onClick={() => setPublishDialogOpen(true)}>
+              Publicar no X
             </Button>
           </div>
         )}
       </div>
+
+      <PublishDialog
+        open={publishDialogOpen}
+        onOpenChange={setPublishDialogOpen}
+        accountId={accountId}
+        suggestionId={suggestion.id}
+        initialContent={suggestion.suggestionText ?? ''}
+        isPremium={isPremium}
+        onSuccess={() => {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.timeline.item(itemId) });
+        }}
+      />
     </div>
   );
 }

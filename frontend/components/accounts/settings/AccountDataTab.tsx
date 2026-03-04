@@ -7,7 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
+
+const LANGUAGES = [
+  { value: 'pt-BR', label: 'Português (Brasil)' },
+  { value: 'en-US', label: 'English (US)' },
+  { value: 'es-ES', label: 'Español (España)' },
+  { value: 'fr-FR', label: 'Français' },
+  { value: 'de-DE', label: 'Deutsch' },
+];
 
 type AccountData = {
   id: string;
@@ -15,6 +30,8 @@ type AccountData = {
   displayName: string | null;
   profileImageUrl: string | null;
   isActive: boolean;
+  isPremium: boolean;
+  language: string;
   createdAt: string;
 };
 
@@ -39,6 +56,8 @@ function AccountDataSkeleton() {
 export function AccountDataTab({ accountId }: AccountDataTabProps) {
   const [account, setAccount] = useState<AccountData | null>(null);
   const [isActive, setIsActive] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [language, setLanguage] = useState('pt-BR');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +71,8 @@ export function AccountDataTab({ accountId }: AccountDataTabProps) {
         const res = await apiClient<AccountResponse>(`/api/v1/accounts/${accountId}`);
         setAccount(res.data);
         setIsActive(res.data.isActive);
+        setIsPremium(res.data.isPremium);
+        setLanguage(res.data.language);
       } catch (err) {
         const msg = err instanceof ApiError ? err.message : 'Falha ao carregar dados da conta';
         setError(msg);
@@ -77,6 +98,47 @@ export function AccountDataTab({ accountId }: AccountDataTabProps) {
       toast.success(isActive ? 'Conta desativada' : 'Conta ativada');
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao atualizar status';
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleTogglePremium() {
+    if (!account) return;
+
+    setIsSaving(true);
+    try {
+      await apiClient(`/api/v1/accounts/${accountId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_premium: !isPremium }),
+      });
+
+      setIsPremium(!isPremium);
+      toast.success(!isPremium ? 'Conta Premium ativada' : 'Conta Premium desativada');
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Falha ao atualizar status premium';
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleLanguageChange(newLanguage: string) {
+    if (!account) return;
+
+    setIsSaving(true);
+    try {
+      await apiClient(`/api/v1/accounts/${accountId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ language: newLanguage }),
+      });
+
+      setLanguage(newLanguage);
+      const label = LANGUAGES.find((l) => l.value === newLanguage)?.label ?? newLanguage;
+      toast.success(`Idioma alterado para ${label}`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Falha ao atualizar idioma';
       toast.error(msg);
     } finally {
       setIsSaving(false);
@@ -150,6 +212,44 @@ export function AccountDataTab({ accountId }: AccountDataTabProps) {
               onCheckedChange={handleToggleActive}
               disabled={isSaving}
             />
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-white/10 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="premium-switch" className="text-base">
+                Conta Premium
+              </Label>
+              <div className="text-muted-foreground text-sm">
+                {isPremium
+                  ? 'Posts podem ter até 25.000 caracteres'
+                  : 'Limite padrão de 280 caracteres'}
+              </div>
+            </div>
+            <Switch
+              id="premium-switch"
+              checked={isPremium}
+              onCheckedChange={handleTogglePremium}
+              disabled={isSaving}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-base">Idioma das Publicações</Label>
+            <p className="text-muted-foreground text-sm">
+              A IA irá gerar todos os posts neste idioma.
+            </p>
+            <Select value={language} onValueChange={handleLanguageChange} disabled={isSaving}>
+              <SelectTrigger className="border-white/10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((lang) => (
+                  <SelectItem key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

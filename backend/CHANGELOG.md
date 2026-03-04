@@ -6,11 +6,33 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-03-04] FEAT-001, FEAT-002 — X Premium switch + Language selector
+
+**Agent:** claude-opus-4-6
+**Tasks:** FEAT-001, FEAT-002
+
+### Files Created
+
+- `supabase/migrations/016_x_accounts_is_premium.sql` — adds `is_premium BOOLEAN DEFAULT false` to x_accounts
+- `supabase/migrations/017_x_accounts_language.sql` — adds `language TEXT DEFAULT 'pt-BR'` to x_accounts
+
+### Files Modified
+
+- `backend/src/types/database.ts` — added `is_premium` and `language` to x_accounts Row/Insert/Update types
+- `backend/src/routes/accounts.ts` — `PublicXAccount` type, `toPublicAccount()`, select strings, PATCH schema and updateData all extended with `is_premium` and `language`
+- `backend/src/routes/posts.ts` — schema max raised to 25000; dynamic limit check (`is_premium ? 25000 : 280`) enforced after account fetch
+- `backend/src/services/ai/prompts.ts` — `buildSystemPrompt(language)` and `buildAnalysisSystemPrompt(language)` now accept language param and inject explicit language instruction into AI prompt
+- `backend/src/services/ai/suggest.ts` — fetches account `language` and passes to `buildAnalysisSystemPrompt`
+- `backend/src/routes/ai.ts` — fetches account `language` on approval; passes to `buildSystemPrompt`
+- `backend/src/services/ai/auto-flow.ts` — fetches account `language`; passes to `buildSystemPrompt`
+
+---
+
 ## [2026-02-25 23:00 UTC] FLOW-001 through FLOW-005 — FLOW epic backend implementation
 
 **Agent:** claude-opus-4-6
 **Task:** FLOW-001, FLOW-002, FLOW-003, FLOW-004, FLOW-005
-**Commit:** PENDING
+**Commit:** 3af2f63
 
 ### Files Created
 
@@ -37,7 +59,7 @@ Implemented the full FLOW epic backend (FLOW-001 through FLOW-005). The AI pipel
 
 **Agent:** claude-sonnet-4-6
 **Task:** ad-hoc
-**Commit:** PENDING
+**Commit:** 3af2f63
 
 ### Files Created
 

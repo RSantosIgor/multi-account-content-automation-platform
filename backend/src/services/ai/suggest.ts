@@ -48,6 +48,14 @@ export class AiSuggestionService {
     const provider = createAiProvider();
     const summary: ProcessingSummary = { processed: 0, created: 0, skipped: 0, failed: 0 };
 
+    // Fetch account language for AI prompt localization
+    const { data: xAccount } = await supabase
+      .from('x_accounts')
+      .select('language')
+      .eq('id', xAccountId)
+      .maybeSingle();
+    const language = xAccount?.language ?? 'pt-BR';
+
     // Fetch sites with auto_flow flag
     const { data: sites, error: sitesError } = await supabase
       .from('news_sites')
@@ -94,8 +102,11 @@ export class AiSuggestionService {
       return summary;
     }
 
-    // Build custom analysis prompt with user's analysis rules
-    const customAnalysisPrompt = await buildAnalysisPrompt(xAccountId, buildAnalysisSystemPrompt());
+    // Build custom analysis prompt with user's analysis rules + language
+    const customAnalysisPrompt = await buildAnalysisPrompt(
+      xAccountId,
+      buildAnalysisSystemPrompt(language),
+    );
 
     for (let i = 0; i < unanalyzedArticles.length; i += batchSize) {
       const batch = unanalyzedArticles.slice(i, i + batchSize);

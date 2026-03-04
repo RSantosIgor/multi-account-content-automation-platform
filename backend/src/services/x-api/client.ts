@@ -2,6 +2,7 @@ import { TwitterApi, ApiResponseError } from 'twitter-api-v2';
 import type { Database } from '../../types/database.js';
 import { decrypt, encrypt } from '../../lib/crypto.js';
 import { supabase } from '../../lib/supabase.js';
+import { config } from '../../config.js';
 
 type XAccount = Database['public']['Tables']['x_accounts']['Row'];
 
@@ -32,8 +33,8 @@ export class XApiClient {
    */
   private async refreshAccessToken(): Promise<void> {
     const client = new TwitterApi({
-      clientId: process.env.X_CLIENT_ID!,
-      clientSecret: process.env.X_CLIENT_SECRET!,
+      clientId: config.X_CLIENT_ID,
+      clientSecret: config.X_CLIENT_SECRET,
     });
 
     try {
@@ -83,22 +84,26 @@ export class XApiClient {
     }
 
     const client = new TwitterApi(this.accessToken);
-
     try {
       const tweet = await client.v2.tweet(text);
-
       return {
         tweetId: tweet.data.id,
         tweetUrl: `https://x.com/${this.xAccount.x_username}/status/${tweet.data.id}`,
       };
     } catch (error: unknown) {
-      // Extract detailed X API error info if available
       if (error instanceof ApiResponseError) {
         const detail = JSON.stringify({
           statusCode: error.code,
           errors: error.errors,
           data: error.data,
         });
+
+        if (error.code === 403) {
+          throw new Error(
+            `Failed to post tweet: HTTP 403 - forbidden. Ensure app has write permission and reconnect OAuth with tweet.write scope. Detail: ${detail}`,
+          );
+        }
+
         // If we get a 401, try refreshing the token once and retry
         if (error.code === 401) {
           try {
@@ -116,7 +121,8 @@ export class XApiClient {
             );
           }
         }
-        throw new Error(`Failed to post tweet: HTTP ${error.code} — ${detail}`);
+
+        throw new Error(`Failed to post tweet: HTTP ${error.code} - ${detail}`);
       }
 
       // If we get a 401, try refreshing the token once and retry

@@ -1,6 +1,12 @@
 'use client';
 
-import { ExternalLink, Calendar, Building } from 'lucide-react';
+import { useState } from 'react';
+import { ExternalLink, Calendar, Building, Sparkles, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiClient, ApiError } from '@/lib/api/client';
+import { toast } from 'sonner';
+import { queryKeys } from '@/lib/query-keys';
 
 type ArticleSummary = {
   bullets: string[];
@@ -22,9 +28,18 @@ type Article = {
 
 type OriginalArticleStepProps = {
   article: Article;
+  hasSuggestion?: boolean;
+  itemId?: string;
 };
 
-export function OriginalArticleStep({ article }: OriginalArticleStepProps) {
+export function OriginalArticleStep({
+  article,
+  hasSuggestion = true,
+  itemId,
+}: OriginalArticleStepProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const queryClient = useQueryClient();
+
   // Try to parse article_summary from the summary field if it's JSON
   let summaryBullets: string[] | null = null;
   try {
@@ -34,6 +49,34 @@ export function OriginalArticleStep({ article }: OriginalArticleStepProps) {
     }
   } catch {
     // Not JSON, use as plain text
+  }
+
+  async function handleProcessArticle() {
+    if (!itemId) return;
+
+    setIsProcessing(true);
+    try {
+      // Step 1: create suggestion (analysis phase)
+      const suggestRes = await apiClient<{ data: { id: string } }>(
+        `/api/v1/ai/suggest/${article.id}`,
+        { method: 'POST' },
+      );
+
+      // Step 2: approve immediately → triggers full-content fetch + tweet generation
+      await apiClient(`/api/v1/suggestions/${suggestRes.data.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      });
+
+      toast.success('Artigo processado! Tweet gerado com sucesso.');
+      void queryClient.invalidateQueries({ queryKey: queryKeys.timeline.item(itemId) });
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Falha ao processar artigo';
+      toast.error(msg);
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   return (
@@ -97,6 +140,27 @@ export function OriginalArticleStep({ article }: OriginalArticleStepProps) {
           <div className="bg-muted mt-4 rounded-md p-4">
             <p className="text-muted-foreground text-sm">{article.summary}</p>
           </div>
+        )}
+
+        {!hasSuggestion && itemId && (
+          <Button
+            onClick={handleProcessArticle}
+            disabled={isProcessing}
+            size="sm"
+            className="mt-4 gap-2"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Processando…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Processar Artigo
+              </>
+            )}
+          </Button>
         )}
       </div>
     </div>

@@ -7,9 +7,10 @@ const paramsSchema = z.object({
   accountId: z.string().uuid(),
 });
 
+// Initial schema with generous max — actual limit enforced after fetching account.is_premium
 const createPostSchema = z.object({
   suggestion_id: z.string().uuid().optional(),
-  content: z.string().min(1).max(280),
+  content: z.string().min(1).max(25000),
 });
 
 const querySchema = z.object({
@@ -35,7 +36,6 @@ const postRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { accountId } = paramsResult.data;
       const { suggestion_id, content } = bodyResult.data;
-
       // Verify user owns the account
       const { data: account, error: accountError } = await supabase
         .from('x_accounts')
@@ -49,6 +49,14 @@ const postRoutes: FastifyPluginAsync = async (fastify) => {
       }
       if (!account) {
         throw fastify.httpErrors.notFound('Account not found');
+      }
+
+      // Enforce dynamic character limit based on premium status
+      const charLimit = account.is_premium ? 25000 : 280;
+      if (content.length > charLimit) {
+        throw fastify.httpErrors.badRequest(
+          `Content exceeds character limit: ${content.length}/${charLimit}`,
+        );
       }
 
       // Create X API client and post tweet

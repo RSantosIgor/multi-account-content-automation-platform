@@ -6,9 +6,11 @@ import { ExternalLink, Clock, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { PublishDialog } from './PublishDialog';
+import { queryKeys } from '@/lib/query-keys';
 
 type ArticleSummary = {
   bullets: string[];
@@ -16,6 +18,7 @@ type ArticleSummary = {
 
 type SuggestionCardProps = {
   accountId: string;
+  isPremium?: boolean;
   suggestion: {
     id: string;
     suggestionText: string | null;
@@ -25,25 +28,25 @@ type SuggestionCardProps = {
   };
 };
 
-export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
+export function SuggestionCard({ accountId, isPremium = false, suggestion }: SuggestionCardProps) {
   const [text, setText] = useState(suggestion.suggestionText ?? '');
   const [localStatus, setLocalStatus] = useState(suggestion.status);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Use local state so the component reacts immediately after approve/reject
   const isPending = localStatus === 'pending' && !text;
 
-  const updateStatus = async (status: 'approved' | 'rejected') => {
-    setIsUpdating(true);
-    try {
-      const response = await apiClient<{
-        data: { suggestionText: string | null; hashtags: string[] };
-      }>(`/api/v1/suggestions/${suggestion.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
+  const updateStatusMutation = useMutation({
+    mutationFn: (status: 'approved' | 'rejected') =>
+      apiClient<{ data: { suggestionText: string | null; hashtags: string[] } }>(
+        `/api/v1/suggestions/${suggestion.id}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        },
+      ),
+    onSuccess: (response, status) => {
       toast.success(status === 'approved' ? 'Sugestão aprovada' : 'Sugestão rejeitada');
       if (status === 'approved') {
         setLocalStatus('approved');
@@ -51,19 +54,21 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
           setText(response.data.suggestionText);
         }
       } else {
-        // After rejection, reload to remove the card from the pending list
-        window.location.reload();
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.pendingPosts.list(accountId),
+        });
       }
-    } catch (err) {
+    },
+    onError: (err) => {
       const msg = err instanceof ApiError ? err.message : 'Falha ao atualizar status';
       toast.error(msg);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    },
+  });
 
+  const charLimit = isPremium ? 25000 : 280;
   const characters = text.length;
-  const overLimit = characters > 280;
+  const overLimit = characters > charLimit;
+  const isUpdating = updateStatusMutation.isPending;
 
   // Pending state: tweet not yet generated
   if (isPending) {
@@ -84,7 +89,7 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
             variant="outline"
             size="sm"
             disabled={isUpdating}
-            onClick={() => updateStatus('approved')}
+            onClick={() => updateStatusMutation.mutate('approved')}
           >
             {isUpdating ? (
               <>
@@ -100,7 +105,7 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
             size="sm"
             className="text-destructive"
             disabled={isUpdating}
-            onClick={() => updateStatus('rejected')}
+            onClick={() => updateStatusMutation.mutate('rejected')}
           >
             Rejeitar
           </Button>
@@ -130,7 +135,9 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
             </Badge>
           ))}
         </div>
-        <span className={overLimit ? 'text-destructive' : ''}>{characters}/280</span>
+        <span className={overLimit ? 'text-destructive' : ''}>
+          {characters.toLocaleString()}/{charLimit.toLocaleString()}
+        </span>
       </div>
 
       {suggestion.articleSummary?.bullets && suggestion.articleSummary.bullets.length > 0 && (
@@ -152,7 +159,7 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
           variant="outline"
           size="sm"
           disabled={isUpdating}
-          onClick={() => updateStatus('approved')}
+          onClick={() => updateStatusMutation.mutate('approved')}
         >
           Aprovar
         </Button>
@@ -161,7 +168,7 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
           size="sm"
           className="text-destructive"
           disabled={isUpdating}
-          onClick={() => updateStatus('rejected')}
+          onClick={() => updateStatusMutation.mutate('rejected')}
         >
           Rejeitar
         </Button>
@@ -186,7 +193,7 @@ export function SuggestionCard({ accountId, suggestion }: SuggestionCardProps) {
         accountId={accountId}
         suggestionId={suggestion.id}
         initialContent={text}
-        onSuccess={() => window.location.reload()}
+        isPremium={isPremium}
       />
     </div>
   );

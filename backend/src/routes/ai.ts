@@ -181,6 +181,14 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
       // FLOW-004: On approval → fetch full content, generate tweet + summary
       if (bodyResult.data.status === 'approved') {
         try {
+          // Fetch account language for AI prompt localization
+          const { data: xAccount } = await supabase
+            .from('x_accounts')
+            .select('language')
+            .eq('id', updated.x_account_id)
+            .maybeSingle();
+          const language = xAccount?.language ?? 'pt-BR';
+
           const { data: article, error: articleError } = await supabase
             .from('scraped_articles')
             .select('id, url, title, summary, full_article_content')
@@ -211,10 +219,10 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
 
           const aiProvider = createAiProvider();
 
-          // Step 2: Generate tweet using publication rules + full content
+          // Step 2: Generate tweet using publication rules + full content + language
           const publicationPrompt = await buildPublicationPrompt(
             updated.x_account_id,
-            buildSystemPrompt(),
+            buildSystemPrompt(language),
           );
           const rawTweet = await aiProvider.generateRaw(
             publicationPrompt,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { queryKeys } from '@/lib/query-keys';
 
 type PublishDialogProps = {
   open: boolean;
@@ -20,6 +22,7 @@ type PublishDialogProps = {
   accountId: string;
   suggestionId?: string;
   initialContent: string;
+  isPremium?: boolean;
   onSuccess?: () => void;
 };
 
@@ -29,17 +32,26 @@ export function PublishDialog({
   accountId,
   suggestionId,
   initialContent,
+  isPremium = false,
   onSuccess,
 }: PublishDialogProps) {
   const [content, setContent] = useState(initialContent);
   const [isPublishing, setIsPublishing] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      setContent(initialContent);
+    }
+  }, [open, initialContent]);
+  const queryClient = useQueryClient();
+
+  const charLimit = isPremium ? 25000 : 280;
   const characters = content.length;
-  const overLimit = characters > 280;
+  const overLimit = characters > charLimit;
 
   const handlePublish = async () => {
     if (overLimit) {
-      toast.error('O texto excede o limite de 280 caracteres');
+      toast.error(`O texto excede o limite de ${charLimit.toLocaleString()} caracteres`);
       return;
     }
 
@@ -56,6 +68,9 @@ export function PublishDialog({
 
       toast.success('Post publicado com sucesso!');
       onOpenChange(false);
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingPosts.list(accountId),
+      });
       onSuccess?.();
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao publicar post';
@@ -85,7 +100,7 @@ export function PublishDialog({
           />
           <div className="flex justify-end">
             <span className={`text-sm ${overLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
-              {characters}/280
+              {characters.toLocaleString()}/{charLimit.toLocaleString()}
             </span>
           </div>
         </div>

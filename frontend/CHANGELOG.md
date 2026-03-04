@@ -6,11 +6,69 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [Unreleased] — 2026-03-04
+
+### feat: FEAT-005 + FEAT-006 — Detail Page Estado Suave + Processar Artigo Inline
+
+**FEAT-005:**
+
+- `page.tsx` (detail): migrado de `useEffect/useState` para `React.use(params)` + `useQuery`
+- `DetailStepper`: novo prop `itemId` repassado a `OriginalArticleStep` e `SuggestionStep`
+- `SuggestionStep`: aprovação e rejeição usam `useMutation` + `invalidateQueries` — sem reload
+- `SuggestionStep`: adicionado botão "Rejeitar" ao lado de "Aprovar e Gerar Tweet"
+
+**FEAT-006:**
+
+- `OriginalArticleStep`: botão "Processar Artigo" visível quando `!hasSuggestion` — chama POST suggest + PATCH approve em sequência e invalida a query
+- `SuggestionStep`: botão "Publicar no X" exibido quando `status=approved` e tweet gerado, abre `PublishDialog` com invalidação inline
+- `SuggestionStep`: adicionado `useQuery` para `isPremium` da conta (cache compartilhado)
+- `SuggestionStep`: removido toast "Recarregue a página"
+
+---
+
+## [Unreleased] — 2026-03-04
+
+### feat: FEAT-004 — Timeline — Publicação sem Reload
+
+- `PendingPostsSection`: migrado de `useEffect/useState` para `useQuery` (TanStack Query)
+- `SuggestionCard`: `updateStatus` substituído por `useMutation`; rejeição invalida query em vez de `window.location.reload()`
+- `PublishDialog`: adicionado `useQueryClient`; publicação invalida `pendingPosts.list` em vez de recarregar
+- Aprovação de tweet atualiza o card inline (sem reload)
+- Rejeição e publicação removem o card da lista suavemente via cache invalidation
+
+---
+
+## [Unreleased] — 2026-03-04
+
+### feat: FEAT-003 — TanStack Query scaffolding
+
+- Installed `@tanstack/react-query` ^5.90.21 and `@tanstack/react-query-devtools` ^5.91.3
+- Created `components/providers/QueryProvider.tsx` with `QueryClient` (staleTime: 60s, retry: 1)
+- Created `lib/query-keys.ts` with typed key factories for accounts, timeline, suggestions, pendingPosts
+- Wrapped root layout (`app/layout.tsx`) with `QueryProvider`
+- ReactQueryDevtools visible in development (bottom-right panel)
+
+---
+
+## [2026-03-04] FEAT-001, FEAT-002 — X Premium switch + Language selector
+
+**Agent:** claude-opus-4-6
+**Tasks:** FEAT-001, FEAT-002
+
+### Files Modified
+
+- `frontend/components/accounts/settings/AccountDataTab.tsx` — added `isPremium`/`language` state; `handleTogglePremium()` and `handleLanguageChange()` handlers; Premium Switch and Language Select UI in the account settings panel
+- `frontend/components/timeline/PublishDialog.tsx` — added `isPremium` prop; `charLimit` computed dynamically (280 or 25000); counter and error message updated
+- `frontend/components/timeline/SuggestionCard.tsx` — added `isPremium` prop; `charLimit` and `overLimit` use dynamic limit; passes `isPremium` to `PublishDialog`
+- `frontend/components/dashboard/PendingPostsSection.tsx` — fetches account in parallel with timeline; extracts `isPremium`; passes to `SuggestionCard`
+
+---
+
 ## [2026-02-25 23:00 UTC] FLOW-006 through FLOW-008 — FLOW epic frontend implementation
 
 **Agent:** claude-opus-4-6
 **Task:** FLOW-006, FLOW-007, FLOW-008
-**Commit:** PENDING
+**Commit:** 3af2f63
 
 ### Files Created
 
@@ -38,7 +96,7 @@ Implemented the FLOW epic frontend (FLOW-006 through FLOW-008). SuggestionCard n
 
 **Agent:** claude-sonnet-4-6
 **Task:** ad-hoc
-**Commit:** PENDING
+**Commit:** 3af2f63
 
 ### Files Modified
 

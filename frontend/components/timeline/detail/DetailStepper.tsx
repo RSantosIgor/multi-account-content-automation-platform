@@ -55,6 +55,7 @@ type TimelineItemDetail = {
 type DetailStepperProps = {
   item: TimelineItemDetail;
   accountId: string;
+  itemId: string;
 };
 
 type Step = {
@@ -67,7 +68,7 @@ type Step = {
   component: React.ReactNode;
 };
 
-export function DetailStepper({ item, accountId }: DetailStepperProps) {
+export function DetailStepper({ item, accountId, itemId }: DetailStepperProps) {
   const hasSuggestion = item.suggestion !== null;
   const hasPost = item.post !== null;
   const hasArticle = item.article !== null;
@@ -106,7 +107,11 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
       isCurrent: !hasSuggestion && !hasPost,
       component:
         hasArticle && item.article ? (
-          <OriginalArticleStep article={item.article} />
+          <OriginalArticleStep
+            article={item.article}
+            hasSuggestion={hasSuggestion}
+            itemId={itemId}
+          />
         ) : (
           <div>Sem artigo</div>
         ),
@@ -134,6 +139,7 @@ export function DetailStepper({ item, accountId }: DetailStepperProps) {
           suggestion={item.suggestion!}
           article={item.article}
           accountId={accountId}
+          itemId={itemId}
         />
       ) : (
         <div className="text-muted-foreground text-sm">Sugestão não gerada ainda</div>

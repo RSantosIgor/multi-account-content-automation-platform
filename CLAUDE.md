@@ -35,24 +35,27 @@
 
 ## 2. Current State
 
-### Implementation Status (as of 2026-02-25)
+### Implementation Status (as of 2026-03-03)
 
-| Epic     | Status | Description                                                               |
-| -------- | ------ | ------------------------------------------------------------------------- |
-| SETUP    | DONE   | Monorepo, tooling, env setup                                              |
-| DB       | DONE   | All migrations (001–015), RLS policies                                    |
-| CORE     | DONE   | Auth, JWT middleware, role-based access                                   |
-| AUTH     | DONE   | Login, register, forgot-password, Supabase SSR                            |
-| XACCOUNT | DONE   | X OAuth 2.0 PKCE, token encryption, account management                    |
-| SITES    | DONE   | CRUD, RSS auto-detection, HTML scraping config, test run                  |
-| SCRAPER  | DONE   | RSS parser, Cheerio HTML, runner, cron job, scraping logs                 |
-| AI       | DONE   | OpenAI/Anthropic/DeepSeek providers, suggestion CRUD                      |
-| TIMELINE | DONE   | Unified timeline, detail stepper (article→suggestion→post)                |
-| POSTS    | DONE   | Publish to X, post history, error tracking                                |
-| ADMIN    | DONE   | Admin panel, user role management                                         |
-| UX       | DONE   | Dashboard redesign, account settings, prompt rules UI, breadcrumbs, stats |
-| FLOW     | DONE   | AI analysis phase, tweet gen on approval, auto-flow, 4-phase stepper      |
-| INFRA    | TODO   | Deployment, CI/CD, monitoring, backup                                     |
+| Epic     | Status | Description                                                                |
+| -------- | ------ | -------------------------------------------------------------------------- |
+| SETUP    | DONE   | Monorepo, tooling, env setup                                               |
+| DB       | DONE   | All migrations (001–015), RLS policies                                     |
+| CORE     | DONE   | Auth, JWT middleware, role-based access                                    |
+| AUTH     | DONE   | Login, register, forgot-password, Supabase SSR                             |
+| XACCOUNT | DONE   | X OAuth 2.0 PKCE, token encryption, account management                     |
+| SITES    | DONE   | CRUD, RSS auto-detection, HTML scraping config, test run                   |
+| SCRAPER  | DONE   | RSS parser, Cheerio HTML, runner, cron job, scraping logs                  |
+| AI       | DONE   | OpenAI/Anthropic/DeepSeek providers, suggestion CRUD                       |
+| TIMELINE | DONE   | Unified timeline, detail stepper (article→suggestion→post)                 |
+| POSTS    | DONE   | Publish to X, post history, error tracking                                 |
+| ADMIN    | DONE   | Admin panel, user role management                                          |
+| UX       | DONE   | Dashboard redesign, account settings, prompt rules UI, breadcrumbs, stats  |
+| FLOW     | DONE   | AI analysis phase, tweet gen on approval, auto-flow, 4-phase stepper       |
+| FEAT     | TODO   | X Premium, language selector, TanStack Query, smooth state                 |
+| SRC      | TODO   | Multi-source ingestion: YouTube, X feeds, newsletters, unified content     |
+| EDT      | TODO   | Editorial intelligence: topic clustering, briefs, context-aware generation |
+| INFRA    | TODO   | Deployment, CI/CD, monitoring, backup                                      |
 
 ### Key New Features (UX Epic, Feb 2026)
 

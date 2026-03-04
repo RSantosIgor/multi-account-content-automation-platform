@@ -15,6 +15,8 @@ type PublicXAccount = {
   displayName: string | null;
   profileImageUrl: string | null;
   isActive: boolean;
+  isPremium: boolean;
+  language: string;
   tokenExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -30,6 +32,8 @@ function toPublicAccount(
     x_display_name: string | null;
     x_profile_image_url: string | null;
     is_active: boolean;
+    is_premium: boolean;
+    language: string;
     token_expires_at: string | null;
     created_at: string;
     updated_at: string;
@@ -44,6 +48,8 @@ function toPublicAccount(
     displayName: account.x_display_name,
     profileImageUrl: account.x_profile_image_url,
     isActive: account.is_active,
+    isPremium: account.is_premium,
+    language: account.language,
     tokenExpiresAt: account.token_expires_at,
     createdAt: account.created_at,
     updatedAt: account.updated_at,
@@ -83,7 +89,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
     const { data: accounts, error } = await supabase
       .from('x_accounts')
       .select(
-        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, token_expires_at, created_at, updated_at',
+        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, is_premium, language, token_expires_at, created_at, updated_at',
       )
       .eq('user_id', request.user.id)
       .order('created_at', { ascending: false });
@@ -142,7 +148,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
     const { data: account, error } = await supabase
       .from('x_accounts')
       .select(
-        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, token_expires_at, created_at, updated_at',
+        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, is_premium, language, token_expires_at, created_at, updated_at',
       )
       .eq('id', parsed.data.id)
       .eq('user_id', request.user.id)
@@ -189,6 +195,8 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const updateSchema = z.object({
       is_active: z.boolean().optional(),
+      is_premium: z.boolean().optional(),
+      language: z.string().min(2).max(10).optional(),
     });
 
     const bodyResult = updateSchema.safeParse(request.body);
@@ -213,9 +221,15 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     // Build update object
-    const updateData: { is_active?: boolean } = {};
+    const updateData: { is_active?: boolean; is_premium?: boolean; language?: string } = {};
     if (bodyResult.data.is_active !== undefined) {
       updateData.is_active = bodyResult.data.is_active;
+    }
+    if (bodyResult.data.is_premium !== undefined) {
+      updateData.is_premium = bodyResult.data.is_premium;
+    }
+    if (bodyResult.data.language !== undefined) {
+      updateData.language = bodyResult.data.language;
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -228,7 +242,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
       .update(updateData)
       .eq('id', parsed.data.id)
       .select(
-        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, token_expires_at, created_at, updated_at',
+        'id, x_user_id, x_username, x_display_name, x_profile_image_url, is_active, is_premium, language, token_expires_at, created_at, updated_at',
       )
       .single();
 
