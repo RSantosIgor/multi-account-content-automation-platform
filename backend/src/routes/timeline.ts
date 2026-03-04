@@ -24,9 +24,10 @@ type TimelineSuggestion = {
   articleTitle: string;
   siteId: string;
   siteName: string | null;
-  suggestionText: string;
+  suggestionText: string | null;
   hashtags: string[];
   articleSummary: Json | null;
+  sourceType: string;
 };
 
 type TimelinePost = {
@@ -46,14 +47,18 @@ type SuggestionWithRelations = {
   id: string;
   status: string;
   created_at: string;
-  suggestion_text: string;
+  suggestion_text: string | null;
   hashtags: string[] | null;
   article_summary: Json | null;
   scraped_articles?: {
     title: string;
     news_site_id: string;
     news_sites: { name: string } | null;
-  };
+  } | null;
+  content_items?: {
+    title: string;
+    source_type: string;
+  } | null;
 };
 
 const timelineRoutes: FastifyPluginAsync = async (fastify) => {
@@ -104,6 +109,10 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
               title,
               news_site_id,
               news_sites!scraped_articles_news_site_id_fkey ( name )
+            ),
+            content_items!ai_suggestions_content_item_id_fkey (
+              title,
+              source_type
             )
           `,
         )
@@ -117,9 +126,15 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
       const suggestions: TimelineSuggestion[] =
         (suggestionsData as SuggestionWithRelations[] | null)?.flatMap((sug) => {
           const article = sug.scraped_articles;
-          if (!article) return [];
+          const contentItem = sug.content_items;
 
-          const siteName = article.news_sites?.name ?? null;
+          // Must have at least one source of content info
+          if (!article && !contentItem) return [];
+
+          const title = article?.title ?? contentItem?.title ?? '';
+          const siteName = article?.news_sites?.name ?? null;
+          const siteId = article?.news_site_id ?? '';
+          const sourceType = contentItem?.source_type ?? 'news_article';
 
           return [
             {
@@ -127,12 +142,13 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
               type: 'suggestion',
               status: sug.status,
               createdAt: sug.created_at,
-              articleTitle: article.title,
-              siteId: article.news_site_id,
+              articleTitle: title,
+              siteId,
               siteName,
               suggestionText: sug.suggestion_text,
               hashtags: sug.hashtags ?? [],
               articleSummary: sug.article_summary,
+              sourceType,
             },
           ];
         }) ?? [];

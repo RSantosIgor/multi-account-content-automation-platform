@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Newspaper, FileText, Clock, Settings, BarChart3, ArrowRight } from 'lucide-react';
+import { Newspaper, FileText, Clock, Settings, BarChart3, ArrowRight, Radio } from 'lucide-react';
 import Link from 'next/link';
 
 type PageProps = {
@@ -62,6 +62,14 @@ export default async function AccountPage({ params }: PageProps) {
       description: 'View posting activity and metrics',
       icon: BarChart3,
       href: `/accounts/${accountId}/stats`,
+      count: 0,
+      countLabel: '',
+    },
+    {
+      title: 'Sources',
+      description: 'YouTube channels, X feeds and newsletters',
+      icon: Radio,
+      href: `/accounts/${accountId}/sources`,
       count: 0,
       countLabel: '',
     },

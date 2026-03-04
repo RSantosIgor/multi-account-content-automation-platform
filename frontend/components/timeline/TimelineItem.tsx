@@ -1,11 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Newspaper, PlaySquare, AtSign, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SuggestionCard } from './SuggestionCard';
 import { PostCard } from './PostCard';
+
+const sourceIcons: Record<string, React.ElementType> = {
+  news_article: Newspaper,
+  youtube_video: PlaySquare,
+  x_post: AtSign,
+  newsletter: Mail,
+};
+
+const sourceLabels: Record<string, string> = {
+  news_article: 'Notícia',
+  youtube_video: 'YouTube',
+  x_post: 'X',
+  newsletter: 'Newsletter',
+};
 
 type ArticleSummary = {
   bullets: string[];
@@ -25,6 +39,7 @@ type TimelineItemProps = {
         suggestionText: string | null;
         hashtags: string[];
         articleSummary: ArticleSummary | null;
+        sourceType?: string;
       }
     | {
         id: string;
@@ -53,12 +68,19 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
   const badgeClass = statusColor[item.status] ?? 'bg-muted text-foreground';
 
   if (item.type === 'suggestion') {
+    const sourceType = item.sourceType ?? 'news_article';
+    const SourceIcon = sourceIcons[sourceType] ?? Newspaper;
+    const sourceLabel = sourceLabels[sourceType] ?? sourceType;
+
     return (
       <div className="space-y-2 rounded-lg border border-white/10 p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="text-muted-foreground text-sm">
-              {item.siteName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
+            <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+              <SourceIcon className="h-3.5 w-3.5" />
+              <span>{sourceLabel}</span>
+              {item.siteName && <span>· {item.siteName}</span>}
+              <span>· {new Date(item.createdAt).toLocaleString()}</span>
             </div>
             <Link href={`/accounts/${accountId}/timeline/${item.id}`}>
               <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">

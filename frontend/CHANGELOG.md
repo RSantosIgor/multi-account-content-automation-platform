@@ -6,6 +6,30 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-03-04] SRC-007, SRC-008 — Source Management UI + Multi-Source Timeline
+
+### Added
+
+- `frontend/app/(app)/accounts/[accountId]/sources/page.tsx` — server page that fetches YouTube, X feed, and newsletter sources in parallel
+- `frontend/components/sources/YouTubeSourceTable.tsx` — table with inline Create/Edit dialogs; toggle active; delete with confirmation
+- `frontend/components/sources/XFeedSourceTable.tsx` — table for X user timeline feeds with username + interval config
+- `frontend/components/sources/NewsletterSourceTable.tsx` — table for newsletter/blog sources with RSS URL + sender e-mail
+- `frontend/components/sources/SourceTabs.tsx` — Tabs container (YouTube · Feeds do X · Newsletters) with item count badges
+
+### Modified
+
+- `frontend/app/(app)/accounts/[accountId]/page.tsx` — added "Sources" navigation card linking to `/sources`
+- `frontend/components/timeline/TimelineItem.tsx` — source type icon (`Newspaper`, `PlaySquare`, `AtSign`, `Mail`) + label displayed in suggestion header
+- `frontend/components/dashboard/PendingPostsSection.tsx` — `sourceType` field added; source icon + label shown in each pending card
+- `frontend/components/timeline/detail/DetailStepper.tsx` — Step 1 title is now dynamic per source type; `sourceType` and `sourceMetadata` forwarded to `OriginalArticleStep`
+- `frontend/components/timeline/detail/OriginalArticleStep.tsx` — multi-source rendering: YouTube shows channel + duration, X shows author + engagement, newsletter shows author + feed title + categories; `article` prop is now nullable
+
+### Backend (supporting SRC-008)
+
+- `backend/src/routes/timeline.ts` — list endpoint joins `content_items` to return `sourceType`; non-news_article suggestions no longer filtered out when `scraped_articles` is null
+
+---
+
 ## [Unreleased] — 2026-03-04
 
 ### feat: FEAT-005 + FEAT-006 — Detail Page Estado Suave + Processar Artigo Inline

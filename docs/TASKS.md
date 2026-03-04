@@ -87,8 +87,8 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [SRC-004](#src-004--x-feed-ingestion)                             | X Feed Ingestion                               | Backend   | High     | DONE   |
 | [SRC-005](#src-005--newsletter--blog-rss-ingestion)               | Newsletter / Blog RSS Ingestion                | Backend   | Medium   | DONE   |
 | [SRC-006](#src-006--ai-pipeline-migração-para-content_items)      | AI Pipeline — Migração para content_items      | Backend   | Critical | DONE   |
-| [SRC-007](#src-007--frontend--gerenciamento-de-fontes)            | Frontend — Gerenciamento de Fontes             | Frontend  | High     | TODO   |
-| [SRC-008](#src-008--frontend--timeline-multi-source)              | Frontend — Timeline Multi-Source               | Frontend  | High     | TODO   |
+| [SRC-007](#src-007--frontend--gerenciamento-de-fontes)            | Frontend — Gerenciamento de Fontes             | Frontend  | High     | DONE   |
+| [SRC-008](#src-008--frontend--timeline-multi-source)              | Frontend — Timeline Multi-Source               | Frontend  | High     | DONE   |
 | [EDT-001](#edt-001--tabelas-de-tags-e-embeddings)                 | Tabelas de Tags e Embeddings                   | Database  | Critical | TODO   |
 | [EDT-002](#edt-002--serviço-de-tagging-automático)                | Serviço de Tagging Automático                  | Backend   | Critical | TODO   |
 | [EDT-003](#edt-003--tabelas-de-clusters-e-briefs)                 | Tabelas de Clusters e Briefs                   | Database  | Critical | TODO   |
@@ -3423,7 +3423,7 @@ async function processNewContentItems(xAccountId: string): Promise<void> {
 
 | Field        | Value                              |
 | ------------ | ---------------------------------- |
-| Status       | TODO                               |
+| Status       | DONE                               |
 | Priority     | High                               |
 | Dependencies | SRC-001, SRC-003, SRC-004, SRC-005 |
 
@@ -3498,7 +3498,7 @@ Fontes de Conteúdo
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | High             |
 | Dependencies | SRC-006, SRC-007 |
 

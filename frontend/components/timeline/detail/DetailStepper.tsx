@@ -25,6 +25,8 @@ type TimelineItemDetail = {
     createdAt: string;
     reviewedAt: string | null;
     reviewedBy: string | null;
+    sourceType?: string;
+    sourceMetadata?: Record<string, unknown> | null;
   } | null;
   article: {
     id: string;
@@ -68,12 +70,21 @@ type Step = {
   component: React.ReactNode;
 };
 
+const step1Titles: Record<string, string> = {
+  news_article: 'Artigo Original',
+  youtube_video: 'Vídeo YouTube',
+  x_post: 'Tweet Original',
+  newsletter: 'Newsletter',
+};
+
 export function DetailStepper({ item, accountId, itemId }: DetailStepperProps) {
   const hasSuggestion = item.suggestion !== null;
   const hasPost = item.post !== null;
   const hasArticle = item.article !== null;
   const isRejected = item.suggestion?.status === 'rejected';
   const hasTweetText = !!item.suggestion?.suggestionText;
+  const sourceType = item.suggestion?.sourceType ?? 'news_article';
+  const sourceMetadata = item.suggestion?.sourceMetadata ?? null;
 
   const lastStep: Step = isRejected
     ? {
@@ -101,20 +112,19 @@ export function DetailStepper({ item, accountId, itemId }: DetailStepperProps) {
   const steps: Step[] = [
     {
       id: 1,
-      title: 'Artigo Original',
-      description: 'Artigo coletado da fonte',
+      title: step1Titles[sourceType] ?? 'Conteúdo Original',
+      description: 'Conteúdo coletado da fonte',
       isCompleted: true,
       isCurrent: !hasSuggestion && !hasPost,
-      component:
-        hasArticle && item.article ? (
-          <OriginalArticleStep
-            article={item.article}
-            hasSuggestion={hasSuggestion}
-            itemId={itemId}
-          />
-        ) : (
-          <div>Sem artigo</div>
-        ),
+      component: (
+        <OriginalArticleStep
+          article={hasArticle ? item.article : null}
+          hasSuggestion={hasSuggestion}
+          itemId={itemId}
+          sourceType={sourceType}
+          sourceMetadata={sourceMetadata}
+        />
+      ),
     },
     {
       id: 2,

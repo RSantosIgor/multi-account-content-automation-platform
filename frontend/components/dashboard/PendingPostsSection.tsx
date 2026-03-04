@@ -1,8 +1,22 @@
 'use client';
 
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Newspaper, PlaySquare, AtSign, Mail } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
+
+const sourceIcons: Record<string, React.ElementType> = {
+  news_article: Newspaper,
+  youtube_video: PlaySquare,
+  x_post: AtSign,
+  newsletter: Mail,
+};
+
+const sourceLabels: Record<string, string> = {
+  news_article: 'Notícia',
+  youtube_video: 'YouTube',
+  x_post: 'X',
+  newsletter: 'Newsletter',
+};
 import { SuggestionCard } from '@/components/timeline/SuggestionCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { queryKeys } from '@/lib/query-keys';
@@ -21,6 +35,7 @@ type PendingSuggestion = {
   suggestionText: string | null;
   hashtags: string[];
   articleSummary: ArticleSummary | null;
+  sourceType: string;
 };
 
 type TimelineResponse = {
@@ -35,6 +50,7 @@ type TimelineResponse = {
     suggestionText?: string | null;
     hashtags?: string[];
     articleSummary?: ArticleSummary | null;
+    sourceType?: string;
   }>;
 };
 
@@ -61,6 +77,7 @@ async function fetchPendingData(accountId: string) {
       suggestionText: item.suggestionText ?? null,
       hashtags: item.hashtags ?? [],
       articleSummary: item.articleSummary ?? null,
+      sourceType: item.sourceType ?? 'news_article',
     }));
 
   return { isPremium, suggestions };
@@ -114,15 +131,22 @@ export function PendingPostsSection({ accountId }: PendingPostsSectionProps) {
 
   return (
     <div className="space-y-4">
-      {suggestions.map((suggestion) => (
-        <div key={suggestion.id} className="rounded-lg border border-white/10 p-4">
-          <div className="text-muted-foreground mb-2 text-sm">
-            {suggestion.siteName ?? 'Sem site'} · {new Date(suggestion.createdAt).toLocaleString()}
+      {suggestions.map((suggestion) => {
+        const SourceIcon = sourceIcons[suggestion.sourceType] ?? sourceIcons.news_article;
+        const sourceLabel = sourceLabels[suggestion.sourceType] ?? suggestion.sourceType;
+        return (
+          <div key={suggestion.id} className="rounded-lg border border-white/10 p-4">
+            <div className="text-muted-foreground mb-2 flex items-center gap-1.5 text-sm">
+              <SourceIcon className="h-3.5 w-3.5" />
+              <span>{sourceLabel}</span>
+              {suggestion.siteName && <span>· {suggestion.siteName}</span>}
+              <span>· {new Date(suggestion.createdAt).toLocaleString()}</span>
+            </div>
+            <div className="mb-3 text-sm font-medium">{suggestion.articleTitle}</div>
+            <SuggestionCard accountId={accountId} isPremium={isPremium} suggestion={suggestion} />
           </div>
-          <div className="mb-3 text-sm font-medium">{suggestion.articleTitle}</div>
-          <SuggestionCard accountId={accountId} isPremium={isPremium} suggestion={suggestion} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
