@@ -83,10 +83,10 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [FEAT-006](#feat-006--processar-artigo-inline-na-detail-page)     | Processar Artigo Inline na Detail Page         | Both      | High     | DONE   |
 | [SRC-001](#src-001--tabela-content_items--camada-unificada)       | Tabela content_items + Camada Unificada        | Database  | Critical | DONE   |
 | [SRC-002](#src-002--bridge-scraped_articles--content_items)       | Bridge scraped_articles → content_items        | Backend   | Critical | DONE   |
-| [SRC-003](#src-003--youtube-channel-ingestion)                    | YouTube Channel Ingestion                      | Backend   | High     | TODO   |
-| [SRC-004](#src-004--x-feed-ingestion)                             | X Feed Ingestion                               | Backend   | High     | TODO   |
-| [SRC-005](#src-005--newsletter--blog-rss-ingestion)               | Newsletter / Blog RSS Ingestion                | Backend   | Medium   | TODO   |
-| [SRC-006](#src-006--ai-pipeline-migração-para-content_items)      | AI Pipeline — Migração para content_items      | Backend   | Critical | TODO   |
+| [SRC-003](#src-003--youtube-channel-ingestion)                    | YouTube Channel Ingestion                      | Backend   | High     | DONE   |
+| [SRC-004](#src-004--x-feed-ingestion)                             | X Feed Ingestion                               | Backend   | High     | DONE   |
+| [SRC-005](#src-005--newsletter--blog-rss-ingestion)               | Newsletter / Blog RSS Ingestion                | Backend   | Medium   | DONE   |
+| [SRC-006](#src-006--ai-pipeline-migração-para-content_items)      | AI Pipeline — Migração para content_items      | Backend   | Critical | DONE   |
 | [SRC-007](#src-007--frontend--gerenciamento-de-fontes)            | Frontend — Gerenciamento de Fontes             | Frontend  | High     | TODO   |
 | [SRC-008](#src-008--frontend--timeline-multi-source)              | Frontend — Timeline Multi-Source               | Frontend  | High     | TODO   |
 | [EDT-001](#edt-001--tabelas-de-tags-e-embeddings)                 | Tabelas de Tags e Embeddings                   | Database  | Critical | TODO   |
@@ -3172,7 +3172,7 @@ WHERE ci.source_type = 'news_article'
 
 | Field        | Value   |
 | ------------ | ------- |
-| Status       | TODO    |
+| Status       | DONE    |
 | Priority     | High    |
 | Dependencies | SRC-001 |
 
@@ -3238,7 +3238,7 @@ OPENAI_API_KEY=sk-...            # Já existente (usado para Whisper se habilita
 
 | Field        | Value                 |
 | ------------ | --------------------- |
-| Status       | TODO                  |
+| Status       | DONE                  |
 | Priority     | High                  |
 | Dependencies | SRC-001, XACCOUNT-001 |
 
@@ -3297,7 +3297,7 @@ OPENAI_API_KEY=sk-...            # Já existente (usado para Whisper se habilita
 
 | Field        | Value                |
 | ------------ | -------------------- |
-| Status       | TODO                 |
+| Status       | DONE                 |
 | Priority     | Medium               |
 | Dependencies | SRC-001, SCRAPER-001 |
 
@@ -3341,7 +3341,7 @@ OPENAI_API_KEY=sk-...            # Já existente (usado para Whisper se habilita
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | Critical         |
 | Dependencies | SRC-001, SRC-002 |
 

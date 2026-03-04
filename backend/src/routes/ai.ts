@@ -168,7 +168,7 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
         })
         .eq('id', paramsResult.data.id)
         .select(
-          'id, article_id, x_account_id, suggestion_text, hashtags, status, reviewed_at, reviewed_by, created_at, updated_at, article_summary',
+          'id, article_id, content_item_id, x_account_id, suggestion_text, hashtags, status, reviewed_at, reviewed_by, created_at, updated_at, article_summary',
         )
         .single();
 
@@ -178,10 +178,9 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
         );
       }
 
-      // FLOW-004: On approval → fetch full content, generate tweet + summary
+      // SRC-006 / FLOW-004: On approval → fetch full content from content_items (or scraped_articles fallback)
       if (bodyResult.data.status === 'approved') {
         try {
-          // Fetch account language for AI prompt localization
           const { data: xAccount } = await supabase
             .from('x_accounts')
             .select('language')
@@ -189,44 +188,82 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
             .maybeSingle();
           const language = xAccount?.language ?? 'pt-BR';
 
-          const { data: article, error: articleError } = await supabase
-            .from('scraped_articles')
-            .select('id, url, title, summary, full_article_content')
-            .eq('id', updated.article_id)
-            .single();
+          // Resolve content source: prefer content_items, fallback to scraped_articles
+          let sourceTitle = '';
+          let sourceSummary: string | null = null;
+          let sourceUrl = '';
+          let cachedContent: string | null = null;
+          let articleId: string | null = updated.article_id;
+          let contentItemId: string | null = updated.content_item_id;
 
-          if (articleError || !article) {
-            throw new Error(articleError?.message ?? 'Article not found');
+          if (contentItemId) {
+            const { data: ci } = await supabase
+              .from('content_items')
+              .select('id, url, title, summary, full_content')
+              .eq('id', contentItemId)
+              .maybeSingle();
+
+            if (ci) {
+              sourceTitle = ci.title;
+              sourceSummary = ci.summary;
+              sourceUrl = ci.url;
+              cachedContent = ci.full_content;
+            }
           }
 
-          // Step 1: Fetch full article content (or reuse cached)
-          let content = article.full_article_content;
+          // Fallback to scraped_articles (backward compat for older suggestions)
+          if (!sourceUrl && articleId) {
+            const { data: article } = await supabase
+              .from('scraped_articles')
+              .select('id, url, title, summary, full_article_content')
+              .eq('id', articleId)
+              .maybeSingle();
+
+            if (article) {
+              sourceTitle = article.title;
+              sourceSummary = article.summary;
+              sourceUrl = article.url;
+              cachedContent = article.full_article_content;
+            }
+          }
+
+          if (!sourceUrl) throw new Error('Content source not found');
+
+          // Step 1: Fetch full content (or reuse cache)
+          let content = cachedContent;
           if (!content) {
             try {
-              const fetched = await fetchArticleContent(article.url);
+              const fetched = await fetchArticleContent(sourceUrl);
               content = fetched.content;
 
-              // Cache for reuse
-              await supabase
-                .from('scraped_articles')
-                .update({ full_article_content: content })
-                .eq('id', article.id);
+              if (articleId) {
+                await supabase
+                  .from('scraped_articles')
+                  .update({ full_article_content: content })
+                  .eq('id', articleId);
+              }
+              if (contentItemId) {
+                await supabase
+                  .from('content_items')
+                  .update({ full_content: content })
+                  .eq('id', contentItemId);
+              }
             } catch (fetchError) {
-              console.error('[AI Routes] Failed to fetch article content:', fetchError);
-              content = article.summary ?? article.title;
+              console.error('[AI Routes] Failed to fetch content:', fetchError);
+              content = sourceSummary ?? sourceTitle;
             }
           }
 
           const aiProvider = createAiProvider();
 
-          // Step 2: Generate tweet using publication rules + full content + language
+          // Step 2: Generate tweet
           const publicationPrompt = await buildPublicationPrompt(
             updated.x_account_id,
             buildSystemPrompt(language),
           );
           const rawTweet = await aiProvider.generateRaw(
             publicationPrompt,
-            buildFullContentUserPrompt(article.title, content, article.summary ?? undefined),
+            buildFullContentUserPrompt(sourceTitle, content, sourceSummary ?? undefined),
           );
           const tweetResult = parseAiSuggestionResponse(rawTweet);
 
@@ -235,11 +272,11 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
             updated.hashtags = tweetResult.data.hashtags;
           }
 
-          // Step 3: Generate article summary
-          const summary = await generateArticleSummary(aiProvider, article.title, content);
+          // Step 3: Generate content summary
+          const summary = await generateArticleSummary(aiProvider, sourceTitle, content);
           updated.article_summary = summary as unknown as Json;
 
-          // Step 4: Persist tweet + summary + mark article as processed
+          // Step 4: Persist tweet + summary + mark processed
           await supabase
             .from('ai_suggestions')
             .update({
@@ -249,23 +286,37 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
             })
             .eq('id', updated.id);
 
-          await supabase
-            .from('scraped_articles')
-            .update({ is_processed: true })
-            .eq('id', article.id);
+          if (articleId) {
+            await supabase
+              .from('scraped_articles')
+              .update({ is_processed: true })
+              .eq('id', articleId);
+          }
+          if (contentItemId) {
+            await supabase
+              .from('content_items')
+              .update({ is_processed: true })
+              .eq('id', contentItemId);
+          }
         } catch (error) {
           console.error('[AI Routes] Approval generation failed:', error);
-          // Status is already 'approved' — tweet text may be null,
-          // frontend should handle this gracefully
         }
       }
 
-      // On rejection, mark article as processed
+      // On rejection, mark both sources as processed
       if (bodyResult.data.status === 'rejected') {
-        await supabase
-          .from('scraped_articles')
-          .update({ is_processed: true })
-          .eq('id', updated.article_id);
+        if (updated.article_id) {
+          await supabase
+            .from('scraped_articles')
+            .update({ is_processed: true })
+            .eq('id', updated.article_id);
+        }
+        if (updated.content_item_id) {
+          await supabase
+            .from('content_items')
+            .update({ is_processed: true })
+            .eq('id', updated.content_item_id);
+        }
       }
 
       return {

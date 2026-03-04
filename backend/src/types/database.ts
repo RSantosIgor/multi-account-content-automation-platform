@@ -37,6 +37,7 @@ export type Database = {
         Row: {
           article_id: string;
           article_summary: Json | null;
+          content_item_id: string | null;
           created_at: string;
           hashtags: string[];
           id: string;
@@ -50,6 +51,7 @@ export type Database = {
         Insert: {
           article_id: string;
           article_summary?: Json | null;
+          content_item_id?: string | null;
           created_at?: string;
           hashtags?: string[];
           id?: string;
@@ -63,6 +65,7 @@ export type Database = {
         Update: {
           article_id?: string;
           article_summary?: Json | null;
+          content_item_id?: string | null;
           created_at?: string;
           hashtags?: string[];
           id?: string;
@@ -79,6 +82,13 @@ export type Database = {
             columns: ['article_id'];
             isOneToOne: false;
             referencedRelation: 'scraped_articles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ai_suggestions_content_item_id_fkey';
+            columns: ['content_item_id'];
+            isOneToOne: false;
+            referencedRelation: 'content_items';
             referencedColumns: ['id'];
           },
           {
@@ -336,8 +346,10 @@ export type Database = {
       newsletter_sources: {
         Row: {
           created_at: string;
+          feed_url: string | null;
           id: string;
           is_active: boolean;
+          last_scraped_at: string | null;
           name: string;
           sender_email: string;
           updated_at: string;
@@ -346,8 +358,10 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          feed_url?: string | null;
           id?: string;
           is_active?: boolean;
+          last_scraped_at?: string | null;
           name: string;
           sender_email: string;
           updated_at?: string;
@@ -356,8 +370,10 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          feed_url?: string | null;
           id?: string;
           is_active?: boolean;
+          last_scraped_at?: string | null;
           name?: string;
           sender_email?: string;
           updated_at?: string;

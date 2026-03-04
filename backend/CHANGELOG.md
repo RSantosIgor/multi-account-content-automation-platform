@@ -2,7 +2,46 @@
 
 All changes made by AI agents to this workspace are recorded here in **reverse chronological order** (newest first).
 
+## [2026-03-04] ad-hoc - Fix auth guard on account stats route
+
+**Agent:** gpt-5-codex
+**Task:** ad-hoc
+
+### Files Modified
+
+- `backend/src/routes/stats.ts` - added `preHandler: [fastify.authenticate]` to `GET /api/v1/accounts/:accountId/stats`
+
+### Summary
+
+Fixed a route protection bug where `/api/v1/accounts/:accountId/stats` always returned `401 Unauthorized` because `request.user` was read without running the authentication preHandler first.
+
+---
+
 > **Agents:** Read `AGENTS.md §3` for the required format and rules before adding an entry.
+
+---
+
+## [2026-03-04] SRC-003, SRC-004, SRC-005, SRC-006 — Multi-source ingestion + AI pipeline migration
+
+### Added
+
+- `supabase/migrations/024_ai_suggestions_content_item.sql` — adds `content_item_id` (nullable FK) to `ai_suggestions`; backfill from existing `article_id`; adds `feed_url` and `last_scraped_at` to `newsletter_sources`
+- `backend/src/services/ingest/transcript.ts` — fetches YouTube transcripts via the public timedtext API (no API key required); prefers user-selected language, falls back to first available track
+- `backend/src/services/ingest/youtube-ingester.ts` — YouTube Data API v3 ingester; skips Shorts (< 60 s); upserts `content_items` with `source_type='youtube_video'` + rich metadata; updates `last_checked_at`
+- `backend/src/services/ingest/x-feed-ingester.ts` — X feed ingester using `twitter-api-v2`; decrypts `oauth_access_token_enc`; handles quote-tweet context; upserts `content_items` with `source_type='x_post'`
+- `backend/src/services/ingest/newsletter-ingester.ts` — newsletter/blog RSS ingester; reuses `scrapeRss()` unchanged; inserts directly into `content_items` with `source_type='newsletter'`; `full_content=null` fetched on demand at approval
+- `backend/src/schemas/sources.schema.ts` — Zod schemas for YouTube, X feed, and newsletter sources (create + update variants)
+- `backend/src/routes/sources.ts` — CRUD routes for all three source types under `/api/v1/accounts/:accountId/sources/{youtube,x-feeds,newsletters}`
+
+### Modified
+
+- `backend/src/routes/index.ts` — registered `sourcesRoutes`
+- `backend/src/jobs/index.ts` — three new cron jobs: YouTube (every 6 h), X feeds (every 4 h offset), newsletters (every 12 h); each skips gracefully if config/keys are absent
+- `backend/src/services/ai/suggest.ts` — added `processNewContentItems(xAccountId, batchSize)` that reads from `content_items WHERE is_processed=false`; sets both `content_item_id` and `article_id` (backward compat); auto_flow only for `news_article`; `processNewArticles()` kept as wrapper
+- `backend/src/services/ai/auto-flow.ts` — resolves full content from `content_items.full_content` first, fallback to `scraped_articles.full_article_content`; caches in both tables; marks both `is_processed=true`
+- `backend/src/routes/ai.ts` — approval route fetches content from `content_items` first (via `content_item_id`), fallback to `scraped_articles` (via `article_id`); marks both tables as `is_processed=true` on approve/reject
+- `backend/src/routes/timeline.ts` — detail endpoint joins `content_items!ai_suggestions_content_item_id_fkey`; response includes `sourceType` and `sourceMetadata` for multi-source display
+- `backend/src/types/database.ts` — added `content_item_id` to `ai_suggestions` Row/Insert/Update + FK relationship; added `feed_url` and `last_scraped_at` to `newsletter_sources`
 
 ---
 

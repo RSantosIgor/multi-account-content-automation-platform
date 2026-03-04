@@ -36,7 +36,26 @@ export class AutoFlowService {
     suggestionId: string,
     xAccountId: string,
   ): Promise<void> {
-    // Fetch article data
+    // SRC-006: prefer full_content from content_items (unified layer)
+    const { data: suggestionRow } = await supabase
+      .from('ai_suggestions')
+      .select('content_item_id')
+      .eq('id', suggestionId)
+      .maybeSingle();
+
+    let contentItemId: string | null = suggestionRow?.content_item_id ?? null;
+    let cachedFullContent: string | null = null;
+
+    if (contentItemId) {
+      const { data: ci } = await supabase
+        .from('content_items')
+        .select('full_content')
+        .eq('id', contentItemId)
+        .maybeSingle();
+      cachedFullContent = ci?.full_content ?? null;
+    }
+
+    // Fetch article data (always needed for fallback + is_processed update)
     const { data: article, error: articleError } = await supabase
       .from('scraped_articles')
       .select('id, url, title, summary, full_article_content')
@@ -47,17 +66,26 @@ export class AutoFlowService {
       throw new Error(`Article not found: ${articleError?.message ?? articleId}`);
     }
 
-    // Step 1: Fetch full article content (or reuse cached)
-    let content = article.full_article_content;
+    // Step 1: Get full content — content_items first, then scraped_articles cache
+    let content = cachedFullContent ?? article.full_article_content;
     if (!content) {
       try {
         const fetched = await fetchArticleContent(article.url);
         content = fetched.content;
 
+        // Cache in scraped_articles
         await supabase
           .from('scraped_articles')
           .update({ full_article_content: content })
           .eq('id', article.id);
+
+        // Cache in content_items too
+        if (contentItemId) {
+          await supabase
+            .from('content_items')
+            .update({ full_content: content })
+            .eq('id', contentItemId);
+        }
       } catch (fetchError) {
         console.error('[AutoFlow] Failed to fetch article content:', fetchError);
         content = article.summary ?? article.title;
@@ -151,7 +179,10 @@ export class AutoFlowService {
       // Don't re-throw — suggestion remains approved, post is marked as failed
     }
 
-    // Mark article as processed
+    // Mark article + content_item as processed
     await supabase.from('scraped_articles').update({ is_processed: true }).eq('id', article.id);
+    if (contentItemId) {
+      await supabase.from('content_items').update({ is_processed: true }).eq('id', contentItemId);
+    }
   }
 }

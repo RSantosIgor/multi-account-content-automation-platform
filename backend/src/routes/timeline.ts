@@ -248,6 +248,7 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
           `
           id,
           article_id,
+          content_item_id,
           x_account_id,
           status,
           suggestion_text,
@@ -265,6 +266,11 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
             full_article_content,
             news_site_id,
             news_sites!scraped_articles_news_site_id_fkey ( name, url )
+          ),
+          content_items!ai_suggestions_content_item_id_fkey (
+            id,
+            source_type,
+            metadata
           )
         `,
         )
@@ -301,17 +307,26 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
           throw fastify.httpErrors.internalServerError(postError.message);
         }
 
+        const contentItemMeta = suggestion.content_items as {
+          id: string;
+          source_type: string;
+          metadata: Json;
+        } | null;
+
         return {
           data: {
             type: 'suggestion' as const,
             suggestion: {
               id: suggestion.id,
               articleId: suggestion.article_id,
+              contentItemId: suggestion.content_item_id,
               xAccountId: suggestion.x_account_id,
               status: suggestion.status,
               suggestionText: suggestion.suggestion_text,
               hashtags: suggestion.hashtags ?? [],
               articleSummary: suggestion.article_summary,
+              sourceType: contentItemMeta?.source_type ?? 'news_article',
+              sourceMetadata: contentItemMeta?.metadata ?? null,
               createdAt: suggestion.created_at,
               reviewedAt: suggestion.reviewed_at,
               reviewedBy: suggestion.reviewed_by,

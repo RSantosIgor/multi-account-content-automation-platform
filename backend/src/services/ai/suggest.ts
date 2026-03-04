@@ -30,25 +30,22 @@ function isFatalApiError(error: unknown): boolean {
 
 export class AiSuggestionService {
   /**
-   * FLOW-003: Analysis phase.
+   * SRC-006: Analysis phase — reads from content_items (unified layer).
    *
-   * For each unprocessed article belonging to the given account:
+   * For each unprocessed content_item belonging to the given account:
    * 1. Use analysis rules + analysis prompt to decide eligibility
-   * 2. If eligible → create ai_suggestion(suggestion_text=NULL, status='pending')
-   *    - If site.auto_flow=true → delegate to AutoFlowService
-   * 3. If not eligible → mark is_processed=true (skip silently)
-   *
-   * The tweet text is NOT generated here — only on approval (FLOW-004)
-   * or auto-flow (FLOW-005).
+   * 2. If eligible → create ai_suggestion(content_item_id, suggestion_text=NULL, status='pending')
+   *    - article_id set for backward compat when source_type='news_article'
+   *    - If source is news_article with auto_flow=true → delegate to AutoFlowService
+   * 3. If not eligible → mark content_item.is_processed=true (skip silently)
    */
-  static async processNewArticles(
+  static async processNewContentItems(
     xAccountId: string,
     batchSize: number = DEFAULT_BATCH_SIZE,
   ): Promise<ProcessingSummary> {
     const provider = createAiProvider();
     const summary: ProcessingSummary = { processed: 0, created: 0, skipped: 0, failed: 0 };
 
-    // Fetch account language for AI prompt localization
     const { data: xAccount } = await supabase
       .from('x_accounts')
       .select('language')
@@ -56,87 +53,82 @@ export class AiSuggestionService {
       .maybeSingle();
     const language = xAccount?.language ?? 'pt-BR';
 
-    // Fetch sites with auto_flow flag
-    const { data: sites, error: sitesError } = await supabase
-      .from('news_sites')
-      .select('id, auto_flow')
-      .eq('x_account_id', xAccountId);
-
-    if (sitesError) {
-      console.error(
-        '[Suggest] Failed to fetch sites (check migration 014 — auto_flow column):',
-        sitesError.message,
-      );
-      return summary;
-    }
-
-    if (!sites || sites.length === 0) {
-      return summary;
-    }
-
-    const siteIds = sites.map((site) => site.id);
-    const siteAutoFlowMap = new Map(sites.map((s) => [s.id, s.auto_flow]));
-
-    const { data: articles, error: articlesError } = await supabase
-      .from('scraped_articles')
-      .select('id, title, summary, news_site_id')
+    // Fetch all unprocessed content_items for this account
+    const { data: items, error: itemsError } = await supabase
+      .from('content_items')
+      .select('id, title, summary, source_type, source_record_id')
+      .eq('x_account_id', xAccountId)
       .eq('is_processed', false)
-      .in('news_site_id', siteIds)
       .order('created_at', { ascending: true });
 
-    if (articlesError || !articles || articles.length === 0) {
+    if (itemsError || !items || items.length === 0) {
       return summary;
     }
 
-    // Exclude articles that already have a suggestion (avoid duplicates on re-run)
-    const articleIds = articles.map((a) => a.id);
+    // Exclude items that already have a suggestion (avoid duplicates on re-run)
+    const itemIds = items.map((i) => i.id);
     const { data: existingSuggs } = await supabase
       .from('ai_suggestions')
-      .select('article_id')
-      .in('article_id', articleIds);
+      .select('content_item_id')
+      .in('content_item_id', itemIds);
 
-    const existingArticleIds = new Set((existingSuggs ?? []).map((s) => s.article_id));
-    const unanalyzedArticles = articles.filter((a) => !existingArticleIds.has(a.id));
+    const existingItemIds = new Set((existingSuggs ?? []).map((s) => s.content_item_id));
+    const unanalyzed = items.filter((i) => !existingItemIds.has(i.id));
 
-    if (unanalyzedArticles.length === 0) {
+    if (unanalyzed.length === 0) {
       return summary;
     }
 
-    // Build custom analysis prompt with user's analysis rules + language
+    // Build auto_flow map for news_article items
+    const newsArticleSourceIds = unanalyzed
+      .filter((i) => i.source_type === 'news_article' && i.source_record_id)
+      .map((i) => i.source_record_id as string);
+
+    const autoFlowMap = new Map<string, boolean>(); // scraped_article.id → auto_flow
+    if (newsArticleSourceIds.length > 0) {
+      const { data: articles } = await supabase
+        .from('scraped_articles')
+        .select('id, news_sites!scraped_articles_news_site_id_fkey(auto_flow)')
+        .in('id', newsArticleSourceIds);
+
+      for (const a of articles ?? []) {
+        const site = a.news_sites as { auto_flow: boolean } | null;
+        autoFlowMap.set(a.id, site?.auto_flow ?? false);
+      }
+    }
+
     const customAnalysisPrompt = await buildAnalysisPrompt(
       xAccountId,
       buildAnalysisSystemPrompt(language),
     );
 
-    for (let i = 0; i < unanalyzedArticles.length; i += batchSize) {
-      const batch = unanalyzedArticles.slice(i, i + batchSize);
-      for (const article of batch) {
+    for (let i = 0; i < unanalyzed.length; i += batchSize) {
+      const batch = unanalyzed.slice(i, i + batchSize);
+      for (const item of batch) {
         try {
-          // Phase 2: Analysis — use title + summary (cheap) to decide eligibility
           const rawResponse = await provider.generateRaw(
             customAnalysisPrompt,
-            buildUserPrompt(article.title, article.summary ?? ''),
+            buildUserPrompt(item.title, item.summary ?? ''),
           );
 
           const analysis = parseAnalysisResponse(rawResponse);
 
           if (!analysis.eligible) {
-            // Not eligible → discard silently
-            await supabase
-              .from('scraped_articles')
-              .update({ is_processed: true })
-              .eq('id', article.id);
-
+            await supabase.from('content_items').update({ is_processed: true }).eq('id', item.id);
             summary.processed += 1;
             summary.skipped += 1;
             continue;
           }
 
-          // Eligible → create pending suggestion with NO tweet text
+          // article_id for backward compat (null for non-news source types)
+          const articleId =
+            item.source_type === 'news_article' ? (item.source_record_id ?? null) : null;
+
           const { data: suggestion, error: insertError } = await supabase
             .from('ai_suggestions')
             .insert({
-              article_id: article.id,
+              content_item_id: item.id,
+              article_id: articleId,
               x_account_id: xAccountId,
               suggestion_text: null,
               hashtags: [],
@@ -149,32 +141,37 @@ export class AiSuggestionService {
             throw new Error(insertError?.message ?? 'Failed to insert suggestion');
           }
 
-          // NOTE: is_processed stays false — set to true only on approval/rejection
-
           summary.processed += 1;
           summary.created += 1;
 
-          // Auto-flow: automatically generate tweet + publish
-          const isAutoFlow = siteAutoFlowMap.get(article.news_site_id) ?? false;
-          if (isAutoFlow) {
+          // Auto-flow only for news_article source type
+          if (articleId && autoFlowMap.get(articleId)) {
             try {
-              await AutoFlowService.processEligibleArticle(article.id, suggestion.id, xAccountId);
+              await AutoFlowService.processEligibleArticle(articleId, suggestion.id, xAccountId);
             } catch (autoFlowError) {
-              // Auto-flow errors don't halt the batch
-              console.error('[Suggest] Auto-flow failed for article', article.id, autoFlowError);
+              console.error('[Suggest] Auto-flow failed for item', item.id, autoFlowError);
             }
           }
         } catch (error) {
           summary.failed += 1;
-
-          if (isFatalApiError(error)) {
-            break;
-          }
+          if (isFatalApiError(error)) break;
         }
       }
     }
 
     return summary;
+  }
+
+  /**
+   * Backward-compat wrapper: delegates to processNewContentItems.
+   * Called by ScraperRunner after inserting scraped_articles (which
+   * auto-create content_items via the bridge trigger from SRC-002).
+   */
+  static async processNewArticles(
+    xAccountId: string,
+    batchSize: number = DEFAULT_BATCH_SIZE,
+  ): Promise<ProcessingSummary> {
+    return AiSuggestionService.processNewContentItems(xAccountId, batchSize);
   }
 
   /**
