@@ -6,6 +6,66 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-03-05] UX-009 + UX-010 — Responsividade Global + Redesign da Visão Geral de Conta
+
+**Tasks:** UX-009, UX-010
+
+### Modified
+
+- `frontend/app/(app)/layout.tsx` — padding do main reduzido para `p-4 md:p-6` para melhor experiência em telas pequenas
+- `frontend/components/layout/AppHeader.tsx` — padding lateral `px-4 md:px-6` alinhado com o conteúdo
+- `frontend/components/sites/SiteTable.tsx` — tabela envolvida em `overflow-x-auto` com `min-w-[640px]` para evitar overflow horizontal no mobile
+- `frontend/app/(app)/accounts/[accountId]/editorial/page.tsx` — painel de detalhe empilha verticalmente em telas menores que xl (`flex-col xl:flex-row`); removido estilo inline `flex`
+- `frontend/app/(app)/accounts/[accountId]/page.tsx` — redesign completo: hero com gradiente e linha de destaque dourada, avatar com anel gold, pills de stats (sites/posts), grid 3 colunas de navegação com hover gold e ArrowRight animado; removidos Card/CardHeader/CardContent não utilizados
+
+---
+
+## [2026-03-05] EDT-008 — Sugestões Contextuais no Dashboard
+
+**Task:** EDT-008
+
+### Added
+
+- `frontend/components/dashboard/EditorialBadge.tsx` — badge dourado com ícone Sparkles para identificar sugestões editoriais
+- `frontend/components/dashboard/TrendingSection.tsx` — seção "Em Alta" no dashboard com top 3 clusters ordenados por trend_score; botão "Gerar Post" abre Dialog com AngleSelector; "Ver todos" navega para o painel editorial; desaparece quando sem briefs disponíveis
+
+### Modified
+
+- `frontend/components/timeline/SuggestionCard.tsx` — exibe EditorialBadge + "Baseado em X fontes" quando `editorialBriefId` está preenchido; novos props opcionais `editorialBriefId` e `sourceContentIds`
+- `frontend/components/timeline/TimelineItem.tsx` — `sourceType: 'editorial'` mapeado para ícone Sparkles + label "Editorial"; propagação de `editorialBriefId` e `sourceContentIds` ao SuggestionCard
+- `frontend/components/dashboard/PendingPostsSection.tsx` — tipo `PendingSuggestion` estendido com `editorialBriefId` + `sourceContentIds`; EditorialBadge exibido no cabeçalho de cada card editorial; `sourceType: 'editorial'` mapeado para ícone/label corretos
+- `frontend/app/(app)/dashboard/page.tsx` — `TrendingSection` adicionada acima das abas, visível quando uma conta está selecionada
+- `frontend/components/editorial/AngleSelector.tsx` — substituído raw fetch por `apiClient` (autenticação correta via JWT header)
+
+### Summary
+
+Dashboard integrado com a inteligência editorial: seção "Em Alta" exibe os top clusters prontos para geração; sugestões editoriais são visualmente diferenciadas do fluxo 1:1 com badge e contagem de fontes.
+
+---
+
+## [2026-03-04] EDT-007 — Painel Editorial
+
+**Task:** EDT-007
+
+### Added
+
+- `frontend/app/(app)/accounts/[accountId]/editorial/page.tsx` — página "Painel Editorial" com grid de clusters/briefs; ao selecionar um card, painel de detalhe aparece à direita; empty state quando sem clusters
+- `frontend/components/editorial/TrendIndicator.tsx` — barra de progresso dourada visualizando `trend_score / 10`
+- `frontend/components/editorial/ClusterCard.tsx` — card de cluster com tópico, TrendIndicator, contagem de itens/fontes, tags como badges, status badge colorido, botão de seleção
+- `frontend/components/editorial/AngleSelector.tsx` — cards selecionáveis para cada ângulo sugerido; botão "Gerar Post" chama PATCH (salva ângulo) + POST /generate (cria sugestão); feedback inline de resultado
+- `frontend/components/editorial/BriefDetail.tsx` — painel de detalhe com contexto editorial, lista de fontes com links, AngleSelector; exibe sugestão gerada inline após geração bem-sucedida
+
+### Modified
+
+- `frontend/components/layout/AppSidebar.tsx` — link "Editorial" aparece dinamicamente quando o usuário está navegando dentro de um account context (extrai accountId do pathname)
+- `frontend/app/(app)/accounts/[accountId]/page.tsx` — adicionado card "Editorial" na grade de navegação da conta
+
+### Summary
+
+Painel editorial completo: visualização de clusters/briefs com indicadores visuais de tendência, seleção de ângulo e geração de posts contextuais diretamente da UI.
+
+---
+
 ## [2026-03-04] SRC-007, SRC-008 — Source Management UI + Multi-Source Timeline
 
 ### Added

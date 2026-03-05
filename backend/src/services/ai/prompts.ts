@@ -137,6 +137,31 @@ export function parseAnalysisResponse(rawText: string): AnalysisResult {
   }
 }
 
+// --- Contextual Publication (EDT-006) ---
+
+/**
+ * System prompt for multi-source contextual tweet generation.
+ * Used when generating suggestions from editorial briefs.
+ */
+export function buildContextualPublicationPrompt(): string {
+  return [
+    'You are a social media expert writing for X (Twitter).',
+    'You have been given:',
+    '1. An editorial context about a trending topic',
+    '2. A specific angle to take',
+    '3. Full content from multiple source articles',
+    '',
+    'Generate an engaging tweet that:',
+    '- Takes the specified angle on the topic',
+    '- Synthesizes information from MULTIPLE sources (not just one)',
+    '- Feels authentic and informed, not like a generic news reshare',
+    '- Is at most 280 characters (including hashtags)',
+    '- Includes 1–3 relevant hashtags if naturally fitting, or none if not',
+    '',
+    'Respond ONLY with valid JSON: { "text": "...", "hashtags": ["...", "..."] }',
+  ].join('\n');
+}
+
 /**
  * Parse generic JSON response from AI (for article summaries, etc.)
  */

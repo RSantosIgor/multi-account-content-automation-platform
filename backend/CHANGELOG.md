@@ -2,6 +2,95 @@
 
 All changes made by AI agents to this workspace are recorded here in **reverse chronological order** (newest first).
 
+## [2026-03-05] EDT-008 — Sugestões contextuais no dashboard
+
+**Task:** EDT-008
+
+### Modified
+
+- `backend/src/routes/timeline.ts` — endpoint de lista agora inclui `editorial_brief_id` e `source_content_ids` em cada sugestão; sugestões editoriais (sem article/content_item) agora aparecem na timeline com `sourceType: 'editorial'`; busca cluster topic dos briefs editoriais via query separada para usar como título
+
+---
+
+## [2026-03-04] EDT-006 — Geração contextual de sugestões a partir de briefs
+
+**Task:** EDT-006
+
+### Added
+
+- `backend/src/services/editorial/contextual-generator.ts` — `ContextualGeneratorService.generateFromBrief()`: busca top 3 itens do cluster por relevance_score, obtém/cacheia `full_content` de cada fonte, monta prompt multi-fonte contextual, aplica publication rules, gera tweet + summary, insere ai_suggestion com `editorial_brief_id` + `source_content_ids`, marca brief + cluster como `used`
+- `backend/src/services/ai/prompts.ts` — `buildContextualPublicationPrompt()`: prompt contextual para síntese de múltiplas fontes
+
+### Modified
+
+- `backend/src/routes/editorial.ts` — endpoint `POST /generate` refatorado para delegar ao `ContextualGeneratorService`; adicionada verificação de status (`conflict` se brief já usado); importações limpas (removido inline AI logic)
+
+### Summary
+
+Geração de sugestões editoriais agora usa `ContextualGeneratorService` com full_content de até 3 fontes do cluster, prompts multi-fonte e geração de article summary baseado no conteúdo combinado.
+
+---
+
+## [2026-03-04] EDT-004, EDT-005 — Clustering temporal e geração de briefs
+
+**Tasks:** EDT-004 · EDT-005
+
+### Added
+
+- `supabase/migrations/027_ai_suggestions_nullable_article.sql` — torna `ai_suggestions.article_id` nullable para suportar sugestões editoriais sem scraped_article
+- `backend/src/services/editorial/clusterer.ts` (EDT-004) — `EditorialClusterer.detectClusters()`: janela 48h, ≥2 tags compartilhadas, BFS para componentes conectados, `calculateTrendScore()` (count + diversidade + recência), expiração de clusters antigos (>72h)
+- `backend/src/services/editorial/brief-generator.ts` (EDT-005) — `BriefGenerator.generateForCluster()` e `processDetectedClusters()` (threshold score=3.0); idempotente via verificação de brief existente
+- `backend/src/routes/editorial.ts` (EDT-005) — 4 rotas: GET lista briefs, GET detalhe, PATCH (approve/dismiss/select_angle), POST /generate (cria ai_suggestion a partir do brief)
+
+### Modified
+
+- `backend/src/services/editorial/prompts.ts` — adicionados `buildBriefPrompt()` + `parseBriefResponse()` com schema Zod
+- `backend/src/routes/index.ts` — registrado `editorialRoutes`
+- `backend/src/jobs/index.ts` — cron job a cada 2h: detecta clusters + gera briefs para todas as contas ativas
+- `backend/src/types/database.ts` — `ai_suggestions.article_id` passa a `string | null` em Row, Insert e Update
+
+### Summary
+
+Pipeline editorial completo: clustering por sobreposição de tags (BFS), trend_score multi-fatorial, geração automática de briefs com ângulos via AI, e rotas REST para gerenciamento incluindo geração de ai_suggestion a partir de um brief.
+
+---
+
+## [2026-03-04] EDT-001, EDT-002, EDT-003 — Tags, clusters e briefs editoriais
+
+**Tasks:** EDT-001 · EDT-002 · EDT-003
+
+### Added
+
+- `supabase/migrations/025_content_tags.sql` (EDT-001) — tabela `content_tags` com UNIQUE(content_item_id, tag), índices em tag e item, RLS policy; comentário documenta plano futuro de pgvector
+- `supabase/migrations/026_editorial_clusters.sql` (EDT-003) — tabelas `editorial_clusters`, `cluster_items` (M:N com relevance_score), `editorial_briefs` (com JSONB suggested_angles); estende `ai_suggestions` com `editorial_brief_id` e `source_content_ids[]`; RLS policies para todas
+- `backend/src/services/editorial/prompts.ts` (EDT-002) — `buildTaggingPrompt()` + `parseTaggingResponse()` com validação Zod, normalização lowercase/trim e dedup
+- `backend/src/services/editorial/tagger.ts` (EDT-002) — `ContentTagger.tagContentItem(id)` e `ContentTagger.tagUntaggedItems(accountId)`; circuit-breaker (falha de AI não bloqueia pipeline); idempotente via UNIQUE constraint
+
+### Modified
+
+- `backend/src/types/database.ts` — adicionados tipos para `content_tags`, `editorial_clusters`, `cluster_items`, `editorial_briefs`; `ai_suggestions` estendido com `editorial_brief_id` e `source_content_ids`
+- `backend/src/jobs/index.ts` — cron job a cada 1h para tagging de itens não taggeados em todas as contas ativas
+
+### Summary
+
+Implementação da primeira camada da inteligência editorial (EDT epic): estrutura de banco de dados (tags + clusters + briefs), serviço de tagging automático com AI e job periódico de fallback.
+
+---
+
+## [2026-03-04] SRC-008 hotfix — timeline content_items separate query
+
+**Task:** SRC-008 hotfix
+
+### Files Modified
+
+- `backend/src/routes/timeline.ts` — replaced `content_items!ai_suggestions_content_item_id_fkey` FK join (in both list and detail endpoints) with separate `content_items` queries; avoids PostgREST schema cache errors when the FK is newly added
+
+### Summary
+
+Fixed `"Could not find a relationship between 'ai_suggestions' and 'content_items' in the schema cache"` error. PostgREST may not immediately recognise a newly-added FK; the fix selects `content_item_id` as a plain column and fetches the corresponding `content_items` rows in a separate query, then merges them in code.
+
+---
+
 ## [2026-03-04] ad-hoc - Fix auth guard on account stats route
 
 **Agent:** gpt-5-codex

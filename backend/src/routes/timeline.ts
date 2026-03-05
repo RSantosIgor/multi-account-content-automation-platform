@@ -28,6 +28,8 @@ type TimelineSuggestion = {
   hashtags: string[];
   articleSummary: Json | null;
   sourceType: string;
+  editorialBriefId: string | null;
+  sourceContentIds: string[];
 };
 
 type TimelinePost = {
@@ -50,14 +52,13 @@ type SuggestionWithRelations = {
   suggestion_text: string | null;
   hashtags: string[] | null;
   article_summary: Json | null;
+  content_item_id: string | null;
+  editorial_brief_id: string | null;
+  source_content_ids: string[] | null;
   scraped_articles?: {
     title: string;
     news_site_id: string;
     news_sites: { name: string } | null;
-  } | null;
-  content_items?: {
-    title: string;
-    source_type: string;
   } | null;
 };
 
@@ -94,7 +95,7 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
         throw fastify.httpErrors.notFound('Account not found');
       }
 
-      // Suggestions
+      // Suggestions — select content_item_id as plain column (no FK join to avoid schema cache issues)
       const { data: suggestionsData, error: suggestionsError } = await supabase
         .from('ai_suggestions')
         .select(
@@ -105,14 +106,13 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
             suggestion_text,
             hashtags,
             article_summary,
+            content_item_id,
+            editorial_brief_id,
+            source_content_ids,
             scraped_articles!ai_suggestions_article_id_fkey (
               title,
               news_site_id,
               news_sites!scraped_articles_news_site_id_fkey ( name )
-            ),
-            content_items!ai_suggestions_content_item_id_fkey (
-              title,
-              source_type
             )
           `,
         )
@@ -123,18 +123,61 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
         throw fastify.httpErrors.internalServerError(suggestionsError.message);
       }
 
+      // Fetch content_items separately to avoid PostgREST schema cache dependency
+      const contentItemIds =
+        (suggestionsData as SuggestionWithRelations[] | null)
+          ?.map((s) => s.content_item_id)
+          .filter((id): id is string => !!id) ?? [];
+
+      const contentItemsMap = new Map<string, { title: string; source_type: string }>();
+      if (contentItemIds.length > 0) {
+        const { data: contentItems } = await supabase
+          .from('content_items')
+          .select('id, title, source_type')
+          .in('id', contentItemIds);
+        for (const ci of contentItems ?? []) {
+          contentItemsMap.set(ci.id, { title: ci.title, source_type: ci.source_type });
+        }
+      }
+
+      // Fetch editorial brief cluster topics for editorial suggestions (no article/content_item)
+      const editorialBriefIds =
+        (suggestionsData as SuggestionWithRelations[] | null)
+          ?.filter((s) => s.editorial_brief_id && !s.content_item_id && !s.scraped_articles)
+          .map((s) => s.editorial_brief_id as string) ?? [];
+
+      const editorialTopicMap = new Map<string, string>(); // briefId → cluster topic
+      if (editorialBriefIds.length > 0) {
+        const { data: briefs } = await supabase
+          .from('editorial_briefs')
+          .select('id, editorial_clusters(topic)')
+          .in('id', editorialBriefIds);
+        for (const b of briefs ?? []) {
+          const cluster = b.editorial_clusters as { topic: string } | null;
+          if (cluster?.topic) editorialTopicMap.set(b.id, cluster.topic);
+        }
+      }
+
       const suggestions: TimelineSuggestion[] =
         (suggestionsData as SuggestionWithRelations[] | null)?.flatMap((sug) => {
           const article = sug.scraped_articles;
-          const contentItem = sug.content_items;
+          const contentItem = sug.content_item_id
+            ? (contentItemsMap.get(sug.content_item_id) ?? null)
+            : null;
+          const isEditorial = !!sug.editorial_brief_id;
 
-          // Must have at least one source of content info
-          if (!article && !contentItem) return [];
+          // Must have at least one source of content info (or be editorial)
+          if (!article && !contentItem && !isEditorial) return [];
 
-          const title = article?.title ?? contentItem?.title ?? '';
+          const title =
+            article?.title ??
+            contentItem?.title ??
+            (isEditorial ? (editorialTopicMap.get(sug.editorial_brief_id!) ?? 'Editorial') : '');
           const siteName = article?.news_sites?.name ?? null;
           const siteId = article?.news_site_id ?? '';
-          const sourceType = contentItem?.source_type ?? 'news_article';
+          const sourceType = isEditorial
+            ? 'editorial'
+            : (contentItem?.source_type ?? 'news_article');
 
           return [
             {
@@ -149,6 +192,8 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
               hashtags: sug.hashtags ?? [],
               articleSummary: sug.article_summary,
               sourceType,
+              editorialBriefId: sug.editorial_brief_id ?? null,
+              sourceContentIds: sug.source_content_ids ?? [],
             },
           ];
         }) ?? [];
@@ -257,7 +302,7 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { id } = paramsResult.data;
 
-      // Try to find as suggestion first
+      // Try to find as suggestion first — select content_item_id as plain column
       const { data: suggestion, error: suggestionError } = await supabase
         .from('ai_suggestions')
         .select(
@@ -282,11 +327,6 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
             full_article_content,
             news_site_id,
             news_sites!scraped_articles_news_site_id_fkey ( name, url )
-          ),
-          content_items!ai_suggestions_content_item_id_fkey (
-            id,
-            source_type,
-            metadata
           )
         `,
         )
@@ -310,6 +350,17 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
           throw fastify.httpErrors.notFound('Item not found');
         }
 
+        // Fetch content_item separately to avoid PostgREST schema cache dependency
+        let contentItemMeta: { id: string; source_type: string; metadata: Json } | null = null;
+        if (suggestion.content_item_id) {
+          const { data: ci } = await supabase
+            .from('content_items')
+            .select('id, source_type, metadata')
+            .eq('id', suggestion.content_item_id)
+            .maybeSingle();
+          contentItemMeta = ci as typeof contentItemMeta;
+        }
+
         // Check if there's a related post
         const { data: post, error: postError } = await supabase
           .from('posts')
@@ -322,12 +373,6 @@ const timelineRoutes: FastifyPluginAsync = async (fastify) => {
         if (postError && postError.code !== 'PGRST116') {
           throw fastify.httpErrors.internalServerError(postError.message);
         }
-
-        const contentItemMeta = suggestion.content_items as {
-          id: string;
-          source_type: string;
-          metadata: Json;
-        } | null;
 
         return {
           data: {

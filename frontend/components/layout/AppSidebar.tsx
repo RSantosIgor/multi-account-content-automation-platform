@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Shield, Users } from 'lucide-react';
+import { LayoutDashboard, Shield, Users, Newspaper } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -18,10 +18,28 @@ const navItems = [
 
 const adminItems = [{ href: '/admin', label: 'Admin', icon: Shield }];
 
+/** Extract accountId from pathname if currently browsing an account. */
+function getAccountId(pathname: string): string | null {
+  const match = pathname.match(/^\/accounts\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
 export function AppSidebar({ userRole }: AppSidebarProps) {
   const pathname = usePathname();
 
   const items = userRole === 'admin' ? [...navItems, ...adminItems] : navItems;
+
+  // Show account-specific shortcuts when inside an account context
+  const accountId = getAccountId(pathname);
+  const accountItems = accountId
+    ? [
+        {
+          href: `/accounts/${accountId}/editorial`,
+          label: 'Editorial',
+          icon: Newspaper,
+        },
+      ]
+    : [];
 
   return (
     <div className="flex h-full flex-col">
@@ -50,6 +68,30 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
             </Link>
           );
         })}
+
+        {accountItems.length > 0 && (
+          <>
+            <Separator className="my-2" />
+            {accountItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-primary/10 text-gold'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </>
+        )}
       </nav>
     </div>
   );

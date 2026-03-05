@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ExternalLink, Newspaper, PlaySquare, AtSign, Mail } from 'lucide-react';
+import { ExternalLink, Newspaper, PlaySquare, AtSign, Mail, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SuggestionCard } from './SuggestionCard';
@@ -12,6 +12,7 @@ const sourceIcons: Record<string, React.ElementType> = {
   youtube_video: PlaySquare,
   x_post: AtSign,
   newsletter: Mail,
+  editorial: Sparkles,
 };
 
 const sourceLabels: Record<string, string> = {
@@ -19,6 +20,7 @@ const sourceLabels: Record<string, string> = {
   youtube_video: 'YouTube',
   x_post: 'X',
   newsletter: 'Newsletter',
+  editorial: 'Editorial',
 };
 
 type ArticleSummary = {
@@ -40,6 +42,8 @@ type TimelineItemProps = {
         hashtags: string[];
         articleSummary: ArticleSummary | null;
         sourceType?: string;
+        editorialBriefId?: string | null;
+        sourceContentIds?: string[];
       }
     | {
         id: string;
@@ -91,7 +95,14 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
           <Badge className={badgeClass}>{item.status}</Badge>
         </div>
         <div className="text-sm font-medium">{item.articleTitle}</div>
-        <SuggestionCard accountId={accountId} suggestion={item} />
+        <SuggestionCard
+          accountId={accountId}
+          suggestion={{
+            ...item,
+            editorialBriefId: item.editorialBriefId,
+            sourceContentIds: item.sourceContentIds,
+          }}
+        />
       </div>
     );
   }

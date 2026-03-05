@@ -11,6 +11,7 @@ import { apiClient, ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { PublishDialog } from './PublishDialog';
 import { queryKeys } from '@/lib/query-keys';
+import { EditorialBadge } from '@/components/dashboard/EditorialBadge';
 
 type ArticleSummary = {
   bullets: string[];
@@ -25,6 +26,8 @@ type SuggestionCardProps = {
     hashtags: string[];
     status: string;
     articleSummary?: ArticleSummary | null;
+    editorialBriefId?: string | null;
+    sourceContentIds?: string[];
   };
 };
 
@@ -33,6 +36,8 @@ export function SuggestionCard({ accountId, isPremium = false, suggestion }: Sug
   const [localStatus, setLocalStatus] = useState(suggestion.status);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const isEditorial = !!suggestion.editorialBriefId;
+  const sourceCount = suggestion.sourceContentIds?.length ?? 0;
 
   const isPending = localStatus === 'pending' && !text;
 
@@ -74,6 +79,16 @@ export function SuggestionCard({ accountId, isPremium = false, suggestion }: Sug
   if (isPending) {
     return (
       <div className="space-y-3">
+        {isEditorial && (
+          <div className="flex items-center gap-2">
+            <EditorialBadge />
+            {sourceCount > 0 && (
+              <span className="text-muted-foreground text-xs">
+                Baseado em {sourceCount} {sourceCount === 1 ? 'fonte' : 'fontes'}
+              </span>
+            )}
+          </div>
+        )}
         <div className="bg-muted/50 flex items-center gap-3 rounded-md border border-dashed p-4">
           <Clock className="text-muted-foreground h-5 w-5" />
           <div>
@@ -121,6 +136,16 @@ export function SuggestionCard({ accountId, isPremium = false, suggestion }: Sug
 
   return (
     <div className="space-y-3">
+      {isEditorial && (
+        <div className="flex items-center gap-2">
+          <EditorialBadge />
+          {sourceCount > 0 && (
+            <span className="text-muted-foreground text-xs">
+              Baseado em {sourceCount} {sourceCount === 1 ? 'fonte' : 'fontes'}
+            </span>
+          )}
+        </div>
+      )}
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

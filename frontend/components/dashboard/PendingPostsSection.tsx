@@ -1,14 +1,16 @@
 'use client';
 
-import { AlertCircle, Newspaper, PlaySquare, AtSign, Mail } from 'lucide-react';
+import { AlertCircle, Newspaper, PlaySquare, AtSign, Mail, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api/client';
+import { EditorialBadge } from './EditorialBadge';
 
 const sourceIcons: Record<string, React.ElementType> = {
   news_article: Newspaper,
   youtube_video: PlaySquare,
   x_post: AtSign,
   newsletter: Mail,
+  editorial: Sparkles,
 };
 
 const sourceLabels: Record<string, string> = {
@@ -16,6 +18,7 @@ const sourceLabels: Record<string, string> = {
   youtube_video: 'YouTube',
   x_post: 'X',
   newsletter: 'Newsletter',
+  editorial: 'Editorial',
 };
 import { SuggestionCard } from '@/components/timeline/SuggestionCard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,6 +39,8 @@ type PendingSuggestion = {
   hashtags: string[];
   articleSummary: ArticleSummary | null;
   sourceType: string;
+  editorialBriefId: string | null;
+  sourceContentIds: string[];
 };
 
 type TimelineResponse = {
@@ -51,6 +56,8 @@ type TimelineResponse = {
     hashtags?: string[];
     articleSummary?: ArticleSummary | null;
     sourceType?: string;
+    editorialBriefId?: string | null;
+    sourceContentIds?: string[];
   }>;
 };
 
@@ -78,6 +85,8 @@ async function fetchPendingData(accountId: string) {
       hashtags: item.hashtags ?? [],
       articleSummary: item.articleSummary ?? null,
       sourceType: item.sourceType ?? 'news_article',
+      editorialBriefId: item.editorialBriefId ?? null,
+      sourceContentIds: item.sourceContentIds ?? [],
     }));
 
   return { isPremium, suggestions };
@@ -141,6 +150,7 @@ export function PendingPostsSection({ accountId }: PendingPostsSectionProps) {
               <span>{sourceLabel}</span>
               {suggestion.siteName && <span>· {suggestion.siteName}</span>}
               <span>· {new Date(suggestion.createdAt).toLocaleString()}</span>
+              {suggestion.editorialBriefId && <EditorialBadge />}
             </div>
             <div className="mb-3 text-sm font-medium">{suggestion.articleTitle}</div>
             <SuggestionCard accountId={accountId} isPremium={isPremium} suggestion={suggestion} />

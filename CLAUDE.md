@@ -35,27 +35,27 @@
 
 ## 2. Current State
 
-### Implementation Status (as of 2026-03-03)
+### Implementation Status (as of 2026-03-04)
 
-| Epic     | Status | Description                                                                |
-| -------- | ------ | -------------------------------------------------------------------------- |
-| SETUP    | DONE   | Monorepo, tooling, env setup                                               |
-| DB       | DONE   | All migrations (001–015), RLS policies                                     |
-| CORE     | DONE   | Auth, JWT middleware, role-based access                                    |
-| AUTH     | DONE   | Login, register, forgot-password, Supabase SSR                             |
-| XACCOUNT | DONE   | X OAuth 2.0 PKCE, token encryption, account management                     |
-| SITES    | DONE   | CRUD, RSS auto-detection, HTML scraping config, test run                   |
-| SCRAPER  | DONE   | RSS parser, Cheerio HTML, runner, cron job, scraping logs                  |
-| AI       | DONE   | OpenAI/Anthropic/DeepSeek providers, suggestion CRUD                       |
-| TIMELINE | DONE   | Unified timeline, detail stepper (article→suggestion→post)                 |
-| POSTS    | DONE   | Publish to X, post history, error tracking                                 |
-| ADMIN    | DONE   | Admin panel, user role management                                          |
-| UX       | DONE   | Dashboard redesign, account settings, prompt rules UI, breadcrumbs, stats  |
-| FLOW     | DONE   | AI analysis phase, tweet gen on approval, auto-flow, 4-phase stepper       |
-| FEAT     | TODO   | X Premium, language selector, TanStack Query, smooth state                 |
-| SRC      | TODO   | Multi-source ingestion: YouTube, X feeds, newsletters, unified content     |
-| EDT      | TODO   | Editorial intelligence: topic clustering, briefs, context-aware generation |
-| INFRA    | TODO   | Deployment, CI/CD, monitoring, backup                                      |
+| Epic     | Status      | Description                                                                                                                             |
+| -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| SETUP    | DONE        | Monorepo, tooling, env setup                                                                                                            |
+| DB       | DONE        | All migrations (001–026), RLS policies                                                                                                  |
+| CORE     | DONE        | Auth, JWT middleware, role-based access                                                                                                 |
+| AUTH     | DONE        | Login, register, forgot-password, Supabase SSR                                                                                          |
+| XACCOUNT | DONE        | X OAuth 2.0 PKCE, token encryption, account management                                                                                  |
+| SITES    | DONE        | CRUD, RSS auto-detection, HTML scraping config, test run                                                                                |
+| SCRAPER  | DONE        | RSS parser, Cheerio HTML, runner, cron job, scraping logs                                                                               |
+| AI       | DONE        | OpenAI/Anthropic/DeepSeek providers, suggestion CRUD                                                                                    |
+| TIMELINE | DONE        | Unified timeline, detail stepper (article→suggestion→post)                                                                              |
+| POSTS    | DONE        | Publish to X, post history, error tracking                                                                                              |
+| ADMIN    | DONE        | Admin panel, user role management                                                                                                       |
+| UX       | DONE        | Dashboard redesign, account settings, prompt rules UI, breadcrumbs, stats, responsiveness audit, account overview redesign (UX-001–010) |
+| FLOW     | DONE        | AI analysis phase, tweet gen on approval, auto-flow, 4-phase stepper                                                                    |
+| FEAT     | TODO        | X Premium, language selector, TanStack Query, smooth state                                                                              |
+| SRC      | IN PROGRESS | Multi-source ingestion: YouTube, X feeds, newsletters, unified content                                                                  |
+| EDT      | DONE        | Editorial intelligence: tags, clusters, briefs, contextual gen, frontend panel, dashboard integration (EDT-001–008)                     |
+| INFRA    | TODO        | Deployment, CI/CD, monitoring, backup                                                                                                   |
 
 ### Key New Features (UX Epic, Feb 2026)
 
@@ -185,23 +185,34 @@ pending → approved → posted
 
 ### Migrations Applied
 
-| File                                   | Description                                                                                   |
-| -------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `001_extensions.sql`                   | PostgreSQL extensions (uuid-ossp, pgcrypto)                                                   |
-| `002_user_profiles.sql`                | User display name and avatar                                                                  |
-| `003_user_roles.sql`                   | admin / member roles                                                                          |
-| `004_x_accounts.sql`                   | X account table with encrypted token columns                                                  |
-| `005_news_sites.sql`                   | News site table with RSS/HTML config                                                          |
-| `006_scraped_articles.sql`             | Scraped articles with deduplication constraint                                                |
-| `007_ai_suggestions.sql`               | AI suggestions with status lifecycle                                                          |
-| `008_posts.sql`                        | Published post history                                                                        |
-| `009_scraping_runs.sql`                | Scraping run execution log                                                                    |
-| `010_oauth_state.sql`                  | Temporary PKCE code_verifier storage (10min TTL)                                              |
-| `011_rls_policies.sql`                 | Row Level Security policies for all tables                                                    |
-| `012_article_summaries.sql`            | Added `scraped_articles.full_article_content` TEXT and `ai_suggestions.article_summary` JSONB |
-| `013_prompt_rules.sql`                 | New `prompt_rules` table for per-account AI rules                                             |
-| `014_news_sites_auto_flow.sql`         | Added `news_sites.auto_flow` BOOLEAN column                                                   |
-| `015_ai_suggestions_nullable_text.sql` | Made `ai_suggestions.suggestion_text` nullable                                                |
+| File                                       | Description                                                                                                                                        |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `001_extensions.sql`                       | PostgreSQL extensions (uuid-ossp, pgcrypto)                                                                                                        |
+| `002_user_profiles.sql`                    | User display name and avatar                                                                                                                       |
+| `003_user_roles.sql`                       | admin / member roles                                                                                                                               |
+| `004_x_accounts.sql`                       | X account table with encrypted token columns                                                                                                       |
+| `005_news_sites.sql`                       | News site table with RSS/HTML config                                                                                                               |
+| `006_scraped_articles.sql`                 | Scraped articles with deduplication constraint                                                                                                     |
+| `007_ai_suggestions.sql`                   | AI suggestions with status lifecycle                                                                                                               |
+| `008_posts.sql`                            | Published post history                                                                                                                             |
+| `009_scraping_runs.sql`                    | Scraping run execution log                                                                                                                         |
+| `010_oauth_state.sql`                      | Temporary PKCE code_verifier storage (10min TTL)                                                                                                   |
+| `011_rls_policies.sql`                     | Row Level Security policies for all tables                                                                                                         |
+| `012_article_summaries.sql`                | Added `scraped_articles.full_article_content` TEXT and `ai_suggestions.article_summary` JSONB                                                      |
+| `013_prompt_rules.sql`                     | New `prompt_rules` table for per-account AI rules                                                                                                  |
+| `014_news_sites_auto_flow.sql`             | Added `news_sites.auto_flow` BOOLEAN column                                                                                                        |
+| `015_ai_suggestions_nullable_text.sql`     | Made `ai_suggestions.suggestion_text` nullable                                                                                                     |
+| `016_x_accounts_is_premium.sql`            | Added `x_accounts.is_premium` BOOLEAN column                                                                                                       |
+| `017_x_accounts_language.sql`              | Added `x_accounts.language` column                                                                                                                 |
+| `018_content_items.sql`                    | New `content_items` unified content table (SRC-001)                                                                                                |
+| `019_youtube_sources.sql`                  | New `youtube_sources` table (SRC-003)                                                                                                              |
+| `020_x_feed_sources.sql`                   | New `x_feed_sources` table (SRC-004)                                                                                                               |
+| `021_newsletter_sources.sql`               | New `newsletter_sources` table (SRC-005)                                                                                                           |
+| `022_content_items_rls.sql`                | RLS policies for `content_items` and source tables                                                                                                 |
+| `023_bridge_articles_to_content_items.sql` | Bridge `scraped_articles.content_item_id` FK                                                                                                       |
+| `024_ai_suggestions_content_item.sql`      | Added `ai_suggestions.content_item_id` FK; `newsletter_sources.feed_url` + `last_scraped_at`                                                       |
+| `025_content_tags.sql`                     | New `content_tags` table for AI-extracted thematic tags (EDT-001)                                                                                  |
+| `026_editorial_clusters.sql`               | New `editorial_clusters`, `cluster_items`, `editorial_briefs`; extends `ai_suggestions` with `editorial_brief_id` + `source_content_ids` (EDT-003) |
 
 ### Key Tables
 

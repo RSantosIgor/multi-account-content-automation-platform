@@ -89,14 +89,16 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [SRC-006](#src-006--ai-pipeline-migração-para-content_items)      | AI Pipeline — Migração para content_items      | Backend   | Critical | DONE   |
 | [SRC-007](#src-007--frontend--gerenciamento-de-fontes)            | Frontend — Gerenciamento de Fontes             | Frontend  | High     | DONE   |
 | [SRC-008](#src-008--frontend--timeline-multi-source)              | Frontend — Timeline Multi-Source               | Frontend  | High     | DONE   |
-| [EDT-001](#edt-001--tabelas-de-tags-e-embeddings)                 | Tabelas de Tags e Embeddings                   | Database  | Critical | TODO   |
-| [EDT-002](#edt-002--serviço-de-tagging-automático)                | Serviço de Tagging Automático                  | Backend   | Critical | TODO   |
-| [EDT-003](#edt-003--tabelas-de-clusters-e-briefs)                 | Tabelas de Clusters e Briefs                   | Database  | Critical | TODO   |
-| [EDT-004](#edt-004--serviço-de-clustering-temporal)               | Serviço de Clustering Temporal                 | Backend   | Critical | TODO   |
-| [EDT-005](#edt-005--geração-de-editorial-briefs)                  | Geração de Editorial Briefs                    | Backend   | High     | TODO   |
-| [EDT-006](#edt-006--geração-contextual-de-sugestões)              | Geração Contextual de Sugestões                | Backend   | Critical | TODO   |
-| [EDT-007](#edt-007--frontend--painel-editorial)                   | Frontend — Painel Editorial                    | Frontend  | High     | TODO   |
-| [EDT-008](#edt-008--frontend--sugestões-contextuais-no-dashboard) | Frontend — Sugestões Contextuais no Dashboard  | Frontend  | High     | TODO   |
+| [EDT-001](#edt-001--tabelas-de-tags-e-embeddings)                 | Tabelas de Tags e Embeddings                   | Database  | Critical | DONE   |
+| [EDT-002](#edt-002--serviço-de-tagging-automático)                | Serviço de Tagging Automático                  | Backend   | Critical | DONE   |
+| [EDT-003](#edt-003--tabelas-de-clusters-e-briefs)                 | Tabelas de Clusters e Briefs                   | Database  | Critical | DONE   |
+| [EDT-004](#edt-004--serviço-de-clustering-temporal)               | Serviço de Clustering Temporal                 | Backend   | Critical | DONE   |
+| [EDT-005](#edt-005--geração-de-editorial-briefs)                  | Geração de Editorial Briefs                    | Backend   | High     | DONE   |
+| [EDT-006](#edt-006--geração-contextual-de-sugestões)              | Geração Contextual de Sugestões                | Backend   | Critical | DONE   |
+| [EDT-007](#edt-007--frontend--painel-editorial)                   | Frontend — Painel Editorial                    | Frontend  | High     | DONE   |
+| [EDT-008](#edt-008--frontend--sugestões-contextuais-no-dashboard) | Frontend — Sugestões Contextuais no Dashboard  | Frontend  | High     | DONE   |
+| [UX-009](#ux-009--global-responsiveness-audit)                    | Global Responsiveness Audit                    | Frontend  | Critical | DONE   |
+| [UX-010](#ux-010--account-overview-page-redesign)                 | Account Overview Page Redesign                 | Frontend  | High     | DONE   |
 | [INFRA-001](#infra-001--docker-setup-backend)                     | Docker Setup                                   | Backend   | Medium   | TODO   |
 | [INFRA-002](#infra-002--testing-setup)                            | Testing Setup                                  | Both      | Medium   | TODO   |
 | [INFRA-003](#infra-003--readmemd)                                 | README.md                                      | Both      | Medium   | TODO   |
@@ -3618,7 +3620,7 @@ O novo fluxo editorial é **additive**: não substitui, mas complementa e é pre
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | SRC-001  |
 
@@ -3673,7 +3675,7 @@ COMMENT ON TABLE public.content_tags IS
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | Critical         |
 | Dependencies | EDT-001, SRC-001 |
 
@@ -3743,7 +3745,7 @@ export class ContentTagger {
 
 | Field        | Value    |
 | ------------ | -------- |
-| Status       | TODO     |
+| Status       | DONE     |
 | Priority     | Critical |
 | Dependencies | EDT-001  |
 
@@ -3848,7 +3850,7 @@ CREATE POLICY "Users can view own briefs"
 
 | Field        | Value                     |
 | ------------ | ------------------------- |
-| Status       | TODO                      |
+| Status       | DONE                      |
 | Priority     | Critical                  |
 | Dependencies | EDT-001, EDT-002, EDT-003 |
 
@@ -3929,7 +3931,7 @@ cron.schedule('0 */2 * * *', async () => {
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | High             |
 | Dependencies | EDT-003, EDT-004 |
 
@@ -4015,7 +4017,7 @@ POST   /api/v1/accounts/:accountId/editorial/briefs/:briefId/generate → Gerar 
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | Critical         |
 | Dependencies | EDT-005, SRC-006 |
 
@@ -4111,7 +4113,7 @@ export class ContextualGenerator {
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | High             |
 | Dependencies | EDT-005, EDT-006 |
 
@@ -4177,7 +4179,7 @@ Painel Editorial
 
 | Field        | Value            |
 | ------------ | ---------------- |
-| Status       | TODO             |
+| Status       | DONE             |
 | Priority     | High             |
 | Dependencies | EDT-006, EDT-007 |
 
@@ -4228,6 +4230,79 @@ Painel Editorial
 - [ ] SuggestionCard lista fontes usadas com ícones por tipo
 - [ ] Timeline diferencia visualmente sugestões 1:1 de editoriais
 - [ ] Seção vazia quando não há clusters com briefs prontos
+
+---
+
+### UX-009 — Global Responsiveness Audit
+
+| Field        | Value                    |
+| ------------ | ------------------------ |
+| Status       | DONE                     |
+| Priority     | Critical                 |
+| Dependencies | UX-007, UX-008, FEAT-006 |
+
+**Goal:** Audit all frontend pages and fix responsiveness issues for desktop and mobile (320px+, 768px+, 1024px+).
+
+**Deliverables:**
+
+- Full route-by-route audit across `frontend/app/(auth)` and `frontend/app/(app)` with a per-page checklist
+- Layout fixes for horizontal overflow, readability, spacing, and hierarchy on mobile and desktop
+- Shared component fixes affecting multiple screens (sidebar, header, cards, tables, filters, dialogs)
+- Changes logged in `frontend/CHANGELOG.md`
+
+**Implementation Notes:**
+
+- Validate existing breakpoint usage (`sm`, `md`, `lg`) and normalize inconsistent patterns
+- Ensure navigation, CTAs, and forms are touch-friendly
+- Cover high-risk UI areas:
+  - tables (stack/scroll behavior)
+  - charts and fixed-width cards
+  - dialogs/modals on small screens
+  - dense dashboard/timeline/editorial grids
+- Prevent desktop regressions while fixing mobile
+
+**Acceptance Criteria:**
+
+- [ ] No key page has horizontal overflow at 320px
+- [ ] Sidebar/header behavior is correct on mobile and desktop
+- [ ] List, detail, and settings pages remain readable and usable on small screens
+- [ ] Dialogs, tables, and charts are usable on mobile
+- [ ] All fixes are verified in desktop and mobile breakpoints
+- [ ] Changes are documented in changelog
+
+---
+
+### UX-010 — Account Overview Page Redesign
+
+| Field        | Value            |
+| ------------ | ---------------- |
+| Status       | DONE             |
+| Priority     | High             |
+| Dependencies | UX-009, FEAT-003 |
+
+**Goal:** Redesign `/accounts/:accountId` with a distinct visual style while preserving product consistency and full responsiveness.
+
+**Deliverables:**
+
+- Full redesign of `frontend/app/(app)/accounts/[accountId]/page.tsx`
+- Visual refactors/extractions in `frontend/components/accounts/` when needed
+- Reusable styling tokens/patterns documented for consistency
+- Changes logged in `frontend/CHANGELOG.md`
+
+**Design Direction (skills):**
+
+- Use `frontend-design` for a clear, intentional, non-generic visual direction
+- Use `tailwind-design-system` for scalable tokens, rhythm, and responsive variants
+- Define typography, palette, composition, and motion before implementation
+
+**Acceptance Criteria:**
+
+- [ ] `/accounts/:accountId` has a new, coherent visual identity
+- [ ] Layout quality is strong on mobile and desktop
+- [ ] Accessibility and contrast remain acceptable
+- [ ] Navigation to Timeline / Sites / Settings / Stats remains clear
+- [ ] No functional regressions in account flows
+- [ ] Changes are documented in changelog
 
 ---
 

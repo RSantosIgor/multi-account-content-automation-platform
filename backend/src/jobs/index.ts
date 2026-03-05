@@ -4,6 +4,10 @@ import { ScraperRunner } from '../services/scraper/runner.js';
 import { YoutubeIngester } from '../services/ingest/youtube-ingester.js';
 import { XFeedIngester } from '../services/ingest/x-feed-ingester.js';
 import { NewsletterIngester } from '../services/ingest/newsletter-ingester.js';
+import { ContentTagger } from '../services/editorial/tagger.js';
+import { EditorialClusterer } from '../services/editorial/clusterer.js';
+import { BriefGenerator } from '../services/editorial/brief-generator.js';
+import { supabase } from '../lib/supabase.js';
 
 /**
  * Cron Job Scheduler (SCRAPER-005)
@@ -71,6 +75,54 @@ export function registerJobs(logger: FastifyBaseLogger): void {
       logger.info({ sources: results.length, total }, 'Cron: newsletter ingestion completed');
     } catch (err) {
       logger.error(err, 'Cron: newsletter ingestion failed');
+    }
+  });
+
+  // Every 1 hour — tag untagged content_items across all active accounts
+  cron.schedule('0 * * * *', async () => {
+    logger.info('Cron: starting content tagging run');
+    try {
+      const { data: accounts } = await supabase
+        .from('x_accounts')
+        .select('id')
+        .eq('is_active', true);
+
+      let total = 0;
+      for (const account of accounts ?? []) {
+        const count = await ContentTagger.tagUntaggedItems(account.id);
+        total += count;
+      }
+
+      logger.info({ total }, 'Cron: content tagging completed');
+    } catch (err) {
+      logger.error(err, 'Cron: content tagging failed');
+    }
+  });
+
+  // Every 2 hours — detect editorial clusters + generate briefs for high-scoring ones
+  cron.schedule('0 */2 * * *', async () => {
+    logger.info('Cron: starting editorial clustering run');
+    try {
+      const { data: accounts } = await supabase
+        .from('x_accounts')
+        .select('id')
+        .eq('is_active', true);
+
+      let clustersCreated = 0;
+      let briefsGenerated = 0;
+      for (const account of accounts ?? []) {
+        await EditorialClusterer.detectClusters(account.id);
+        const briefs = await BriefGenerator.processDetectedClusters(account.id);
+        briefsGenerated += briefs;
+        clustersCreated++;
+      }
+
+      logger.info(
+        { accounts: clustersCreated, briefs: briefsGenerated },
+        'Cron: editorial clustering completed',
+      );
+    } catch (err) {
+      logger.error(err, 'Cron: editorial clustering failed');
     }
   });
 

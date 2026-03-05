@@ -10,6 +10,7 @@ import { RejectedPostsSection } from '@/components/dashboard/RejectedPostsSectio
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { TrendingSection } from '@/components/dashboard/TrendingSection';
 
 type AccountsResponse = {
   data: Array<{
@@ -138,6 +139,8 @@ export default function DashboardPage() {
         selected={selectedAccountId}
         onChange={setSelectedAccountId}
       />
+
+      {selectedAccountId && <TrendingSection accountId={selectedAccountId} />}
 
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>

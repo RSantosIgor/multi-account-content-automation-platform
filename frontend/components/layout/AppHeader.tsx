@@ -59,7 +59,7 @@ export function AppHeader() {
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'U';
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-6">
+    <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
       {/* Mobile hamburger */}
       <Sheet>
         <SheetTrigger asChild>

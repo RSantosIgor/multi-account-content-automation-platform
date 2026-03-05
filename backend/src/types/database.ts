@@ -35,42 +35,48 @@ export type Database = {
     Tables: {
       ai_suggestions: {
         Row: {
-          article_id: string;
+          article_id: string | null;
           article_summary: Json | null;
           content_item_id: string | null;
           created_at: string;
+          editorial_brief_id: string | null;
           hashtags: string[];
           id: string;
           reviewed_at: string | null;
           reviewed_by: string | null;
+          source_content_ids: string[];
           status: string;
           suggestion_text: string | null;
           updated_at: string;
           x_account_id: string;
         };
         Insert: {
-          article_id: string;
+          article_id?: string | null;
           article_summary?: Json | null;
           content_item_id?: string | null;
           created_at?: string;
+          editorial_brief_id?: string | null;
           hashtags?: string[];
           id?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          source_content_ids?: string[];
           status?: string;
           suggestion_text?: string | null;
           updated_at?: string;
           x_account_id: string;
         };
         Update: {
-          article_id?: string;
+          article_id?: string | null;
           article_summary?: Json | null;
           content_item_id?: string | null;
           created_at?: string;
+          editorial_brief_id?: string | null;
           hashtags?: string[];
           id?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          source_content_ids?: string[];
           status?: string;
           suggestion_text?: string | null;
           updated_at?: string;
@@ -89,6 +95,13 @@ export type Database = {
             columns: ['content_item_id'];
             isOneToOne: false;
             referencedRelation: 'content_items';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ai_suggestions_editorial_brief_id_fkey';
+            columns: ['editorial_brief_id'];
+            isOneToOne: false;
+            referencedRelation: 'editorial_briefs';
             referencedColumns: ['id'];
           },
           {
@@ -680,6 +693,181 @@ export type Database = {
           x_username?: string;
         };
         Relationships: [];
+      };
+      content_tags: {
+        Row: {
+          confidence: number;
+          content_item_id: string;
+          created_at: string;
+          id: string;
+          tag: string;
+        };
+        Insert: {
+          confidence?: number;
+          content_item_id: string;
+          created_at?: string;
+          id?: string;
+          tag: string;
+        };
+        Update: {
+          confidence?: number;
+          content_item_id?: string;
+          created_at?: string;
+          id?: string;
+          tag?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'content_tags_content_item_id_fkey';
+            columns: ['content_item_id'];
+            isOneToOne: false;
+            referencedRelation: 'content_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      editorial_clusters: {
+        Row: {
+          created_at: string;
+          id: string;
+          item_count: number;
+          source_type_count: number;
+          status: string;
+          summary: string | null;
+          tags: string[];
+          time_window_end: string;
+          time_window_start: string;
+          topic: string;
+          trend_score: number;
+          updated_at: string;
+          x_account_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          item_count?: number;
+          source_type_count?: number;
+          status?: string;
+          summary?: string | null;
+          tags: string[];
+          time_window_end: string;
+          time_window_start: string;
+          topic: string;
+          trend_score?: number;
+          updated_at?: string;
+          x_account_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          item_count?: number;
+          source_type_count?: number;
+          status?: string;
+          summary?: string | null;
+          tags?: string[];
+          time_window_end?: string;
+          time_window_start?: string;
+          topic?: string;
+          trend_score?: number;
+          updated_at?: string;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'editorial_clusters_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      cluster_items: {
+        Row: {
+          cluster_id: string;
+          content_item_id: string;
+          id: string;
+          relevance_score: number;
+        };
+        Insert: {
+          cluster_id: string;
+          content_item_id: string;
+          id?: string;
+          relevance_score?: number;
+        };
+        Update: {
+          cluster_id?: string;
+          content_item_id?: string;
+          id?: string;
+          relevance_score?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'cluster_items_cluster_id_fkey';
+            columns: ['cluster_id'];
+            isOneToOne: false;
+            referencedRelation: 'editorial_clusters';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'cluster_items_content_item_id_fkey';
+            columns: ['content_item_id'];
+            isOneToOne: false;
+            referencedRelation: 'content_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      editorial_briefs: {
+        Row: {
+          brief_text: string;
+          cluster_id: string;
+          created_at: string;
+          id: string;
+          selected_angle: string | null;
+          status: string;
+          suggested_angles: Json;
+          updated_at: string;
+          x_account_id: string;
+        };
+        Insert: {
+          brief_text: string;
+          cluster_id: string;
+          created_at?: string;
+          id?: string;
+          selected_angle?: string | null;
+          status?: string;
+          suggested_angles?: Json;
+          updated_at?: string;
+          x_account_id: string;
+        };
+        Update: {
+          brief_text?: string;
+          cluster_id?: string;
+          created_at?: string;
+          id?: string;
+          selected_angle?: string | null;
+          status?: string;
+          suggested_angles?: Json;
+          updated_at?: string;
+          x_account_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'editorial_briefs_cluster_id_fkey';
+            columns: ['cluster_id'];
+            isOneToOne: false;
+            referencedRelation: 'editorial_clusters';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'editorial_briefs_x_account_id_fkey';
+            columns: ['x_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'x_accounts';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: {

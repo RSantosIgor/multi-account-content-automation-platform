@@ -10,6 +10,7 @@ import postsRoutes from './posts.js';
 import promptRulesRoutes from './prompt-rules.js';
 import { statsRoutes } from './stats.js';
 import xOAuthRoutes from './x-oauth.js';
+import editorialRoutes from './editorial.js';
 
 const routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(xOAuthRoutes);
@@ -23,6 +24,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(postsRoutes);
   await fastify.register(promptRulesRoutes);
   await fastify.register(statsRoutes);
+  await fastify.register(editorialRoutes);
 };
 
 export default routes;
