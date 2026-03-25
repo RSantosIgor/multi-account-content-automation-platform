@@ -2,13 +2,6 @@
 
 All changes made by AI agents to this workspace are recorded here in **reverse chronological order** (newest first).
 
-## [2026-03-25] Fix — YouTube transcript via youtube-transcript
-
-### Changed
-
-- `backend/src/services/ingest/transcript.ts` — reescrito para usar `youtube-transcript` (Android client → timedtext XML) em vez de `youtubei.js` (que dava 400 no endpoint `get_transcript`). Fallback automático sem language filter. Default: `pt`.
-- Trocada dependência `youtubei.js` → `youtube-transcript`.
-
 ## [2026-03-24] SRC-011 — Ingestion Start Date (YouTube & X Feed)
 
 ### Added
