@@ -8,7 +8,7 @@
  * Returns null when no transcript is available (live, age-gated, disabled captions).
  */
 
-import { fetchTranscript } from 'youtube-transcript';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 /**
  * Fetch the transcript for a YouTube video.
@@ -22,7 +22,7 @@ export async function fetchYoutubeTranscript(
   preferredLang = 'pt',
 ): Promise<string | null> {
   try {
-    const segments = await fetchTranscript(videoId, { lang: preferredLang });
+    const segments = await YoutubeTranscript.fetchTranscript(videoId, { lang: preferredLang });
 
     if (!segments || segments.length === 0) return null;
 
@@ -38,7 +38,7 @@ export async function fetchYoutubeTranscript(
     // (YouTube will return the default/auto-generated track)
     if (preferredLang !== '') {
       try {
-        const segments = await fetchTranscript(videoId);
+        const segments = await YoutubeTranscript.fetchTranscript(videoId);
 
         if (!segments || segments.length === 0) return null;
 
