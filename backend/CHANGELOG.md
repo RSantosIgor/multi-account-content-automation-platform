@@ -2,6 +2,98 @@
 
 All changes made by AI agents to this workspace are recorded here in **reverse chronological order** (newest first).
 
+## [2026-03-25] Fix — YouTube transcript via youtubei.js
+
+### Changed
+
+- `backend/src/services/ingest/transcript.ts` — reescrito para usar `youtubei.js` (InnerTube API) em vez de scraping HTML da página do YouTube. Muito mais estável — não depende mais do formato do `ytInitialPlayerResponse`.
+- Adicionada dependência `youtubei.js` ao backend.
+
+## [2026-03-24] SRC-011 — Ingestion Start Date (YouTube & X Feed)
+
+### Added
+
+- `supabase/migrations/030_ingestion_start_date.sql` — ADD COLUMN `ingestion_start_date timestamptz` em `youtube_sources` e `x_feed_sources`
+- `backend/src/schemas/sources.schema.ts` — campo `ingestion_start_date` (optional, nullable) nos schemas de criação e atualização de YouTube e X Feed
+
+### Modified
+
+- `backend/src/services/ingest/youtube-ingester.ts` — na primeira execução (`last_scraped_at = null`), usa `ingestion_start_date` como `publishedAfter` na API; filtra vídeos com `publishedAt < ingestion_start_date` em todas as execuções
+- `backend/src/services/ingest/x-feed-ingester.ts` — descarta tweets com `created_at < ingestion_start_date` antes do upsert
+
+---
+
+## [2026-03-24] Editorial — manual run endpoint
+
+### Added
+
+- `backend/src/routes/editorial.ts` — novo endpoint `POST /api/v1/accounts/:accountId/editorial/run`; dispara manualmente `EditorialClusterer.detectClusters` + `BriefGenerator.processDetectedClusters` e retorna `{ briefsGenerated }`
+
+---
+
+## [2026-03-24] Cron schedule — ingestão 1h + clustering 10min
+
+### Modified
+
+- `backend/src/jobs/index.ts` — todos os ingesters migrados para `0 * * * *` (1h, sem offsets); clustering/brief migrado de `0 */2 * * *` para `*/10 * * * *`; adicionado guard `hasNewTagsSince(15)` — clustering é pulado se nenhuma `content_tag` foi criada nos últimos 15 minutos
+
+---
+
+## [2026-03-24] EDT-009 — Auto-generate Suggestions per Angle
+
+**Epic:** EDT (Editorial Intelligence)
+
+### Modified
+
+- `backend/src/services/editorial/brief-generator.ts` — after inserting brief, iterates over `suggested_angles` and calls `ContextualGeneratorService.generateFromBrief()` for each angle; isolated failures per angle; marks brief as `used` after all generations
+- `backend/src/services/editorial/contextual-generator.ts` — added `skipMarkUsed` option to `generateFromBrief()` and extracted `markBriefUsed()` static method for external callers
+- `backend/src/routes/editorial.ts` — removed `used` status check on POST `/generate` (allows re-generation); accepts `angle` in request body; GET briefs list and detail now include `ai_suggestions` relation
+
+---
+
+## [2026-03-19] UNIFY-001–010 — Unified Content Pipeline
+
+**Epic:** UNIFY (Migrate to Unified Content Pipeline)
+
+### Added
+
+- `supabase/migrations/028_unify_news_site_sources.sql` — new `news_site_sources` table, `auto_flow` column on all source tables, data backfill from legacy `news_sites`, RLS policies
+- `supabase/migrations/029_drop_legacy_tables.sql` — drops `scraped_articles`, `scraping_runs`, `news_sites`, bridge trigger, `ai_suggestions.scraped_article_id`
+- `backend/src/services/ingest/news-site-ingester.ts` — `NewsSiteIngester` class (RSS/HTML → content_items)
+- News-site CRUD in `sources.ts`: GET/POST/PUT/DELETE + `/run` + `/test` endpoints
+- `auto_flow` field in update schemas for youtube, x-feed, newsletter sources
+
+### Modified
+
+- `backend/src/services/ai/suggest.ts` — rewritten: queries `content_items` only, `buildAutoFlowMap()` across all source tables, removed `scraped_articles` references
+- `backend/src/services/ai/auto-flow.ts` — rewritten: `processContentItem()` replaces `processEligibleArticle()`, uses `content_items.full_content`
+- `backend/src/routes/ai.ts` — route `/ai/suggest/:contentItemId` replaces `:articleId`, approval caches in `content_items.full_content`
+- `backend/src/routes/timeline.ts` — joins through `content_items` instead of `scraped_articles`, `sourceName`/`sourceType` replace `siteId`/`siteName`
+- `backend/src/routes/index.ts` — removed `sitesRoutes` and `scrapeRoutes`
+- `backend/src/jobs/index.ts` — news site cron uses `NewsSiteIngester.runAll()`
+
+### Removed
+
+- `backend/src/routes/sites.ts` — legacy news site CRUD (superseded by sources.ts)
+- `backend/src/routes/scrape.ts` — legacy scrape triggers
+- `backend/src/services/scraper/runner.ts` — legacy scraper orchestrator (replaced by NewsSiteIngester)
+- `backend/src/schemas/sites.schema.ts` — legacy schemas (moved to sources.schema.ts)
+
+---
+
+## [2026-03-05] SRC-009 + SRC-010 — Botões "Verificar Agora" para YouTube e X Feed
+
+**Tasks:** SRC-009, SRC-010
+
+### Modified
+
+- `backend/src/routes/sources.ts` — adicionados dois novos endpoints POST:
+  - `POST /api/v1/accounts/:accountId/sources/youtube/:sourceId/run` (SRC-009): valida ownership, exige `YOUTUBE_API_KEY`, chama `YoutubeIngester.runSource()` e retorna `{ itemsIngested, itemsSkipped, errors }`
+  - `POST /api/v1/accounts/:accountId/sources/x-feeds/:sourceId/run` (SRC-010): valida ownership, chama `XFeedIngester.runSource()` e retorna `{ itemsIngested, itemsSkipped, errors }`
+  - Importados `YoutubeIngester` e `XFeedIngester` no topo do arquivo
+
+---
+
 ## [2026-03-05] EDT-008 — Sugestões contextuais no dashboard
 
 **Task:** EDT-008

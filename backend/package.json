@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "reset-content": "tsx --env-file=.env src/scripts/reset-content.ts",
     "seed": "tsx --env-file=.env src/scripts/seed-mock-account.ts",
     "test:metropoles": "tsx --env-file=.env src/scripts/test-metropoles.ts",
     "test:x-token": "tsx --env-file=.env src/scripts/test-x-token.ts"
@@ -30,6 +31,7 @@
     "openai": "^4.67.0",
     "rss-parser": "^3.13.0",
     "twitter-api-v2": "^1.18.0",
+    "youtubei.js": "^17.0.1",
     "zod": "^3.23.0"
   },
   "devDependencies": {

@@ -4,12 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 import { TrendIndicator } from '@/components/editorial/TrendIndicator';
-import { AngleSelector } from '@/components/editorial/AngleSelector';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Flame, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
+import { Flame, ArrowRight, CheckCircle } from 'lucide-react';
 
 type ClusterMeta = {
   id: string;
@@ -18,12 +15,20 @@ type ClusterMeta = {
   tags: string[];
 };
 
+type SuggestionSummary = {
+  id: string;
+  suggestion_text: string | null;
+  hashtags: string[];
+  status: string;
+};
+
 type BriefItem = {
   id: string;
   status: string;
   suggested_angles: { angle: string; rationale: string }[];
   selected_angle: string | null;
   editorial_clusters: ClusterMeta | null;
+  ai_suggestions?: SuggestionSummary[];
 };
 
 type BriefsResponse = {
@@ -37,17 +42,15 @@ interface TrendingSectionProps {
 export function TrendingSection({ accountId }: TrendingSectionProps) {
   const [briefs, setBriefs] = useState<BriefItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogBrief, setDialogBrief] = useState<BriefItem | null>(null);
 
   useEffect(() => {
     if (!accountId) return;
     setLoading(true);
-    apiClient<BriefsResponse>(
-      `/api/v1/accounts/${accountId}/editorial/briefs?status=draft&limit=20`,
-    )
+    apiClient<BriefsResponse>(`/api/v1/accounts/${accountId}/editorial/briefs?limit=20`)
       .then((res) => {
-        // Sort by trend_score descending, take top 3
-        const sorted = [...res.data].sort(
+        // Show briefs that have suggestions, sorted by trend_score
+        const withSuggestions = res.data.filter((b) => (b.ai_suggestions?.length ?? 0) > 0);
+        const sorted = [...withSuggestions].sort(
           (a, b) =>
             (b.editorial_clusters?.trend_score ?? 0) - (a.editorial_clusters?.trend_score ?? 0),
         );
@@ -65,7 +68,7 @@ export function TrendingSection({ accountId }: TrendingSectionProps) {
         <div className="flex items-center gap-2">
           <Flame className="text-gold h-4 w-4" />
           <h2 className="text-sm font-semibold">Em Alta</h2>
-          <span className="text-muted-foreground text-xs">Clusters com briefs prontos</span>
+          <span className="text-muted-foreground text-xs">Clusters com sugestões geradas</span>
         </div>
         <Link
           href={`/accounts/${accountId}/editorial`}
@@ -78,6 +81,9 @@ export function TrendingSection({ accountId }: TrendingSectionProps) {
       <div className="grid gap-3 sm:grid-cols-3">
         {briefs.map((brief) => {
           const cluster = brief.editorial_clusters;
+          const suggestionCount = brief.ai_suggestions?.length ?? 0;
+          const pendingCount =
+            brief.ai_suggestions?.filter((s) => s.status === 'pending').length ?? 0;
           return (
             <div
               key={brief.id}
@@ -96,43 +102,25 @@ export function TrendingSection({ accountId }: TrendingSectionProps) {
                   ))}
                 </div>
               )}
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="text-gold h-3.5 w-3.5" />
+                <span className="text-muted-foreground text-xs">
+                  {suggestionCount} sugestões
+                  {pendingCount > 0 ? ` (${pendingCount} pendentes)` : ''}
+                </span>
+              </div>
               <Button
                 size="sm"
                 variant="outline"
                 className="border-gold/30 text-gold hover:bg-gold/5 w-full text-xs"
-                onClick={() => setDialogBrief(brief)}
+                asChild
               >
-                Gerar Post
+                <Link href={`/accounts/${accountId}/editorial`}>Ver Sugestões</Link>
               </Button>
             </div>
           );
         })}
       </div>
-
-      {/* Angle selector dialog */}
-      <Dialog open={!!dialogBrief} onOpenChange={(open) => !open && setDialogBrief(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              {dialogBrief?.editorial_clusters?.topic ?? 'Gerar Post Editorial'}
-            </DialogTitle>
-          </DialogHeader>
-          {dialogBrief && (
-            <AngleSelector
-              angles={dialogBrief.suggested_angles}
-              preselected={dialogBrief.selected_angle}
-              briefId={dialogBrief.id}
-              accountId={accountId}
-              onGenerated={() => {
-                setDialogBrief(null);
-                // Remove the used brief from the list
-                setBriefs((prev) => prev.filter((b) => b.id !== dialogBrief.id));
-                toast.success('Post gerado! Disponível na aba Pendentes.');
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

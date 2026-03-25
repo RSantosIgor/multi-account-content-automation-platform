@@ -1,8 +1,9 @@
 /**
- * Editorial Routes (EDT-005)
+ * Editorial Routes (EDT-005, EDT-009)
  *
- * CRUD for editorial briefs. Briefs are generated automatically by BriefGenerator
- * but users can list, view, approve, dismiss, select angles, and trigger suggestion generation.
+ * CRUD for editorial briefs. Briefs are generated automatically by BriefGenerator,
+ * and EDT-009 auto-generates suggestions for each angle on brief creation.
+ * Users can list, view, approve, dismiss briefs, and manually re-generate if needed.
  *
  * Routes:
  *   GET    /api/v1/accounts/:accountId/editorial/briefs
@@ -15,6 +16,9 @@ import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { supabase } from '../lib/supabase.js';
 import { ContextualGeneratorService } from '../services/editorial/contextual-generator.js';
+import { EditorialClusterer } from '../services/editorial/clusterer.js';
+import { BriefGenerator } from '../services/editorial/brief-generator.js';
+import { ContentTagger } from '../services/editorial/tagger.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -94,6 +98,12 @@ const editorialRoutes: FastifyPluginAsync = async (fastify) => {
             source_type_count,
             time_window_start,
             time_window_end
+          ),
+          ai_suggestions (
+            id,
+            suggestion_text,
+            hashtags,
+            status
           )
         `,
           { count: 'exact' },
@@ -160,6 +170,14 @@ const editorialRoutes: FastifyPluginAsync = async (fastify) => {
                 published_at
               )
             )
+          ),
+          ai_suggestions (
+            id,
+            suggestion_text,
+            hashtags,
+            status,
+            article_summary,
+            created_at
           )
         `,
         )
@@ -212,12 +230,17 @@ const editorialRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // ── POST /briefs/:briefId/generate ──────────────────────────────────────
+  // Manual re-generation endpoint. EDT-009 auto-generates on brief creation,
+  // but this endpoint remains for manually re-generating a specific angle.
   fastify.post(
     '/api/v1/accounts/:accountId/editorial/briefs/:briefId/generate',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       const params = briefParamsSchema.safeParse(request.params);
       if (!params.success) return reply.badRequest('Invalid parameters');
+
+      const bodySchema = z.object({ angle: z.string().min(1).optional() });
+      const body = bodySchema.safeParse(request.body ?? {});
 
       const { accountId, briefId } = params.data;
 
@@ -235,10 +258,10 @@ const editorialRoutes: FastifyPluginAsync = async (fastify) => {
 
       if (briefError) return reply.internalServerError(briefError.message);
       if (!brief) return reply.notFound('Brief not found');
-      if (brief.status === 'used') return reply.conflict('Brief has already been used');
 
-      // Determine angle to use (selected_angle → first suggested angle → empty)
+      // Determine angle: body.angle → selected_angle → first suggested angle
       const selectedAngle =
+        body.data?.angle ||
         brief.selected_angle ||
         (() => {
           const angles = brief.suggested_angles as { angle: string; rationale: string }[];
@@ -256,6 +279,36 @@ const editorialRoutes: FastifyPluginAsync = async (fastify) => {
         const msg = err instanceof Error ? err.message : 'Generation failed';
         return reply.internalServerError(msg);
       }
+    },
+  );
+  // ── POST /run ────────────────────────────────────────────────────────────
+  // Manually triggers the full clustering → brief → suggestion pipeline for an account.
+  fastify.post(
+    '/api/v1/accounts/:accountId/editorial/run',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const params = accountParamsSchema.safeParse(request.params);
+      if (!params.success) return reply.badRequest('Invalid account ID');
+
+      const { accountId } = params.data;
+
+      if (!(await verifyAccountOwnership(request.user.id, accountId))) {
+        return reply.notFound('Account not found');
+      }
+
+      // Step 1: tag untagged items within the clustering window only (48h, max 30 per run)
+      const itemsTagged = await ContentTagger.tagUntaggedItems(accountId, {
+        windowHours: EditorialClusterer.WINDOW_HOURS,
+        batchSize: 30,
+      });
+
+      // Step 2: detect clusters from tagged items
+      await EditorialClusterer.detectClusters(accountId);
+
+      // Step 3: generate briefs + suggestions for new clusters
+      const briefsGenerated = await BriefGenerator.processDetectedClusters(accountId);
+
+      return { data: { itemsTagged, briefsGenerated } };
     },
   );
 };

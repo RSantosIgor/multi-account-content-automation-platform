@@ -15,7 +15,7 @@ type PublishedPost = {
   publishedAt: string | null;
   content: string;
   xPostUrl: string | null;
-  siteName: string | null;
+  sourceName: string | null;
 };
 
 type TimelineResponse = {
@@ -27,7 +27,7 @@ type TimelineResponse = {
     publishedAt?: string | null;
     content?: string;
     xPostUrl?: string | null;
-    siteName?: string | null;
+    sourceName?: string | null;
   }>;
 };
 
@@ -74,7 +74,7 @@ export function PublishedPostsSection({ accountId }: PublishedPostsSectionProps)
             publishedAt: item.publishedAt ?? null,
             content: item.content ?? '',
             xPostUrl: item.xPostUrl ?? null,
-            siteName: item.siteName ?? null,
+            sourceName: item.sourceName ?? null,
           }));
 
         setPosts(publishedPosts);
@@ -117,7 +117,7 @@ export function PublishedPostsSection({ accountId }: PublishedPostsSectionProps)
         <div key={post.id} className="rounded-lg border border-white/10 p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="text-muted-foreground text-sm">
-              {post.siteName ?? 'Sem site'} ·{' '}
+              {post.sourceName ?? 'Sem site'} ·{' '}
               {post.publishedAt
                 ? new Date(post.publishedAt).toLocaleString()
                 : new Date(post.createdAt).toLocaleString()}

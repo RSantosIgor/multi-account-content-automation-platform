@@ -7,6 +7,13 @@ import { TrendIndicator } from './TrendIndicator';
 import { Layers, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+export type BriefSuggestionSummary = {
+  id: string;
+  suggestion_text: string | null;
+  hashtags: string[];
+  status: string;
+};
+
 export type BriefItem = {
   id: string;
   status: 'draft' | 'approved' | 'used' | 'dismissed';
@@ -25,21 +32,54 @@ export type BriefItem = {
     time_window_start: string;
     time_window_end: string;
   } | null;
+  ai_suggestions?: BriefSuggestionSummary[];
 };
 
-const statusColors: Record<string, string> = {
-  draft: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  approved: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  used: 'bg-muted text-muted-foreground',
-  dismissed: 'bg-red-500/10 text-red-400 border-red-500/20',
-};
+/** Returns a badge describing the aggregate status of suggestions for this brief. */
+function SuggestionStatusBadge({ suggestions }: { suggestions: BriefSuggestionSummary[] }) {
+  if (suggestions.length === 0) return null;
 
-const statusLabels: Record<string, string> = {
-  draft: 'Draft',
-  approved: 'Aprovado',
-  used: 'Usado',
-  dismissed: 'Descartado',
-};
+  const pending = suggestions.filter((s) => s.status === 'pending').length;
+  const posted = suggestions.filter((s) => s.status === 'posted').length;
+  const approved = suggestions.filter((s) => s.status === 'approved').length;
+
+  if (pending > 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="shrink-0 border-yellow-500/20 bg-yellow-500/10 text-xs text-yellow-400"
+      >
+        {pending} pendente{pending > 1 ? 's' : ''}
+      </Badge>
+    );
+  }
+  if (approved > 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="shrink-0 border-blue-500/20 bg-blue-500/10 text-xs text-blue-400"
+      >
+        {approved} aprovada{approved > 1 ? 's' : ''}
+      </Badge>
+    );
+  }
+  if (posted > 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="shrink-0 border-green-500/20 bg-green-500/10 text-xs text-green-400"
+      >
+        {posted} publicada{posted > 1 ? 's' : ''}
+      </Badge>
+    );
+  }
+  // All rejected
+  return (
+    <Badge variant="outline" className="text-muted-foreground shrink-0 border-white/10 text-xs">
+      rejeitadas
+    </Badge>
+  );
+}
 
 interface ClusterCardProps {
   brief: BriefItem;
@@ -49,13 +89,15 @@ interface ClusterCardProps {
 
 export function ClusterCard({ brief, isSelected, onSelect }: ClusterCardProps) {
   const cluster = brief.editorial_clusters;
+  const suggestions = brief.ai_suggestions ?? [];
+  const isDismissed = brief.status === 'dismissed';
 
   return (
     <Card
       className={cn(
         'bg-card/90 cursor-pointer border-white/10 transition-all',
         isSelected ? 'border-gold/60 ring-gold/20 ring-2' : 'hover:border-white/20',
-        brief.status === 'used' && 'opacity-60',
+        isDismissed && 'opacity-50',
       )}
       onClick={() => onSelect(brief)}
     >
@@ -64,12 +106,16 @@ export function ClusterCard({ brief, isSelected, onSelect }: ClusterCardProps) {
           <CardTitle className="text-base leading-snug">
             {cluster?.topic ?? '(sem tópico)'}
           </CardTitle>
-          <Badge
-            variant="outline"
-            className={cn('shrink-0 text-xs', statusColors[brief.status] ?? '')}
-          >
-            {statusLabels[brief.status] ?? brief.status}
-          </Badge>
+          {suggestions.length > 0 ? (
+            <SuggestionStatusBadge suggestions={suggestions} />
+          ) : isDismissed ? (
+            <Badge
+              variant="outline"
+              className="shrink-0 border-red-500/20 bg-red-500/10 text-xs text-red-400"
+            >
+              Descartado
+            </Badge>
+          ) : null}
         </div>
       </CardHeader>
 
@@ -102,12 +148,14 @@ export function ClusterCard({ brief, isSelected, onSelect }: ClusterCardProps) {
           </div>
         )}
 
-        {/* Brief angles count */}
-        {brief.suggested_angles.length > 0 && (
+        {/* Suggestion count */}
+        {suggestions.length > 0 ? (
+          <p className="text-muted-foreground text-xs">{suggestions.length} sugestões geradas</p>
+        ) : brief.suggested_angles.length > 0 ? (
           <p className="text-muted-foreground text-xs">
             {brief.suggested_angles.length} ângulos sugeridos
           </p>
-        )}
+        ) : null}
 
         <Button
           size="sm"
@@ -118,7 +166,7 @@ export function ClusterCard({ brief, isSelected, onSelect }: ClusterCardProps) {
             onSelect(brief);
           }}
         >
-          {brief.status === 'used' ? 'Ver Brief' : 'Selecionar Ângulo'}
+          {suggestions.length > 0 ? 'Ver Sugestões' : 'Ver Brief'}
         </Button>
       </CardContent>
     </Card>

@@ -13,7 +13,7 @@ type RejectedSuggestion = {
   status: string;
   createdAt: string;
   articleTitle: string;
-  siteName: string | null;
+  sourceName: string | null;
   suggestionText: string | null;
   hashtags: string[];
 };
@@ -25,7 +25,7 @@ type TimelineResponse = {
     status: string;
     createdAt: string;
     articleTitle?: string;
-    siteName?: string | null;
+    sourceName?: string | null;
     suggestionText?: string | null;
     hashtags?: string[];
   }>;
@@ -72,7 +72,7 @@ export function RejectedPostsSection({ accountId }: RejectedPostsSectionProps) {
             status: item.status,
             createdAt: item.createdAt,
             articleTitle: item.articleTitle ?? '',
-            siteName: item.siteName ?? null,
+            sourceName: item.sourceName ?? null,
             suggestionText: item.suggestionText ?? null,
             hashtags: item.hashtags ?? [],
           }));
@@ -118,7 +118,7 @@ export function RejectedPostsSection({ accountId }: RejectedPostsSectionProps) {
         <div key={suggestion.id} className="rounded-lg border border-white/10 p-4 opacity-60">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="text-muted-foreground text-sm">
-              {suggestion.siteName ?? 'Sem site'} ·{' '}
+              {suggestion.sourceName ?? 'Sem site'} ·{' '}
               {new Date(suggestion.createdAt).toLocaleString()}
             </div>
             <Badge className="border-red-500/40 bg-red-500/20 text-red-300">rejeitado</Badge>

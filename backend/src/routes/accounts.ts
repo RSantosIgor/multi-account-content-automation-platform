@@ -105,7 +105,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
     if (accountIds.length > 0) {
       const [{ data: sites, error: sitesError }, { data: posts, error: postsError }] =
         await Promise.all([
-          supabase.from('news_sites').select('x_account_id').in('x_account_id', accountIds),
+          supabase.from('news_site_sources').select('x_account_id').in('x_account_id', accountIds),
           supabase.from('posts').select('x_account_id').in('x_account_id', accountIds),
         ]);
 
@@ -167,7 +167,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
       { count: postsCount, error: postsCountError },
     ] = await Promise.all([
       supabase
-        .from('news_sites')
+        .from('news_site_sources')
         .select('id', { count: 'exact', head: true })
         .eq('x_account_id', account.id),
       supabase
@@ -258,7 +258,7 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
       { count: postsCount, error: postsCountError },
     ] = await Promise.all([
       supabase
-        .from('news_sites')
+        .from('news_site_sources')
         .select('id', { count: 'exact', head: true })
         .eq('x_account_id', updated.id),
       supabase

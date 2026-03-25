@@ -54,8 +54,8 @@ export default function EditorialPage({ params }: PageProps) {
       <div>
         <h1 className="font-display text-3xl leading-tight">Painel Editorial</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Clusters de tendências detectados automaticamente. Selecione um ângulo e gere posts
-          contextuais.
+          Clusters de tendências detectados automaticamente. Sugestões são geradas para cada ângulo
+          e aparecem na Timeline para revisão.
         </p>
       </div>
 
@@ -70,7 +70,7 @@ export default function EditorialPage({ params }: PageProps) {
           <Newspaper className="text-muted-foreground mb-4 h-12 w-12" />
           <p className="text-muted-foreground text-sm">Nenhum cluster editorial detectado ainda.</p>
           <p className="text-muted-foreground mt-1 text-xs">
-            Os clusters são gerados automaticamente a cada 2 horas com base no conteúdo ingerido.
+            Os clusters são gerados automaticamente a cada 10 minutos com base no conteúdo ingerido.
           </p>
         </div>
       ) : (

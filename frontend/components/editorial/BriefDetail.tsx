@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AngleSelector } from './AngleSelector';
 import { TrendIndicator } from './TrendIndicator';
-import { ExternalLink, Sparkles } from 'lucide-react';
+import { ExternalLink, Sparkles, CheckCircle, XCircle, Clock } from 'lucide-react';
 import type { BriefItem } from './ClusterCard';
 import { apiClient } from '@/lib/api/client';
 
@@ -23,16 +22,30 @@ type ContentItemRow = {
   } | null;
 };
 
-type BriefDetail = BriefItem & {
+type GeneratedSuggestion = {
+  id: string;
+  suggestion_text: string | null;
+  hashtags: string[];
+  status: string;
+  article_summary: { bullets: string[] } | null;
+  created_at: string;
+};
+
+type BriefDetailData = BriefItem & {
   editorial_clusters: NonNullable<BriefItem['editorial_clusters']> & {
     cluster_items: ContentItemRow[];
   };
+  ai_suggestions: GeneratedSuggestion[];
 };
 
-type GeneratedSuggestion = {
-  id: string;
-  suggestion_text: string;
-  hashtags: string[];
+const suggestionStatusConfig: Record<
+  string,
+  { icon: typeof CheckCircle; label: string; color: string }
+> = {
+  pending: { icon: Clock, label: 'Pendente', color: 'text-yellow-400' },
+  approved: { icon: CheckCircle, label: 'Aprovado', color: 'text-blue-400' },
+  posted: { icon: CheckCircle, label: 'Publicado', color: 'text-green-400' },
+  rejected: { icon: XCircle, label: 'Rejeitado', color: 'text-red-400' },
 };
 
 interface BriefDetailProps {
@@ -41,16 +54,16 @@ interface BriefDetailProps {
 }
 
 export function BriefDetail({ brief, accountId }: BriefDetailProps) {
-  const [detail, setDetail] = useState<BriefDetail | null>(null);
+  const [detail, setDetail] = useState<BriefDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generated, setGenerated] = useState<GeneratedSuggestion | null>(null);
 
   useEffect(() => {
     setDetail(null);
     setLoading(true);
-    setGenerated(null);
 
-    apiClient<{ data: BriefDetail }>(`/api/v1/accounts/${accountId}/editorial/briefs/${brief.id}`)
+    apiClient<{ data: BriefDetailData }>(
+      `/api/v1/accounts/${accountId}/editorial/briefs/${brief.id}`,
+    )
       .then((res) => setDetail(res.data))
       .catch(() => setDetail(null))
       .finally(() => setLoading(false));
@@ -71,7 +84,7 @@ export function BriefDetail({ brief, accountId }: BriefDetailProps) {
   }
 
   const cluster = detail.editorial_clusters;
-  const isUsed = detail.status === 'used' || detail.status === 'dismissed';
+  const suggestions = detail.ai_suggestions ?? [];
 
   return (
     <div className="space-y-5">
@@ -140,36 +153,41 @@ export function BriefDetail({ brief, accountId }: BriefDetailProps) {
 
       <Separator />
 
-      {/* Generated suggestion (if already created) */}
-      {generated && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-green-400">Post gerado!</p>
-          <div className="bg-muted/40 rounded-lg border border-white/10 p-3">
-            <p className="text-sm leading-relaxed">{generated.suggestion_text}</p>
-            {generated.hashtags.length > 0 && (
-              <p className="text-muted-foreground mt-2 text-xs">{generated.hashtags.join(' ')}</p>
-            )}
-          </div>
+      {/* Auto-generated suggestions (EDT-009) */}
+      {suggestions.length > 0 ? (
+        <div className="space-y-3">
+          <p className="text-sm font-medium">Sugestões geradas ({suggestions.length})</p>
+          {suggestions.map((sug) => {
+            const config = suggestionStatusConfig[sug.status] ?? suggestionStatusConfig.pending;
+            const StatusIcon = config.icon;
+            return (
+              <div
+                key={sug.id}
+                className="bg-muted/40 space-y-2 rounded-lg border border-white/10 p-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
+                    <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
+                  </div>
+                </div>
+                {sug.suggestion_text ? (
+                  <p className="text-sm leading-relaxed">{sug.suggestion_text}</p>
+                ) : (
+                  <p className="text-muted-foreground text-sm italic">Aguardando geração...</p>
+                )}
+                {sug.hashtags.length > 0 && (
+                  <p className="text-muted-foreground text-xs">{sug.hashtags.join(' ')}</p>
+                )}
+              </div>
+            );
+          })}
           <p className="text-muted-foreground text-xs">
-            Disponível na Timeline para revisão e publicação.
+            Disponíveis na Timeline para revisão e publicação.
           </p>
         </div>
-      )}
-
-      {/* Angle selector */}
-      {!generated && (
-        <AngleSelector
-          angles={detail.suggested_angles}
-          preselected={detail.selected_angle}
-          briefId={detail.id}
-          accountId={accountId}
-          disabled={isUsed}
-          onGenerated={setGenerated}
-        />
-      )}
-
-      {isUsed && !generated && (
-        <p className="text-muted-foreground text-sm">Este brief já foi utilizado.</p>
+      ) : (
+        <p className="text-muted-foreground text-sm">Nenhuma sugestão gerada ainda.</p>
       )}
     </div>
   );

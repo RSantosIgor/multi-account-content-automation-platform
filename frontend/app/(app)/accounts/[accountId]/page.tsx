@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RunClusteringButton } from '@/components/editorial/RunClusteringButton';
 import {
   Newspaper,
   FileText,
@@ -50,12 +51,12 @@ export default async function AccountPage({ params }: PageProps) {
 
   const sections = [
     {
-      title: 'News Sites',
-      description: 'Manage news sources for article collection',
-      icon: Newspaper,
-      href: `/accounts/${accountId}/sites`,
+      title: 'Fontes',
+      description: 'Sites, YouTube, X feeds e newsletters',
+      icon: Radio,
+      href: `/accounts/${accountId}/sources`,
       count: account.sitesCount,
-      countLabel: 'sites',
+      countLabel: 'fontes',
     },
     {
       title: 'Timeline',
@@ -70,14 +71,6 @@ export default async function AccountPage({ params }: PageProps) {
       description: 'View posting activity and metrics',
       icon: BarChart3,
       href: `/accounts/${accountId}/stats`,
-      count: 0,
-      countLabel: '',
-    },
-    {
-      title: 'Sources',
-      description: 'YouTube channels, X feeds and newsletters',
-      icon: Radio,
-      href: `/accounts/${accountId}/sources`,
       count: 0,
       countLabel: '',
     },
@@ -135,8 +128,8 @@ export default async function AccountPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Quick stats pills */}
-          <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
+          {/* Quick stats pills + actions */}
+          <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0">
             <div className="bg-card/60 flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2">
               <Newspaper className="text-gold h-4 w-4" />
               <span className="text-sm font-semibold">{account.sitesCount}</span>
@@ -147,6 +140,7 @@ export default async function AccountPage({ params }: PageProps) {
               <span className="text-sm font-semibold">{account.postsCount}</span>
               <span className="text-muted-foreground text-xs">posts</span>
             </div>
+            <RunClusteringButton accountId={accountId} />
           </div>
         </div>
       </div>

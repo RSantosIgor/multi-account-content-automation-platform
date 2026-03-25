@@ -1,16 +1,20 @@
 /**
- * Editorial Brief Generator (EDT-005)
+ * Editorial Brief Generator (EDT-005, EDT-009)
  *
  * For each 'detected' cluster with trend_score >= threshold, generates:
  *   - A context summary (2-3 sentences)
  *   - 2-4 suggested posting angles
  *
  * Stores the result in editorial_briefs and advances the cluster to 'ready'.
+ *
+ * EDT-009: After creating the brief, auto-generates one ai_suggestion per angle
+ * via ContextualGeneratorService. Each angle is processed independently (isolated failures).
  */
 
 import { supabase } from '../../lib/supabase.js';
 import { createAiProvider } from '../ai/provider.js';
 import { buildBriefPrompt, parseBriefResponse } from './prompts.js';
+import { ContextualGeneratorService } from './contextual-generator.js';
 
 /** Minimum trend_score for a cluster to get a brief generated */
 const SCORE_THRESHOLD = 3.0;
@@ -94,26 +98,51 @@ export class BriefGenerator {
     }
 
     // 6. Insert editorial_brief
-    const { error: insertError } = await supabase.from('editorial_briefs').insert({
-      cluster_id: clusterId,
-      x_account_id: cluster.x_account_id,
-      brief_text: brief.context,
-      suggested_angles: brief.angles,
-      status: 'draft',
-    });
+    const { data: insertedBrief, error: insertError } = await supabase
+      .from('editorial_briefs')
+      .insert({
+        cluster_id: clusterId,
+        x_account_id: cluster.x_account_id,
+        brief_text: brief.context,
+        suggested_angles: brief.angles,
+        status: 'draft',
+      })
+      .select('id')
+      .single();
 
-    if (insertError) {
-      console.error('[BriefGen] Failed to insert brief:', insertError.message);
+    if (insertError || !insertedBrief) {
+      console.error('[BriefGen] Failed to insert brief:', insertError?.message);
       return;
     }
 
-    // 7. Advance cluster to 'ready'
-    await supabase
-      .from('editorial_clusters')
-      .update({ status: 'ready', updated_at: new Date().toISOString() })
-      .eq('id', clusterId);
+    // 7. EDT-009: Auto-generate one suggestion per angle (isolated failures)
+    const angles = brief.angles as { angle: string; rationale: string }[];
+    let generatedCount = 0;
 
-    console.info(`[BriefGen] Brief generated for cluster "${cluster.topic}"`);
+    for (const angleObj of angles) {
+      try {
+        await ContextualGeneratorService.generateFromBrief(
+          insertedBrief.id,
+          angleObj.angle,
+          cluster.x_account_id,
+          { skipMarkUsed: true },
+        );
+        generatedCount++;
+      } catch (err) {
+        console.warn(
+          `[BriefGen] Failed to generate suggestion for angle "${angleObj.angle}":`,
+          err instanceof Error ? err.message : err,
+        );
+        // Continue with next angle — isolated failure
+      }
+    }
+
+    // 8. Mark brief + cluster as 'used' after all generations attempted
+    await ContextualGeneratorService.markBriefUsed(insertedBrief.id);
+
+    console.info(
+      `[BriefGen] Brief generated for cluster "${cluster.topic}" — ${generatedCount}/${angles.length} suggestions created`,
+    );
   }
 
   /**

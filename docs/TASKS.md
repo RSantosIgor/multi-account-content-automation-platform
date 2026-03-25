@@ -89,6 +89,9 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [SRC-006](#src-006--ai-pipeline-migração-para-content_items)      | AI Pipeline — Migração para content_items      | Backend   | Critical | DONE   |
 | [SRC-007](#src-007--frontend--gerenciamento-de-fontes)            | Frontend — Gerenciamento de Fontes             | Frontend  | High     | DONE   |
 | [SRC-008](#src-008--frontend--timeline-multi-source)              | Frontend — Timeline Multi-Source               | Frontend  | High     | DONE   |
+| [SRC-009](#src-009--botão-verificar-agora--youtube)               | Botão "Verificar Agora" — YouTube              | Both      | Medium   | DONE   |
+| [SRC-010](#src-010--botão-verificar-agora--x-feed)                | Botão "Verificar Agora" — X Feed               | Both      | Medium   | DONE   |
+| [SRC-011](#src-011--ingestion-start-date-youtube--x-feed)         | Ingestion Start Date — YouTube & X Feed        | Both      | Medium   | DONE   |
 | [EDT-001](#edt-001--tabelas-de-tags-e-embeddings)                 | Tabelas de Tags e Embeddings                   | Database  | Critical | DONE   |
 | [EDT-002](#edt-002--serviço-de-tagging-automático)                | Serviço de Tagging Automático                  | Backend   | Critical | DONE   |
 | [EDT-003](#edt-003--tabelas-de-clusters-e-briefs)                 | Tabelas de Clusters e Briefs                   | Database  | Critical | DONE   |
@@ -97,8 +100,19 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 | [EDT-006](#edt-006--geração-contextual-de-sugestões)              | Geração Contextual de Sugestões                | Backend   | Critical | DONE   |
 | [EDT-007](#edt-007--frontend--painel-editorial)                   | Frontend — Painel Editorial                    | Frontend  | High     | DONE   |
 | [EDT-008](#edt-008--frontend--sugestões-contextuais-no-dashboard) | Frontend — Sugestões Contextuais no Dashboard  | Frontend  | High     | DONE   |
+| [EDT-009](#edt-009--auto-generate-suggestions-per-angle)          | Auto-generate Suggestions per Angle            | Both      | High     | DONE   |
 | [UX-009](#ux-009--global-responsiveness-audit)                    | Global Responsiveness Audit                    | Frontend  | Critical | DONE   |
 | [UX-010](#ux-010--account-overview-page-redesign)                 | Account Overview Page Redesign                 | Frontend  | High     | DONE   |
+| [UNIFY-001](#unify-001--migration-news_site_sources--auto_flow)   | Migration: news_site_sources + auto_flow       | Database  | Critical | DONE   |
+| [UNIFY-002](#unify-002--newssiteingester-service)                 | NewsSiteIngester Service                       | Backend   | Critical | DONE   |
+| [UNIFY-003](#unify-003--rewrite-ai-pipeline-for-content_items)    | Rewrite AI Pipeline for content_items          | Backend   | Critical | DONE   |
+| [UNIFY-004](#unify-004--rewrite-ai--timeline-routes)              | Rewrite AI + Timeline Routes                   | Backend   | Critical | DONE   |
+| [UNIFY-005](#unify-005--news-site-crud--cron-update)              | News-site CRUD + Cron Update                   | Backend   | High     | DONE   |
+| [UNIFY-006](#unify-006--newssitesourcetable--auto_flow-toggles)   | NewsSiteSourceTable + auto_flow Toggles        | Frontend  | High     | DONE   |
+| [UNIFY-007](#unify-007--update-frontend-ai-timeline-references)   | Update Frontend AI/Timeline References         | Frontend  | High     | DONE   |
+| [UNIFY-008](#unify-008--remove-legacy-files)                      | Remove Legacy Files                            | Both      | High     | DONE   |
+| [UNIFY-009](#unify-009--drop-legacy-tables-migration)             | Drop Legacy Tables Migration                   | Database  | Medium   | DONE   |
+| [UNIFY-010](#unify-010--update-documentation)                     | Update Documentation                           | Both      | Medium   | DONE   |
 | [INFRA-001](#infra-001--docker-setup-backend)                     | Docker Setup                                   | Backend   | Medium   | TODO   |
 | [INFRA-002](#infra-002--testing-setup)                            | Testing Setup                                  | Both      | Medium   | TODO   |
 | [INFRA-003](#infra-003--readmemd)                                 | README.md                                      | Both      | Medium   | TODO   |
@@ -109,24 +123,25 @@ Quick reference for all tasks. Use the **Workspace** column to route tasks to th
 
 ## Epic Index
 
-| Epic                                                            | ID Prefix | Description                                                  |
-| --------------------------------------------------------------- | --------- | ------------------------------------------------------------ |
-| [Foundation & Setup](#epic-setup-foundation--setup)             | SETUP     | Monorepo, tooling, project scaffolding                       |
-| [Database & Migrations](#epic-db-database--migrations)          | DB        | All SQL migrations and RLS policies                          |
-| [Core Backend Services](#epic-core-core-backend-services)       | CORE      | Fastify setup, auth plugins, shared utilities                |
-| [Authentication (Frontend)](#epic-auth-authentication-frontend) | AUTH      | Login, register, route protection                            |
-| [X Account Management](#epic-xaccount-x-account-management)     | XACCOUNT  | OAuth flow, account CRUD                                     |
-| [News Sites Management](#epic-sites-news-sites-management)      | SITES     | Site CRUD, RSS detection                                     |
-| [Scraping Engine](#epic-scraper-scraping-engine)                | SCRAPER   | RSS + HTML scrapers, scheduler                               |
-| [AI Integration](#epic-ai-ai-integration)                       | AI        | Provider abstraction, suggestion generation                  |
-| [Timeline](#epic-timeline-timeline)                             | TIMELINE  | Unified feed of suggestions and posts                        |
-| [X Posting](#epic-posts-x-posting)                              | POSTS     | Publish to X, post history                                   |
-| [Admin Panel](#epic-admin-admin-panel)                          | ADMIN     | User management, role assignment                             |
-| [User Experience](#epic-ux-user-experience)                     | UX        | UI improvements, breadcrumbs, settings                       |
-| [News Flow Redesign](#epic-flow--news-flow-redesign)            | FLOW      | Realinhamento do ciclo de vida da notícia                    |
-| [Multi-Source Ingestion](#epic-src-multi-source-ingestion)      | SRC       | YouTube, X feeds, newsletters, unified content               |
-| [Editorial Intelligence](#epic-edt-editorial-intelligence)      | EDT       | Topic clustering, editorial briefs, context-aware generation |
-| [Infrastructure & Quality](#epic-infra-infrastructure--quality) | INFRA     | Docker, README, testing setup                                |
+| Epic                                                             | ID Prefix | Description                                                  |
+| ---------------------------------------------------------------- | --------- | ------------------------------------------------------------ |
+| [Foundation & Setup](#epic-setup-foundation--setup)              | SETUP     | Monorepo, tooling, project scaffolding                       |
+| [Database & Migrations](#epic-db-database--migrations)           | DB        | All SQL migrations and RLS policies                          |
+| [Core Backend Services](#epic-core-core-backend-services)        | CORE      | Fastify setup, auth plugins, shared utilities                |
+| [Authentication (Frontend)](#epic-auth-authentication-frontend)  | AUTH      | Login, register, route protection                            |
+| [X Account Management](#epic-xaccount-x-account-management)      | XACCOUNT  | OAuth flow, account CRUD                                     |
+| [News Sites Management](#epic-sites-news-sites-management)       | SITES     | Site CRUD, RSS detection                                     |
+| [Scraping Engine](#epic-scraper-scraping-engine)                 | SCRAPER   | RSS + HTML scrapers, scheduler                               |
+| [AI Integration](#epic-ai-ai-integration)                        | AI        | Provider abstraction, suggestion generation                  |
+| [Timeline](#epic-timeline-timeline)                              | TIMELINE  | Unified feed of suggestions and posts                        |
+| [X Posting](#epic-posts-x-posting)                               | POSTS     | Publish to X, post history                                   |
+| [Admin Panel](#epic-admin-admin-panel)                           | ADMIN     | User management, role assignment                             |
+| [User Experience](#epic-ux-user-experience)                      | UX        | UI improvements, breadcrumbs, settings                       |
+| [News Flow Redesign](#epic-flow--news-flow-redesign)             | FLOW      | Realinhamento do ciclo de vida da notícia                    |
+| [Multi-Source Ingestion](#epic-src-multi-source-ingestion)       | SRC       | YouTube, X feeds, newsletters, unified content               |
+| [Editorial Intelligence](#epic-edt-editorial-intelligence)       | EDT       | Topic clustering, editorial briefs, context-aware generation |
+| [Unified Content Pipeline](#epic-unify-unified-content-pipeline) | UNIFY     | Migrate to single content_items pipeline, remove legacy      |
+| [Infrastructure & Quality](#epic-infra-infrastructure--quality)  | INFRA     | Docker, README, testing setup                                |
 
 ---
 
@@ -3538,6 +3553,232 @@ const sourceIcons: Record<string, LucideIcon> = {
 
 ---
 
+### SRC-009 — Botão "Verificar Agora" — YouTube
+
+| Field        | Value            |
+| ------------ | ---------------- |
+| Status       | DONE             |
+| Priority     | Medium           |
+| Dependencies | SRC-003, SRC-007 |
+
+**Goal:** Permitir que o usuário force imediatamente a verificação de um canal do YouTube, sem aguardar o próximo ciclo do cron job. Segue o mesmo padrão do botão "Forçar scraper" já existente na `SiteTable`.
+
+**Backend — novo endpoint:**
+
+```
+POST /api/v1/accounts/:accountId/sources/youtube/:sourceId/run
+```
+
+- Verificar que o `sourceId` pertence ao `accountId` do usuário autenticado
+- Chamar `YoutubeIngester.runSource(sourceId, apiKey)` (`YOUTUBE_API_KEY` do env)
+- Retornar `{ data: { itemsIngested, itemsSkipped, errors } }`
+- Se `YOUTUBE_API_KEY` não estiver configurada: retornar `400` com mensagem clara
+
+**Arquivo a modificar:** `backend/src/routes/sources.ts`
+
+```typescript
+fastify.post(
+  '/api/v1/accounts/:accountId/sources/youtube/:sourceId/run',
+  { preHandler: [fastify.authenticate] },
+  async (request, reply) => {
+    const p = sourceParamsSchema.safeParse(request.params);
+    if (!p.success) throw fastify.httpErrors.badRequest('Invalid params');
+
+    await ensureAccountOwner(fastify, p.data.accountId, request.user.id);
+
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) throw fastify.httpErrors.badRequest('YOUTUBE_API_KEY not configured');
+
+    // Verify source belongs to account
+    const { data: source, error } = await supabase
+      .from('youtube_sources')
+      .select('id')
+      .eq('id', p.data.sourceId)
+      .eq('x_account_id', p.data.accountId)
+      .maybeSingle();
+    if (error) throw fastify.httpErrors.internalServerError(error.message);
+    if (!source) throw fastify.httpErrors.notFound('YouTube source not found');
+
+    const result = await YoutubeIngester.runSource(p.data.sourceId, apiKey);
+    return reply.send({ data: result });
+  },
+);
+```
+
+**Frontend — botão na tabela:**
+
+**Arquivo a modificar:** `frontend/components/sources/YouTubeSourceTable.tsx`
+
+- Adicionar estado `runningId: string | null`
+- Adicionar handler `handleRunNow(sourceId: string)`:
+  ```typescript
+  const handleRunNow = async (sourceId: string) => {
+    setRunningId(sourceId);
+    try {
+      const res = await apiClient<{ data: { itemsIngested: number } }>(
+        `/api/v1/accounts/${accountId}/sources/youtube/${sourceId}/run`,
+        { method: 'POST' },
+      );
+      toast.success(`Verificação concluída: ${res.data.itemsIngested} item(s) ingerido(s)`);
+      // Atualizar last_scraped_at na linha da tabela
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === sourceId ? { ...s, last_scraped_at: new Date().toISOString() } : s,
+        ),
+      );
+    } catch {
+      toast.error('Falha ao verificar canal');
+    } finally {
+      setRunningId(null);
+    }
+  };
+  ```
+- Adicionar botão na coluna de ações (entre o toggle de status e o Edit), usando `Tooltip` igual ao SiteTable:
+  ```tsx
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleRunNow(source.id)}
+          disabled={runningId === source.id || !source.is_active}
+        >
+          <RefreshCw className={`h-4 w-4 ${runningId === source.id ? 'animate-spin' : ''}`} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Verificar agora</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+  ```
+- Importar `RefreshCw` de `lucide-react`, `Tooltip*` de `@/components/ui/tooltip`, `toast` de `sonner`, `apiClient` de `@/lib/api/client`
+
+**Acceptance Criteria:**
+
+- [ ] `POST .../youtube/:sourceId/run` retorna `{ data: { itemsIngested, itemsSkipped, errors } }`
+- [ ] Retorna 400 se `YOUTUBE_API_KEY` não configurada
+- [ ] Retorna 404 se o source não pertencer ao account do usuário
+- [ ] Botão aparece na coluna de ações de cada linha da `YouTubeSourceTable`
+- [ ] Botão mostra ícone com `animate-spin` enquanto aguarda resposta
+- [ ] Botão fica desabilitado se a fonte estiver inativa (`is_active = false`)
+- [ ] Toast de sucesso mostra quantos itens foram ingeridos
+- [ ] `last_scraped_at` da linha é atualizado após execução bem-sucedida
+- [ ] Toast de erro genérico em caso de falha
+
+---
+
+### SRC-010 — Botão "Verificar Agora" — X Feed
+
+| Field        | Value            |
+| ------------ | ---------------- |
+| Status       | DONE             |
+| Priority     | Medium           |
+| Dependencies | SRC-004, SRC-007 |
+
+**Goal:** Permitir que o usuário force imediatamente a verificação de um feed do X (Twitter), sem aguardar o próximo ciclo do cron job. Mesmo padrão do SRC-009.
+
+**Backend — novo endpoint:**
+
+```
+POST /api/v1/accounts/:accountId/sources/x-feeds/:sourceId/run
+```
+
+- Verificar que o `sourceId` pertence ao `accountId` do usuário autenticado
+- Chamar `XFeedIngester.runSource(sourceId)` (usa token OAuth do próprio `x_account`)
+- Retornar `{ data: { itemsIngested, itemsSkipped, errors } }`
+
+**Arquivo a modificar:** `backend/src/routes/sources.ts`
+
+```typescript
+fastify.post(
+  '/api/v1/accounts/:accountId/sources/x-feeds/:sourceId/run',
+  { preHandler: [fastify.authenticate] },
+  async (request, reply) => {
+    const p = sourceParamsSchema.safeParse(request.params);
+    if (!p.success) throw fastify.httpErrors.badRequest('Invalid params');
+
+    await ensureAccountOwner(fastify, p.data.accountId, request.user.id);
+
+    // Verify source belongs to account
+    const { data: source, error } = await supabase
+      .from('x_feed_sources')
+      .select('id')
+      .eq('id', p.data.sourceId)
+      .eq('x_account_id', p.data.accountId)
+      .maybeSingle();
+    if (error) throw fastify.httpErrors.internalServerError(error.message);
+    if (!source) throw fastify.httpErrors.notFound('X feed source not found');
+
+    const result = await XFeedIngester.runSource(p.data.sourceId);
+    return reply.send({ data: result });
+  },
+);
+```
+
+**Frontend — botão na tabela:**
+
+**Arquivo a modificar:** `frontend/components/sources/XFeedSourceTable.tsx`
+
+- Adicionar estado `runningId: string | null`
+- Adicionar handler `handleRunNow(sourceId: string)`:
+  ```typescript
+  const handleRunNow = async (sourceId: string) => {
+    setRunningId(sourceId);
+    try {
+      const res = await apiClient<{ data: { itemsIngested: number } }>(
+        `/api/v1/accounts/${accountId}/sources/x-feeds/${sourceId}/run`,
+        { method: 'POST' },
+      );
+      toast.success(`Verificação concluída: ${res.data.itemsIngested} item(s) ingerido(s)`);
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === sourceId ? { ...s, last_scraped_at: new Date().toISOString() } : s,
+        ),
+      );
+    } catch {
+      toast.error('Falha ao verificar feed');
+    } finally {
+      setRunningId(null);
+    }
+  };
+  ```
+- Adicionar botão na coluna de ações (antes do Edit), com `Tooltip` igual ao SRC-009:
+  ```tsx
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleRunNow(source.id)}
+          disabled={runningId === source.id || !source.is_active}
+        >
+          <RefreshCw className={`h-4 w-4 ${runningId === source.id ? 'animate-spin' : ''}`} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Verificar agora</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+  ```
+- Importar `RefreshCw`, `Tooltip*`, `toast`, `apiClient` (igual ao SRC-009)
+
+**Acceptance Criteria:**
+
+- [ ] `POST .../x-feeds/:sourceId/run` retorna `{ data: { itemsIngested, itemsSkipped, errors } }`
+- [ ] Retorna 404 se o source não pertencer ao account do usuário
+- [ ] Botão aparece na coluna de ações de cada linha da `XFeedSourceTable`
+- [ ] Botão mostra ícone com `animate-spin` enquanto aguarda resposta
+- [ ] Botão fica desabilitado se a fonte estiver inativa (`is_active = false`)
+- [ ] Toast de sucesso mostra quantos itens foram ingeridos
+- [ ] `last_scraped_at` da linha é atualizado após execução bem-sucedida
+- [ ] Toast de erro genérico em caso de falha
+
+---
+
 ## EPIC EDT — Editorial Intelligence (2026-03-03)
 
 > **Objetivo:** Substituir o modelo "1 artigo → 1 sugestão" por uma camada editorial inteligente
@@ -3613,6 +3854,59 @@ O fluxo 1:1 (`content_item → ai_suggestion`) continua existindo:
 - Como fallback quando o pipeline editorial está desabilitado
 
 O novo fluxo editorial é **additive**: não substitui, mas complementa e é preferido quando há clusters disponíveis.
+
+---
+
+### SRC-011 — Ingestion Start Date — YouTube & X Feed
+
+| Field        | Value            |
+| ------------ | ---------------- |
+| Status       | DONE             |
+| Priority     | Medium           |
+| Dependencies | SRC-003, SRC-004 |
+
+**Goal:** Permitir que o usuário configure uma data mínima de publicação para ingestão de vídeos do YouTube e posts do X. Conteúdo publicado antes dessa data deve ser ignorado mesmo que nunca tenha sido processado. Isso é útil ao adicionar uma fonte retroativa (ex: canal com 5 anos de histórico) onde só interessa conteúdo recente.
+
+**Comportamento atual:**
+
+- YouTube: na **primeira** execução (`last_scraped_at = null`) busca os últimos 10 vídeos **sem filtro de data** — pode trazer vídeos antigos
+- X Feed: sempre busca os últimos 20 tweets **sem filtro de data** — sem limite histórico
+- Deduplicação existe (upsert com `ignoreDuplicates: true`), mas não impede a análise AI de itens antigos
+
+**Comportamento desejado:**
+
+- `youtube_sources` e `x_feed_sources` ganham coluna `ingestion_start_date timestamptz`
+- Se `ingestion_start_date` estiver preenchida, o ingester filtra `published_at >= ingestion_start_date`
+- YouTube: passa `&publishedAfter=<ingestion_start_date>` na chamada da API quando `last_scraped_at` for null (primeira execução)
+- X Feed: filtra tweets pelo `created_at >= ingestion_start_date` após busca (a API v2 não suporta filtro de data em `userTimeline` sem parâmetro `since_id`)
+- Frontend: campo de data nos formulários de criação/edição de YouTube e X Feed sources
+
+**Arquivos a modificar:**
+
+**Database:**
+
+- `supabase/migrations/030_ingestion_start_date.sql` — ADD COLUMN `ingestion_start_date timestamptz` em `youtube_sources` e `x_feed_sources`
+
+**Backend:**
+
+- `backend/src/services/ingest/youtube-ingester.ts` — usar `ingestion_start_date` como `publishedAfter` quando `last_scraped_at` é null; sempre ignorar vídeos com `publishedAt < ingestion_start_date`
+- `backend/src/services/ingest/x-feed-ingester.ts` — filtrar tweets com `created_at < ingestion_start_date` antes de inserir em `content_items`
+- `backend/src/routes/sources.ts` — incluir `ingestion_start_date` nos schemas de criação e atualização de YouTube e X Feed sources
+- `backend/src/schemas/sources.schema.ts` — adicionar campo `ingestion_start_date` (opcional, `z.string().datetime().optional()`)
+
+**Frontend:**
+
+- `frontend/components/sources/YouTubeSourceTable.tsx` — adicionar campo de data no formulário de criação/edição
+- `frontend/components/sources/XFeedSourceTable.tsx` — adicionar campo de data no formulário de criação/edição
+
+**Acceptance Criteria:**
+
+- [x] Coluna `ingestion_start_date` existe em `youtube_sources` e `x_feed_sources` (nullable)
+- [x] YouTube: primeira execução usa `ingestion_start_date` como `publishedAfter` quando configurado
+- [x] X Feed: tweets anteriores à `ingestion_start_date` são descartados antes do upsert
+- [x] Campo de data opcional nos formulários de criação e edição de ambas as fontes
+- [x] Fontes sem `ingestion_start_date` continuam funcionando como antes (sem breaking change)
+- [x] Valor default sugerido na UI: data de criação da fonte (hoje)
 
 ---
 
@@ -4230,6 +4524,58 @@ Painel Editorial
 - [ ] SuggestionCard lista fontes usadas com ícones por tipo
 - [ ] Timeline diferencia visualmente sugestões 1:1 de editoriais
 - [ ] Seção vazia quando não há clusters com briefs prontos
+
+---
+
+### EDT-009 — Auto-generate Suggestions per Angle
+
+| Field        | Value            |
+| ------------ | ---------------- |
+| Status       | DONE             |
+| Priority     | High             |
+| Dependencies | EDT-005, EDT-006 |
+
+**Goal:** Eliminar a etapa manual de "selecionar ângulo" no fluxo editorial. Quando o `BriefGenerator` cria um brief com `suggested_angles`, cada ângulo deve gerar automaticamente uma `ai_suggestion` (via `ContextualGeneratorService`), sem necessidade de ação do usuário.
+
+**Comportamento atual:**
+
+1. Cluster detectado → brief gerado com 2-4 `suggested_angles`
+2. Usuário acessa painel Editorial → seleciona um ângulo → clica "Gerar"
+3. `POST /editorial/briefs/:briefId/generate` → `ContextualGeneratorService.generateFromBrief()`
+4. Uma `ai_suggestion` é criada
+
+**Comportamento desejado:**
+
+1. Cluster detectado → brief gerado com 2-4 `suggested_angles`
+2. **Automaticamente**, para cada ângulo: `ContextualGeneratorService.generateFromBrief()` é chamado
+3. Cada ângulo gera uma `ai_suggestion` (status=`pending`) com `editorial_brief_id` + `source_content_ids`
+4. Sugestões aparecem diretamente na Timeline para revisão
+
+**Arquivos a modificar:**
+
+- `backend/src/services/editorial/brief-generator.ts` — após inserir o brief, iterar sobre `suggested_angles` e chamar `ContextualGeneratorService.generateFromBrief()` para cada ângulo
+- `backend/src/services/editorial/contextual-generator.ts` — ajustar para permitir múltiplas sugestões por brief (atualmente marca brief como `used` na primeira geração, impedindo as próximas). Opções:
+  - Mover o `status='used'` para depois de todas as gerações
+  - Ou permitir gerar mesmo com `status='used'`
+- `backend/src/routes/editorial.ts` — `POST /briefs/:briefId/generate` pode ser mantido para re-geração manual, mas não é mais o caminho principal
+- `frontend/components/editorial/` — remover fluxo de seleção de ângulo; briefs passam a ser informativos (mostram sugestões já geradas)
+
+**Considerações:**
+
+- Cada ângulo gera uma chamada AI separada (custo maior) — aceitar trade-off em favor de UX
+- Se um ângulo falhar, os outros devem continuar (falha isolada)
+- O brief deve ser marcado `used` somente após todas as gerações serem tentadas
+- O cluster também só deve ser marcado `used` no final
+
+**Acceptance Criteria:**
+
+- [ ] `BriefGenerator` gera sugestões automaticamente para cada ângulo ao criar o brief
+- [ ] Cada ângulo resulta em uma `ai_suggestion` separada com `editorial_brief_id`
+- [ ] Falha em um ângulo não bloqueia os outros
+- [ ] Brief marcado como `used` após todas as gerações
+- [ ] Sugestões editoriais aparecem na Timeline sem ação manual
+- [ ] Painel Editorial mostra briefs com suas sugestões já geradas
+- [ ] Endpoint `POST /briefs/:briefId/generate` ainda funciona para re-geração manual
 
 ---
 

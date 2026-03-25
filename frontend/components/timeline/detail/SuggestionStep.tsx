@@ -16,7 +16,7 @@ type ArticleSummary = {
 
 type Suggestion = {
   id: string;
-  articleId: string;
+  contentItemId: string | null;
   xAccountId: string;
   status: string;
   suggestionText: string | null;
@@ -34,11 +34,8 @@ type Article = {
   summary: string | null;
   publishedAt: string | null;
   fullContent: string | null;
-  site: {
-    id: string;
-    name: string;
-    url: string;
-  } | null;
+  sourceName: string | null;
+  sourceUrl: string | null;
 } | null;
 
 type SuggestionStepProps = {

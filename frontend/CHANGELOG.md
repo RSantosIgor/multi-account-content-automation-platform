@@ -6,6 +6,97 @@ All changes made by AI agents to this workspace are recorded here in **reverse c
 
 ---
 
+## [2026-03-24] SRC-011 — Ingestion Start Date (YouTube & X Feed)
+
+### Modified
+
+- `frontend/components/sources/YouTubeSourceTable.tsx` — tipo `YoutubeSource` com `ingestion_start_date`; campo de data "Ignorar conteúdo anterior a" nos dialogs de criação (default: hoje) e edição
+- `frontend/components/sources/XFeedSourceTable.tsx` — mesmo padrão do YouTube
+
+---
+
+## [2026-03-24] Botão "Gerar Clusters" no Dashboard e Account Overview
+
+### Added
+
+- `frontend/components/editorial/RunClusteringButton.tsx` — componente client que chama `POST /editorial/run`, exibe spinner e toast com resultado (briefs gerados ou "nenhum cluster novo")
+- `frontend/app/(app)/dashboard/page.tsx` — botão "Gerar Clusters" acima da `TrendingSection`, visível quando conta está selecionada
+- `frontend/app/(app)/accounts/[accountId]/page.tsx` — botão "Gerar Clusters" nos pills de quick stats do hero section
+
+---
+
+## [2026-03-24] Editorial page — UX fixes
+
+### Modified
+
+- `frontend/components/editorial/ClusterCard.tsx` — removido `opacity-60` e badge "Usado" para briefs usados; substituído por `SuggestionStatusBadge` que mostra status agregado das sugestões (pendentes / aprovadas / publicadas / rejeitadas); apenas `dismissed` mantém badge visual de descarte
+- `frontend/app/(app)/accounts/[accountId]/editorial/page.tsx` — empty state corrigido: "a cada 2 horas" → "a cada 10 minutos"
+
+### Removed
+
+- `frontend/components/editorial/AngleSelector.tsx` — componente orphan; fluxo manual de seleção de ângulo removido pelo EDT-009
+
+---
+
+## [2026-03-24] EDT-009 — Auto-generate Suggestions per Angle (Frontend)
+
+**Epic:** EDT (Editorial Intelligence)
+
+### Modified
+
+- `frontend/components/editorial/BriefDetail.tsx` — replaced manual AngleSelector with auto-generated suggestions list showing status badges (pending/approved/posted/rejected)
+- `frontend/components/editorial/ClusterCard.tsx` — added `ai_suggestions` to `BriefItem` type; button label shows "Ver Sugestões" when suggestions exist; displays suggestion count
+- `frontend/components/dashboard/TrendingSection.tsx` — replaced AngleSelector dialog with direct link to editorial page; shows suggestion count and pending count per brief
+- `frontend/app/(app)/accounts/[accountId]/editorial/page.tsx` — updated description text to reflect auto-generation flow
+
+---
+
+## [2026-03-19] UNIFY-006–008 — Unified Content Pipeline (Frontend)
+
+**Epic:** UNIFY (Migrate to Unified Content Pipeline)
+
+### Added
+
+- `frontend/components/sources/NewsSiteSourceTable.tsx` — full CRUD table for news site sources with create/edit dialogs, force-run, auto_flow toggle
+
+### Modified
+
+- `frontend/components/sources/SourceTabs.tsx` — added "Sites" tab as first tab with Globe icon and NewsSiteSourceTable
+- `frontend/app/(app)/accounts/[accountId]/sources/page.tsx` — fetches news-sites in parallel with other sources
+- `frontend/components/sources/YouTubeSourceTable.tsx` — added `auto_flow` to type
+- `frontend/components/sources/XFeedSourceTable.tsx` — added `auto_flow` to type
+- `frontend/components/dashboard/PendingPostsSection.tsx` — `sourceName` replaces `siteId`/`siteName`
+- `frontend/components/dashboard/PublishedPostsSection.tsx` — `sourceName` replaces `siteName`
+- `frontend/components/dashboard/RejectedPostsSection.tsx` — `sourceName` replaces `siteName`
+- `frontend/components/timeline/TimelineItem.tsx` — `sourceType`/`sourceName` replace `siteId`/`siteName`
+- `frontend/components/timeline/TimelineFilters.tsx` — `sourceType` dropdown replaces `siteId` selector (no more legacy API call)
+- `frontend/app/(app)/accounts/[accountId]/timeline/page.tsx` — updated types and filter to use `sourceType`
+- `frontend/app/(app)/accounts/[accountId]/timeline/[itemId]/page.tsx` — `contentItemId` replaces `articleId`, `sourceName`/`sourceUrl` replaces `site` object
+- `frontend/components/timeline/detail/DetailStepper.tsx` — updated types for unified content model
+- `frontend/components/timeline/detail/OriginalArticleStep.tsx` — `sourceName`/`sourceUrl` replaces `site` object
+- `frontend/components/timeline/detail/SuggestionStep.tsx` — `contentItemId` replaces `articleId`
+- `frontend/app/(app)/accounts/[accountId]/page.tsx` — "Fontes" link replaces "News Sites"
+
+### Removed
+
+- `frontend/app/(app)/accounts/[accountId]/sites/` — entire directory (legacy pages)
+- `frontend/components/sites/SiteForm.tsx` — legacy component
+- `frontend/components/sites/SiteTable.tsx` — legacy component
+- `frontend/components/sites/ScraperPreview.tsx` — legacy component
+
+---
+
+## [2026-03-05] SRC-009 + SRC-010 — Botões "Verificar Agora" para YouTube e X Feed
+
+**Tasks:** SRC-009, SRC-010
+
+### Modified
+
+- `frontend/components/sources/YouTubeSourceTable.tsx` — adicionado botão "Verificar agora" (`RefreshCw` com `animate-spin`) na coluna de ações; estado `runningId`; handler `handleRunNow()` que chama `POST .../youtube/:id/run` e atualiza `last_scraped_at` na linha; desabilitado se fonte inativa; importados `RefreshCw` e `Tooltip*`
+- `frontend/components/sources/XFeedSourceTable.tsx` — mesmas mudanças para X feeds: botão, estado, handler `handleRunNow()` chamando `POST .../x-feeds/:id/run`
+
+---
+
 ## [2026-03-05] UX-009 + UX-010 — Responsividade Global + Redesign da Visão Geral de Conta
 
 **Tasks:** UX-009, UX-010

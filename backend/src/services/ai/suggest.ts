@@ -28,15 +28,54 @@ function isFatalApiError(error: unknown): boolean {
   return false;
 }
 
+/** Source table → DB table name mapping for auto_flow lookup. */
+const SOURCE_TABLES = [
+  'news_site_sources',
+  'youtube_sources',
+  'x_feed_sources',
+  'newsletter_sources',
+];
+
+/**
+ * Build a map of source_record_id → auto_flow for a set of content items.
+ * Queries each relevant source table to get the auto_flow flag.
+ */
+async function buildAutoFlowMap(
+  items: { source_table: string; source_record_id: string | null }[],
+): Promise<Map<string, boolean>> {
+  const map = new Map<string, boolean>();
+
+  // Group source_record_ids by source_table
+  const grouped = new Map<string, string[]>();
+  for (const item of items) {
+    if (!item.source_record_id) continue;
+    if (!SOURCE_TABLES.includes(item.source_table)) continue;
+    const ids = grouped.get(item.source_table) ?? [];
+    ids.push(item.source_record_id);
+    grouped.set(item.source_table, ids);
+  }
+
+  // Query each source table for auto_flow
+  for (const [table, ids] of grouped) {
+    const uniqueIds = [...new Set(ids)];
+    const { data } = await supabase.from(table).select('id, auto_flow').in('id', uniqueIds);
+
+    for (const row of data ?? []) {
+      map.set(row.id, row.auto_flow ?? false);
+    }
+  }
+
+  return map;
+}
+
 export class AiSuggestionService {
   /**
-   * SRC-006: Analysis phase — reads from content_items (unified layer).
+   * Analysis phase — reads from content_items (unified layer).
    *
    * For each unprocessed content_item belonging to the given account:
    * 1. Use analysis rules + analysis prompt to decide eligibility
    * 2. If eligible → create ai_suggestion(content_item_id, suggestion_text=NULL, status='pending')
-   *    - article_id set for backward compat when source_type='news_article'
-   *    - If source is news_article with auto_flow=true → delegate to AutoFlowService
+   *    - If source has auto_flow=true → delegate to AutoFlowService
    * 3. If not eligible → mark content_item.is_processed=true (skip silently)
    */
   static async processNewContentItems(
@@ -56,7 +95,7 @@ export class AiSuggestionService {
     // Fetch all unprocessed content_items for this account
     const { data: items, error: itemsError } = await supabase
       .from('content_items')
-      .select('id, title, summary, source_type, source_record_id')
+      .select('id, title, summary, source_type, source_table, source_record_id')
       .eq('x_account_id', xAccountId)
       .eq('is_processed', false)
       .order('created_at', { ascending: true });
@@ -79,23 +118,8 @@ export class AiSuggestionService {
       return summary;
     }
 
-    // Build auto_flow map for news_article items
-    const newsArticleSourceIds = unanalyzed
-      .filter((i) => i.source_type === 'news_article' && i.source_record_id)
-      .map((i) => i.source_record_id as string);
-
-    const autoFlowMap = new Map<string, boolean>(); // scraped_article.id → auto_flow
-    if (newsArticleSourceIds.length > 0) {
-      const { data: articles } = await supabase
-        .from('scraped_articles')
-        .select('id, news_sites!scraped_articles_news_site_id_fkey(auto_flow)')
-        .in('id', newsArticleSourceIds);
-
-      for (const a of articles ?? []) {
-        const site = a.news_sites as { auto_flow: boolean } | null;
-        autoFlowMap.set(a.id, site?.auto_flow ?? false);
-      }
-    }
+    // Build auto_flow map across all source types
+    const autoFlowMap = await buildAutoFlowMap(unanalyzed);
 
     const customAnalysisPrompt = await buildAnalysisPrompt(
       xAccountId,
@@ -120,15 +144,10 @@ export class AiSuggestionService {
             continue;
           }
 
-          // article_id for backward compat (null for non-news source types)
-          const articleId =
-            item.source_type === 'news_article' ? (item.source_record_id ?? null) : null;
-
           const { data: suggestion, error: insertError } = await supabase
             .from('ai_suggestions')
             .insert({
               content_item_id: item.id,
-              article_id: articleId,
               x_account_id: xAccountId,
               suggestion_text: null,
               hashtags: [],
@@ -144,10 +163,14 @@ export class AiSuggestionService {
           summary.processed += 1;
           summary.created += 1;
 
-          // Auto-flow only for news_article source type
-          if (articleId && autoFlowMap.get(articleId)) {
+          // Auto-flow: check if the source has auto_flow enabled
+          const sourceAutoFlow = item.source_record_id
+            ? (autoFlowMap.get(item.source_record_id) ?? false)
+            : false;
+
+          if (sourceAutoFlow) {
             try {
-              await AutoFlowService.processEligibleArticle(articleId, suggestion.id, xAccountId);
+              await AutoFlowService.processContentItem(item.id, suggestion.id, xAccountId);
             } catch (autoFlowError) {
               console.error('[Suggest] Auto-flow failed for item', item.id, autoFlowError);
             }
@@ -163,27 +186,12 @@ export class AiSuggestionService {
   }
 
   /**
-   * Backward-compat wrapper: delegates to processNewContentItems.
-   * Called by ScraperRunner after inserting scraped_articles (which
-   * auto-create content_items via the bridge trigger from SRC-002).
+   * On-demand suggestion generation for a single content item.
+   * Creates a pending suggestion (no tweet text) without analysis.
    */
-  static async processNewArticles(
-    xAccountId: string,
-    batchSize: number = DEFAULT_BATCH_SIZE,
-  ): Promise<ProcessingSummary> {
-    return AiSuggestionService.processNewContentItems(xAccountId, batchSize);
-  }
-
-  /**
-   * On-demand suggestion generation for a single article.
-   * Used by POST /api/v1/ai/suggest/:articleId
-   *
-   * This creates a pending suggestion (no tweet text) just like
-   * processNewArticles, but for a single article without analysis.
-   */
-  static async suggestForArticle(articleId: string): Promise<{
+  static async suggestForContentItem(contentItemId: string): Promise<{
     id: string;
-    articleId: string;
+    contentItemId: string;
     xAccountId: string;
     suggestionText: string | null;
     hashtags: string[];
@@ -193,47 +201,26 @@ export class AiSuggestionService {
     createdAt: string;
     updatedAt: string;
   }> {
-    const { data: article, error: articleError } = await supabase
-      .from('scraped_articles')
-      .select('id, title, summary, news_site_id')
-      .eq('id', articleId)
+    const { data: item, error: itemError } = await supabase
+      .from('content_items')
+      .select('id, x_account_id')
+      .eq('id', contentItemId)
       .maybeSingle();
 
-    if (articleError) {
-      throw new Error(articleError.message);
-    }
+    if (itemError) throw new Error(itemError.message);
+    if (!item) throw new Error('Content item not found');
 
-    if (!article) {
-      throw new Error('Article not found');
-    }
-
-    const { data: site, error: siteError } = await supabase
-      .from('news_sites')
-      .select('x_account_id')
-      .eq('id', article.news_site_id)
-      .maybeSingle();
-
-    if (siteError) {
-      throw new Error(siteError.message);
-    }
-
-    if (!site) {
-      throw new Error('News site not found');
-    }
-
-    // Create pending suggestion without tweet text
-    // The tweet will be generated when approved (FLOW-004)
     const { data: inserted, error: insertError } = await supabase
       .from('ai_suggestions')
       .insert({
-        article_id: article.id,
-        x_account_id: site.x_account_id,
+        content_item_id: item.id,
+        x_account_id: item.x_account_id,
         suggestion_text: null,
         hashtags: [],
         status: 'pending',
       })
       .select(
-        'id, article_id, x_account_id, suggestion_text, hashtags, status, reviewed_at, reviewed_by, created_at, updated_at',
+        'id, content_item_id, x_account_id, suggestion_text, hashtags, status, reviewed_at, reviewed_by, created_at, updated_at',
       )
       .single();
 
@@ -243,7 +230,7 @@ export class AiSuggestionService {
 
     return {
       id: inserted.id,
-      articleId: inserted.article_id,
+      contentItemId: inserted.content_item_id,
       xAccountId: inserted.x_account_id,
       suggestionText: inserted.suggestion_text,
       hashtags: inserted.hashtags,

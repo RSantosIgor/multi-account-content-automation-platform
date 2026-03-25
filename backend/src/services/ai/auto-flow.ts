@@ -12,89 +12,57 @@ import { XApiClient } from '../x-api/client.js';
 import type { Json } from '../../types/database.js';
 
 /**
- * FLOW-005: Auto-flow service.
+ * Auto-flow service (UNIFY-003).
  *
- * Handles the fully automatic pipeline for sites with auto_flow=true:
- *   1. Fetch full article content
+ * Handles the fully automatic pipeline for sources with auto_flow=true:
+ *   1. Fetch full content (from content_items cache or URL)
  *   2. Generate tweet using publication prompt rules + full content
  *   3. Generate bullet-point article summary
  *   4. Publish tweet to X via API
- *   5. Update all related records (suggestion, post, article)
- *
- * Called from processNewArticles() when a site has auto_flow enabled.
+ *   5. Update all related records (suggestion, post, content_item)
  */
 export class AutoFlowService {
   /**
-   * Process a single eligible article through the full auto-flow pipeline.
+   * Process a single eligible content item through the full auto-flow pipeline.
    *
-   * @param articleId  - scraped_articles.id
-   * @param suggestionId - ai_suggestions.id (already created with status=pending)
-   * @param xAccountId - x_accounts.id
+   * @param contentItemId - content_items.id
+   * @param suggestionId  - ai_suggestions.id (already created with status=pending)
+   * @param xAccountId    - x_accounts.id
    */
-  static async processEligibleArticle(
-    articleId: string,
+  static async processContentItem(
+    contentItemId: string,
     suggestionId: string,
     xAccountId: string,
   ): Promise<void> {
-    // SRC-006: prefer full_content from content_items (unified layer)
-    const { data: suggestionRow } = await supabase
-      .from('ai_suggestions')
-      .select('content_item_id')
-      .eq('id', suggestionId)
-      .maybeSingle();
-
-    let contentItemId: string | null = suggestionRow?.content_item_id ?? null;
-    let cachedFullContent: string | null = null;
-
-    if (contentItemId) {
-      const { data: ci } = await supabase
-        .from('content_items')
-        .select('full_content')
-        .eq('id', contentItemId)
-        .maybeSingle();
-      cachedFullContent = ci?.full_content ?? null;
-    }
-
-    // Fetch article data (always needed for fallback + is_processed update)
-    const { data: article, error: articleError } = await supabase
-      .from('scraped_articles')
-      .select('id, url, title, summary, full_article_content')
-      .eq('id', articleId)
+    // Fetch content item
+    const { data: item, error: itemError } = await supabase
+      .from('content_items')
+      .select('id, url, title, summary, full_content')
+      .eq('id', contentItemId)
       .single();
 
-    if (articleError || !article) {
-      throw new Error(`Article not found: ${articleError?.message ?? articleId}`);
+    if (itemError || !item) {
+      throw new Error(`Content item not found: ${itemError?.message ?? contentItemId}`);
     }
 
-    // Step 1: Get full content — content_items first, then scraped_articles cache
-    let content = cachedFullContent ?? article.full_article_content;
+    // Step 1: Get full content — use cache or fetch from URL
+    let content = item.full_content;
     if (!content) {
       try {
-        const fetched = await fetchArticleContent(article.url);
+        const fetched = await fetchArticleContent(item.url);
         content = fetched.content;
 
-        // Cache in scraped_articles
-        await supabase
-          .from('scraped_articles')
-          .update({ full_article_content: content })
-          .eq('id', article.id);
-
-        // Cache in content_items too
-        if (contentItemId) {
-          await supabase
-            .from('content_items')
-            .update({ full_content: content })
-            .eq('id', contentItemId);
-        }
+        // Cache in content_items
+        await supabase.from('content_items').update({ full_content: content }).eq('id', item.id);
       } catch (fetchError) {
-        console.error('[AutoFlow] Failed to fetch article content:', fetchError);
-        content = article.summary ?? article.title;
+        console.error('[AutoFlow] Failed to fetch content:', fetchError);
+        content = item.summary ?? item.title;
       }
     }
 
     const aiProvider = createAiProvider();
 
-    // Fetch account language for AI prompt localization
+    // Fetch account language
     const { data: xAccountMeta } = await supabase
       .from('x_accounts')
       .select('language')
@@ -102,11 +70,11 @@ export class AutoFlowService {
       .maybeSingle();
     const language = xAccountMeta?.language ?? 'pt-BR';
 
-    // Step 2: Generate tweet using publication rules + full content + language
+    // Step 2: Generate tweet using publication rules + full content
     const publicationPrompt = await buildPublicationPrompt(xAccountId, buildSystemPrompt(language));
     const rawTweet = await aiProvider.generateRaw(
       publicationPrompt,
-      buildFullContentUserPrompt(article.title, content, article.summary ?? undefined),
+      buildFullContentUserPrompt(item.title, content, item.summary ?? undefined),
     );
     const tweetResult = parseAiSuggestionResponse(rawTweet);
 
@@ -118,7 +86,7 @@ export class AutoFlowService {
     const hashtags = tweetResult.data.hashtags;
 
     // Step 3: Generate article summary
-    const summary = await generateArticleSummary(aiProvider, article.title, content);
+    const summary = await generateArticleSummary(aiProvider, item.title, content);
 
     // Step 4: Update suggestion with tweet + summary and mark as approved
     await supabase
@@ -145,14 +113,12 @@ export class AutoFlowService {
 
     const xApiClient = new XApiClient(account);
 
-    // Compose final text (tweet + hashtags)
     const hashtagSuffix = hashtags.length > 0 ? `\n${hashtags.join(' ')}` : '';
     const finalText = `${tweetText}${hashtagSuffix}`.slice(0, 280);
 
     try {
       const { tweetId, tweetUrl } = await xApiClient.postTweet(finalText);
 
-      // Save post record
       await supabase.from('posts').insert({
         x_account_id: xAccountId,
         ai_suggestion_id: suggestionId,
@@ -163,10 +129,8 @@ export class AutoFlowService {
         published_at: new Date().toISOString(),
       });
 
-      // Mark suggestion as posted
       await supabase.from('ai_suggestions').update({ status: 'posted' }).eq('id', suggestionId);
     } catch (postError) {
-      // Save failed post
       await supabase.from('posts').insert({
         x_account_id: xAccountId,
         ai_suggestion_id: suggestionId,
@@ -176,13 +140,9 @@ export class AutoFlowService {
       });
 
       console.error('[AutoFlow] Failed to publish tweet:', postError);
-      // Don't re-throw — suggestion remains approved, post is marked as failed
     }
 
-    // Mark article + content_item as processed
-    await supabase.from('scraped_articles').update({ is_processed: true }).eq('id', article.id);
-    if (contentItemId) {
-      await supabase.from('content_items').update({ is_processed: true }).eq('id', contentItemId);
-    }
+    // Mark content_item as processed
+    await supabase.from('content_items').update({ is_processed: true }).eq('id', item.id);
   }
 }

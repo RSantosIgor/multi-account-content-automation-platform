@@ -11,6 +11,7 @@
 import { TwitterApi } from 'twitter-api-v2';
 import { supabase } from '../../lib/supabase.js';
 import { decrypt } from '../../lib/crypto.js';
+import { ContentTagger } from '../editorial/tagger.js';
 
 const MAX_TWEETS = 20;
 const MIN_LIKES_DEFAULT = 0;
@@ -161,6 +162,10 @@ export class XFeedIngester {
       return result;
     }
 
+    // ingestion_start_date not yet in generated types — cast to access it safely
+    const ingestionStartDate =
+      (source as unknown as { ingestion_start_date?: string | null }).ingestion_start_date ?? null;
+
     // Build a map of included referenced tweets for quote context
     const expandedTweets = new Map<string, string>();
 
@@ -170,6 +175,12 @@ export class XFeedIngester {
       const retweets = metrics?.retweet_count ?? 0;
 
       if (likes < MIN_LIKES_DEFAULT || retweets < MIN_RETWEETS_DEFAULT) {
+        result.itemsSkipped++;
+        continue;
+      }
+
+      // Skip tweets posted before ingestion_start_date
+      if (ingestionStartDate && tweet.created_at && tweet.created_at < ingestionStartDate) {
         result.itemsSkipped++;
         continue;
       }
@@ -188,31 +199,38 @@ export class XFeedIngester {
         isQuote: !!quotedRef,
       };
 
-      const { error: insertError } = await supabase.from('content_items').upsert(
-        {
-          x_account_id: source.x_account_id,
-          source_type: 'x_post',
-          source_table: 'x_feed_sources',
-          source_record_id: sourceId,
-          url: tweetUrl,
-          title: tweet.text.slice(0, 100),
-          summary: tweet.text,
-          full_content: fullContent,
-          is_processed: false,
-          published_at: tweet.created_at ?? null,
-          ingested_at: new Date().toISOString(),
-          metadata,
-        },
-        { onConflict: 'source_type,x_account_id,url', ignoreDuplicates: true },
-      );
+      const { data: inserted, error: insertError } = await supabase
+        .from('content_items')
+        .upsert(
+          {
+            x_account_id: source.x_account_id,
+            source_type: 'x_post',
+            source_table: 'x_feed_sources',
+            source_record_id: sourceId,
+            url: tweetUrl,
+            title: tweet.text.slice(0, 100),
+            summary: tweet.text,
+            full_content: fullContent,
+            is_processed: false,
+            published_at: tweet.created_at ?? null,
+            ingested_at: new Date().toISOString(),
+            metadata,
+          },
+          { onConflict: 'source_type,x_account_id,url', ignoreDuplicates: true },
+        )
+        .select('id');
 
       if (insertError) {
         console.error('[XFeed] Insert failed for tweet', tweet.id, insertError.message);
         result.errors++;
-      } else {
+      } else if (inserted && inserted.length > 0) {
+        // Newly inserted item — tag it immediately
+        await ContentTagger.tagContentItem(inserted[0].id);
         result.itemsIngested++;
         // Store tweet text for potential use as quote context by later tweets
         expandedTweets.set(tweet.id, tweet.text);
+      } else {
+        result.itemsSkipped++;
       }
     }
 

@@ -57,14 +57,10 @@ export class ContentTagger {
 
       const { error: insertError } = await supabase
         .from('content_tags')
-        .insert(rows)
-        .throwOnError();
+        .upsert(rows, { onConflict: 'content_item_id,tag', ignoreDuplicates: true });
 
       if (insertError) {
-        // Duplicate rows are expected when re-tagging; swallow them
-        if (!insertError.code?.startsWith('23')) {
-          console.error(`[Tagger] Insert error for item ${itemId}:`, insertError.message);
-        }
+        console.error(`[Tagger] Insert error for item ${itemId}:`, insertError.message);
       }
     } catch (err) {
       // Circuit-breaker: log but never throw — tagging failure must not block ingestion
@@ -76,14 +72,23 @@ export class ContentTagger {
    * Tag all untagged content_items for a given X account.
    * "Untagged" = no rows in content_tags for that item.
    *
-   * @returns Number of items processed.
+   * @param options.windowHours  Only consider items ingested in the last N hours (default: all)
+   * @param options.batchSize    Max items to tag per call (default: no limit). Use for manual runs.
+   * @returns Number of items tagged.
    */
-  static async tagUntaggedItems(xAccountId: string): Promise<number> {
-    // 1. Fetch all content_items for the account
-    const { data: items, error } = await supabase
-      .from('content_items')
-      .select('id')
-      .eq('x_account_id', xAccountId);
+  static async tagUntaggedItems(
+    xAccountId: string,
+    options?: { windowHours?: number; batchSize?: number },
+  ): Promise<number> {
+    // 1. Fetch content_items for the account (optionally filtered to a recent window)
+    let q = supabase.from('content_items').select('id').eq('x_account_id', xAccountId);
+
+    if (options?.windowHours) {
+      const cutoff = new Date(Date.now() - options.windowHours * 3_600_000).toISOString();
+      q = q.gte('created_at', cutoff);
+    }
+
+    const { data: items, error } = await q;
 
     if (error) {
       console.error('[Tagger] Failed to fetch content_items:', error.message);
@@ -92,17 +97,23 @@ export class ContentTagger {
 
     if (!items || items.length === 0) return 0;
 
-    // 2. Fetch already-tagged item ids for this account (two-step: PostgREST has no subqueries)
+    // 2. Fetch already-tagged item ids (two-step: PostgREST has no subqueries)
     const allItemIds = items.map((i) => i.id);
     const { data: tagged } = await supabase
       .from('content_tags')
       .select('content_item_id')
-      .in('content_item_id', allItemIds);
+      .in('content_item_id', allItemIds)
+      .limit(allItemIds.length);
 
     const taggedIds = new Set((tagged ?? []).map((r) => r.content_item_id));
-    const untagged = items.filter((i) => !taggedIds.has(i.id));
+    let untagged = items.filter((i) => !taggedIds.has(i.id));
 
     if (untagged.length === 0) return 0;
+
+    // 3. Apply batch cap to avoid unbounded sequential AI calls on manual triggers
+    if (options?.batchSize && untagged.length > options.batchSize) {
+      untagged = untagged.slice(0, options.batchSize);
+    }
 
     let processed = 0;
     for (const item of untagged) {

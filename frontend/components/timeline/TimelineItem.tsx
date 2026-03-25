@@ -36,12 +36,11 @@ type TimelineItemProps = {
         status: string;
         createdAt: string;
         articleTitle: string;
-        siteId: string;
-        siteName: string | null;
+        sourceType: string;
+        sourceName: string | null;
         suggestionText: string | null;
         hashtags: string[];
         articleSummary: ArticleSummary | null;
-        sourceType?: string;
         editorialBriefId?: string | null;
         sourceContentIds?: string[];
       }
@@ -54,8 +53,7 @@ type TimelineItemProps = {
         content: string;
         xPostUrl: string | null;
         suggestionId: string | null;
-        siteId: string | null;
-        siteName: string | null;
+        sourceName: string | null;
       };
 };
 
@@ -72,7 +70,7 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
   const badgeClass = statusColor[item.status] ?? 'bg-muted text-foreground';
 
   if (item.type === 'suggestion') {
-    const sourceType = item.sourceType ?? 'news_article';
+    const sourceType = item.sourceType;
     const SourceIcon = sourceIcons[sourceType] ?? Newspaper;
     const sourceLabel = sourceLabels[sourceType] ?? sourceType;
 
@@ -83,7 +81,7 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
             <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
               <SourceIcon className="h-3.5 w-3.5" />
               <span>{sourceLabel}</span>
-              {item.siteName && <span>· {item.siteName}</span>}
+              {item.sourceName && <span>· {item.sourceName}</span>}
               <span>· {new Date(item.createdAt).toLocaleString()}</span>
             </div>
             <Link href={`/accounts/${accountId}/timeline/${item.id}`}>
@@ -112,7 +110,7 @@ export function TimelineItem({ item, accountId }: TimelineItemProps) {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground text-sm">
-            {item.siteName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
+            {item.sourceName ?? 'Sem site'} · {new Date(item.createdAt).toLocaleString()}
           </div>
           <Link href={`/accounts/${accountId}/timeline/${item.id}`}>
             <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">

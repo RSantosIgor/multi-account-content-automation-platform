@@ -20,11 +20,13 @@ type TimelineItemData =
       status: string;
       createdAt: string;
       articleTitle: string;
-      siteId: string;
-      siteName: string | null;
+      sourceType: string;
+      sourceName: string | null;
       suggestionText: string | null;
       hashtags: string[];
       articleSummary: ArticleSummary | null;
+      editorialBriefId?: string | null;
+      sourceContentIds?: string[];
     }
   | {
       id: string;
@@ -35,8 +37,7 @@ type TimelineItemData =
       content: string;
       xPostUrl: string | null;
       suggestionId: string | null;
-      siteId: string | null;
-      siteName: string | null;
+      sourceName: string | null;
     };
 
 type TimelineResponse = {
@@ -72,7 +73,7 @@ export default function TimelinePage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<TimelineFiltersState>({
     status: 'all',
-    siteId: '',
+    sourceType: '',
     from: '',
     to: '',
   });
@@ -92,7 +93,7 @@ export default function TimelinePage({ params }: PageProps) {
       });
 
       if (filters.status !== 'all') query.set('status', filters.status);
-      if (filters.siteId) query.set('site_id', filters.siteId);
+      if (filters.sourceType) query.set('source_type', filters.sourceType);
       if (filters.from) query.set('from', filters.from);
       if (filters.to) query.set('to', filters.to);
 
@@ -114,7 +115,7 @@ export default function TimelinePage({ params }: PageProps) {
   useEffect(() => {
     if (!accountId) return;
     void fetchPage(1, true);
-  }, [accountId, filters.status, filters.siteId, filters.from, filters.to]);
+  }, [accountId, filters.status, filters.sourceType, filters.from, filters.to]);
 
   const hasMore = items.length < total;
 

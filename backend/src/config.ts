@@ -16,6 +16,7 @@ const schema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   DEEPSEEK_API_KEY: z.string().optional(),
+  YOUTUBE_API_KEY: z.string().optional(),
   CRON_SECRET: z.string().min(1),
 });
 

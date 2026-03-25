@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -47,35 +48,33 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export type XFeedSource = {
+export type NewsSiteSource = {
   id: string;
   x_account_id: string;
-  feed_username: string;
-  feed_user_id: string | null;
+  site_name: string;
+  site_url: string;
+  source_type: string;
+  feed_url: string | null;
+  scraping_config: Record<string, string> | null;
   is_active: boolean;
   auto_flow: boolean;
   scraping_interval_hours: number;
-  ingestion_start_date: string | null;
   last_scraped_at: string | null;
   created_at: string;
 };
 
 const createSchema = z.object({
-  feed_username: z
-    .string()
-    .min(1, 'Username é obrigatório')
-    .regex(/^[A-Za-z0-9_]+$/, 'Username inválido'),
+  site_name: z.string().min(1, 'Nome é obrigatório').max(100),
+  site_url: z.string().url('URL inválida'),
   scraping_interval_hours: z.coerce.number().int().min(1).max(168).default(4),
-  ingestion_start_date: z.string().optional(),
+  auto_flow: z.boolean().default(false),
 });
 
 const editSchema = z.object({
-  feed_username: z
-    .string()
-    .min(1, 'Username é obrigatório')
-    .regex(/^[A-Za-z0-9_]+$/, 'Username inválido'),
+  site_name: z.string().min(1, 'Nome é obrigatório').max(100),
+  site_url: z.string().url('URL inválida'),
   scraping_interval_hours: z.coerce.number().int().min(1).max(168),
-  ingestion_start_date: z.string().optional(),
+  auto_flow: z.boolean(),
 });
 
 type CreateValues = z.infer<typeof createSchema>;
@@ -86,24 +85,20 @@ function CreateDialog({
   onCreated,
 }: {
   accountId: string;
-  onCreated: (s: XFeedSource) => void;
+  onCreated: (s: NewsSiteSource) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const form = useForm<CreateValues>({
     resolver: zodResolver(createSchema),
-    defaultValues: {
-      feed_username: '',
-      scraping_interval_hours: 4,
-      ingestion_start_date: new Date().toISOString().split('T')[0],
-    },
+    defaultValues: { site_name: '', site_url: '', scraping_interval_hours: 4, auto_flow: false },
   });
 
   async function onSubmit(values: CreateValues) {
     setSaving(true);
     try {
-      const res = await apiClient<{ data: XFeedSource }>(
-        `/api/v1/accounts/${accountId}/sources/x-feeds`,
+      const res = await apiClient<{ data: NewsSiteSource }>(
+        `/api/v1/accounts/${accountId}/sources/news-sites`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -111,11 +106,11 @@ function CreateDialog({
         },
       );
       onCreated(res.data);
-      toast.success('Feed do X adicionado');
+      toast.success('Site adicionado');
       form.reset();
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao adicionar feed');
+      toast.error(err instanceof Error ? err.message : 'Erro ao adicionar site');
     } finally {
       setSaving(false);
     }
@@ -126,25 +121,38 @@ function CreateDialog({
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="mr-2 h-4 w-4" />
-          Adicionar Feed
+          Adicionar Site
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar Feed do X</DialogTitle>
+          <DialogTitle>Adicionar Site de Notícias</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="feed_username"
+              name="site_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username do X</FormLabel>
+                  <FormLabel>Nome do Site</FormLabel>
                   <FormControl>
-                    <Input placeholder="elonmusk" {...field} />
+                    <Input placeholder="TechCrunch" {...field} />
                   </FormControl>
-                  <FormDescription>Sem o @</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="site_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL do Site</FormLabel>
+                  <FormControl>
+                    <Input type="url" placeholder="https://techcrunch.com" {...field} />
+                  </FormControl>
+                  <FormDescription>O RSS será detectado automaticamente</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -164,14 +172,18 @@ function CreateDialog({
             />
             <FormField
               control={form.control}
-              name="ingestion_start_date"
+              name="auto_flow"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ignorar conteúdo anterior a</FormLabel>
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Fluxo Automático</FormLabel>
+                    <FormDescription>
+                      Artigos elegíveis são publicados automaticamente
+                    </FormDescription>
+                  </div>
                   <FormControl>
-                    <Input type="date" {...field} value={field.value ?? ''} />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -196,25 +208,26 @@ function EditDialog({
   onUpdated,
 }: {
   accountId: string;
-  source: XFeedSource;
-  onUpdated: (s: XFeedSource) => void;
+  source: NewsSiteSource;
+  onUpdated: (s: NewsSiteSource) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const form = useForm<EditValues>({
     resolver: zodResolver(editSchema),
     defaultValues: {
-      feed_username: source.feed_username,
+      site_name: source.site_name,
+      site_url: source.site_url,
       scraping_interval_hours: source.scraping_interval_hours,
-      ingestion_start_date: source.ingestion_start_date?.split('T')[0] ?? '',
+      auto_flow: source.auto_flow,
     },
   });
 
   async function onSubmit(values: EditValues) {
     setSaving(true);
     try {
-      const res = await apiClient<{ data: XFeedSource }>(
-        `/api/v1/accounts/${accountId}/sources/x-feeds/${source.id}`,
+      const res = await apiClient<{ data: NewsSiteSource }>(
+        `/api/v1/accounts/${accountId}/sources/news-sites/${source.id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -222,10 +235,10 @@ function EditDialog({
         },
       );
       onUpdated(res.data);
-      toast.success('Feed atualizado');
+      toast.success('Site atualizado');
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar feed');
+      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar site');
     } finally {
       setSaving(false);
     }
@@ -240,18 +253,31 @@ function EditDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar Feed do X</DialogTitle>
+          <DialogTitle>Editar Site de Notícias</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="feed_username"
+              name="site_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>Nome do Site</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="site_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL do Site</FormLabel>
+                  <FormControl>
+                    <Input type="url" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -272,14 +298,18 @@ function EditDialog({
             />
             <FormField
               control={form.control}
-              name="ingestion_start_date"
+              name="auto_flow"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ignorar conteúdo anterior a</FormLabel>
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Fluxo Automático</FormLabel>
+                    <FormDescription>
+                      Artigos elegíveis são publicados automaticamente
+                    </FormDescription>
+                  </div>
                   <FormControl>
-                    <Input type="date" {...field} value={field.value ?? ''} />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -300,11 +330,11 @@ function EditDialog({
 
 type Props = {
   accountId: string;
-  initialSources: XFeedSource[];
+  initialSources: NewsSiteSource[];
 };
 
-export function XFeedSourceTable({ accountId, initialSources }: Props) {
-  const [sources, setSources] = useState<XFeedSource[]>(initialSources);
+export function NewsSiteSourceTable({ accountId, initialSources }: Props) {
+  const [sources, setSources] = useState<NewsSiteSource[]>(initialSources);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [runningId, setRunningId] = useState<string | null>(null);
@@ -312,8 +342,8 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
   async function handleToggle(id: string, current: boolean) {
     setTogglingId(id);
     try {
-      const res = await apiClient<{ data: XFeedSource }>(
-        `/api/v1/accounts/${accountId}/sources/x-feeds/${id}`,
+      const res = await apiClient<{ data: NewsSiteSource }>(
+        `/api/v1/accounts/${accountId}/sources/news-sites/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -331,13 +361,13 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
   async function handleDelete(id: string) {
     setDeletingId(id);
     try {
-      await apiClient(`/api/v1/accounts/${accountId}/sources/x-feeds/${id}`, {
+      await apiClient(`/api/v1/accounts/${accountId}/sources/news-sites/${id}`, {
         method: 'DELETE',
       });
       setSources((prev) => prev.filter((s) => s.id !== id));
-      toast.success('Feed removido');
+      toast.success('Site removido');
     } catch {
-      toast.error('Erro ao remover feed');
+      toast.error('Erro ao remover site');
     } finally {
       setDeletingId(null);
     }
@@ -347,7 +377,7 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
     setRunningId(id);
     try {
       const res = await apiClient<{ data: { itemsIngested: number; itemsSkipped: number } }>(
-        `/api/v1/accounts/${accountId}/sources/x-feeds/${id}/run`,
+        `/api/v1/accounts/${accountId}/sources/news-sites/${id}/run`,
         { method: 'POST' },
       );
       toast.success(
@@ -357,7 +387,7 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
         prev.map((s) => (s.id === id ? { ...s, last_scraped_at: new Date().toISOString() } : s)),
       );
     } catch {
-      toast.error('Falha ao verificar feed');
+      toast.error('Falha ao verificar site');
     } finally {
       setRunningId(null);
     }
@@ -376,9 +406,9 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
 
       {sources.length === 0 ? (
         <div className="bg-card rounded-lg border py-12 text-center">
-          <p className="text-muted-foreground">Nenhum feed do X configurado.</p>
+          <p className="text-muted-foreground">Nenhum site de notícias configurado.</p>
           <p className="text-muted-foreground mt-1 text-sm">
-            Adicione um usuário do X para monitorar seus tweets.
+            Adicione um site para começar a ingerir artigos via RSS ou HTML.
           </p>
         </div>
       ) : (
@@ -386,7 +416,8 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Username</TableHead>
+                <TableHead>Site</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Intervalo</TableHead>
                 <TableHead>Última verificação</TableHead>
                 <TableHead>Status</TableHead>
@@ -396,7 +427,21 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
             <TableBody>
               {sources.map((src) => (
                 <TableRow key={src.id}>
-                  <TableCell className="font-medium">@{src.feed_username}</TableCell>
+                  <TableCell className="font-medium">
+                    <a
+                      href={src.site_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-gold hover:underline"
+                    >
+                      {src.site_name}
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs uppercase">
+                      {src.source_type}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {src.scraping_interval_hours}h
                   </TableCell>
@@ -446,10 +491,9 @@ export function XFeedSourceTable({ accountId, initialSources }: Props) {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Remover feed?</AlertDialogTitle>
+                            <AlertDialogTitle>Remover site?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              O feed <strong>@{src.feed_username}</strong> será removido
-                              permanentemente.
+                              O site <strong>{src.site_name}</strong> será removido permanentemente.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

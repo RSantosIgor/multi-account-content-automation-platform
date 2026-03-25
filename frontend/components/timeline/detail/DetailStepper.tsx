@@ -16,7 +16,7 @@ type TimelineItemDetail = {
   type: 'suggestion' | 'post';
   suggestion: {
     id: string;
-    articleId: string;
+    contentItemId: string | null;
     xAccountId: string;
     status: string;
     suggestionText: string | null;
@@ -27,6 +27,8 @@ type TimelineItemDetail = {
     reviewedBy: string | null;
     sourceType?: string;
     sourceMetadata?: Record<string, unknown> | null;
+    editorialBriefId?: string | null;
+    sourceContentIds?: string[];
   } | null;
   article: {
     id: string;
@@ -35,11 +37,8 @@ type TimelineItemDetail = {
     summary: string | null;
     publishedAt: string | null;
     fullContent: string | null;
-    site: {
-      id: string;
-      name: string;
-      url: string;
-    } | null;
+    sourceName: string | null;
+    sourceUrl: string | null;
   } | null;
   post: {
     id: string;

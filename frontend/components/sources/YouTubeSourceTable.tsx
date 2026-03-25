@@ -39,12 +39,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export type YoutubeSource = {
   id: string;
@@ -53,7 +54,9 @@ export type YoutubeSource = {
   channel_name: string;
   channel_url: string;
   is_active: boolean;
+  auto_flow: boolean;
   scraping_interval_hours: number;
+  ingestion_start_date: string | null;
   last_scraped_at: string | null;
   created_at: string;
 };
@@ -63,12 +66,14 @@ const createSchema = z.object({
   channel_name: z.string().min(1, 'Nome é obrigatório'),
   channel_url: z.string().url('URL inválida'),
   scraping_interval_hours: z.coerce.number().int().min(1).max(168).default(6),
+  ingestion_start_date: z.string().optional(),
 });
 
 const editSchema = z.object({
   channel_name: z.string().min(1, 'Nome é obrigatório'),
   channel_url: z.string().url('URL inválida'),
   scraping_interval_hours: z.coerce.number().int().min(1).max(168),
+  ingestion_start_date: z.string().optional(),
 });
 
 type CreateValues = z.infer<typeof createSchema>;
@@ -90,6 +95,7 @@ function CreateDialog({
       channel_name: '',
       channel_url: '',
       scraping_interval_hours: 6,
+      ingestion_start_date: new Date().toISOString().split('T')[0],
     },
   });
 
@@ -181,6 +187,19 @@ function CreateDialog({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="ingestion_start_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ignorar conteúdo anterior a</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancelar
@@ -213,6 +232,7 @@ function EditDialog({
       channel_name: source.channel_name,
       channel_url: source.channel_url,
       scraping_interval_hours: source.scraping_interval_hours,
+      ingestion_start_date: source.ingestion_start_date?.split('T')[0] ?? '',
     },
   });
 
@@ -289,6 +309,19 @@ function EditDialog({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="ingestion_start_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ignorar conteúdo anterior a</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancelar
@@ -313,6 +346,7 @@ export function YouTubeSourceTable({ accountId, initialSources }: Props) {
   const [sources, setSources] = useState<YoutubeSource[]>(initialSources);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [runningId, setRunningId] = useState<string | null>(null);
 
   async function handleToggle(id: string, current: boolean) {
     setTogglingId(id);
@@ -345,6 +379,26 @@ export function YouTubeSourceTable({ accountId, initialSources }: Props) {
       toast.error('Erro ao remover canal');
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleRunNow(id: string) {
+    setRunningId(id);
+    try {
+      const res = await apiClient<{ data: { itemsIngested: number; itemsSkipped: number } }>(
+        `/api/v1/accounts/${accountId}/sources/youtube/${id}/run`,
+        { method: 'POST' },
+      );
+      toast.success(
+        `Verificação concluída: ${res.data.itemsIngested} item(s) ingerido(s), ${res.data.itemsSkipped} ignorado(s)`,
+      );
+      setSources((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, last_scraped_at: new Date().toISOString() } : s)),
+      );
+    } catch {
+      toast.error('Falha ao verificar canal');
+    } finally {
+      setRunningId(null);
     }
   }
 
@@ -414,6 +468,25 @@ export function YouTubeSourceTable({ accountId, initialSources }: Props) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRunNow(src.id)}
+                              disabled={runningId === src.id || !src.is_active}
+                            >
+                              <RefreshCw
+                                className={`h-4 w-4 ${runningId === src.id ? 'animate-spin' : ''}`}
+                              />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Verificar agora</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <EditDialog
                         accountId={accountId}
                         source={src}

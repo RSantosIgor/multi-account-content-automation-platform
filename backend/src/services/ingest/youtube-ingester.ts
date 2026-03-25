@@ -10,6 +10,7 @@
 
 import { supabase } from '../../lib/supabase.js';
 import { fetchYoutubeTranscript } from './transcript.js';
+import { ContentTagger } from '../editorial/tagger.js';
 
 const YT_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const MAX_RESULTS = 10;
@@ -136,9 +137,15 @@ export class YoutubeIngester {
       errors: 0,
     };
 
-    // Build publishedAfter filter from last run
-    const publishedAfter = source.last_scraped_at
-      ? `&publishedAfter=${source.last_scraped_at}`
+    // ingestion_start_date not yet in generated types — cast to access it safely
+    const ingestionStartDate =
+      (source as unknown as { ingestion_start_date?: string | null }).ingestion_start_date ?? null;
+
+    // Build publishedAfter: on first run use ingestion_start_date if set; on subsequent runs
+    // use last_scraped_at so the API returns only new videos
+    const publishedAfterDate = source.last_scraped_at ?? ingestionStartDate;
+    const publishedAfter = publishedAfterDate
+      ? `&publishedAfter=${encodeURIComponent(publishedAfterDate)}`
       : '';
 
     // Search for new videos in the channel
@@ -172,6 +179,12 @@ export class YoutubeIngester {
       const details = detailMap.get(videoId);
       const durationSec = details ? parseDuration(details.contentDetails.duration) : 0;
 
+      // Skip videos published before ingestion_start_date (safety net for all runs)
+      if (ingestionStartDate && video.snippet.publishedAt < ingestionStartDate) {
+        result.itemsSkipped++;
+        continue;
+      }
+
       // Skip Shorts (< 60 s)
       if (durationSec > 0 && durationSec < 60) {
         result.itemsSkipped++;
@@ -179,14 +192,18 @@ export class YoutubeIngester {
       }
 
       const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      const summary = video.snippet.description.slice(0, 500) || null;
+      const description = video.snippet.description || '';
+      const summary = description.slice(0, 500) || null;
 
-      // Try to fetch transcript (graceful fallback to null)
+      // Try to fetch transcript; fall back to full description when unavailable
       let fullContent: string | null = null;
       try {
         fullContent = await fetchYoutubeTranscript(videoId);
       } catch {
-        // transcript unavailable — full_content stays null
+        // transcript unavailable
+      }
+      if (!fullContent && description) {
+        fullContent = description;
       }
 
       const metadata = {
@@ -197,29 +214,36 @@ export class YoutubeIngester {
         thumbnailUrl: video.snippet.thumbnails?.default?.url ?? null,
       };
 
-      const { error: insertError } = await supabase.from('content_items').upsert(
-        {
-          x_account_id: source.x_account_id,
-          source_type: 'youtube_video',
-          source_table: 'youtube_sources',
-          source_record_id: sourceId,
-          url: videoUrl,
-          title: video.snippet.title.trim(),
-          summary,
-          full_content: fullContent,
-          is_processed: false,
-          published_at: video.snippet.publishedAt,
-          ingested_at: new Date().toISOString(),
-          metadata,
-        },
-        { onConflict: 'source_type,x_account_id,url', ignoreDuplicates: true },
-      );
+      const { data: inserted, error: insertError } = await supabase
+        .from('content_items')
+        .upsert(
+          {
+            x_account_id: source.x_account_id,
+            source_type: 'youtube_video',
+            source_table: 'youtube_sources',
+            source_record_id: sourceId,
+            url: videoUrl,
+            title: video.snippet.title.trim(),
+            summary,
+            full_content: fullContent,
+            is_processed: false,
+            published_at: video.snippet.publishedAt,
+            ingested_at: new Date().toISOString(),
+            metadata,
+          },
+          { onConflict: 'source_type,x_account_id,url', ignoreDuplicates: true },
+        )
+        .select('id');
 
       if (insertError) {
         console.error('[YouTube] Insert failed for video', videoId, insertError.message);
         result.errors++;
-      } else {
+      } else if (inserted && inserted.length > 0) {
+        // Newly inserted item — tag it immediately
+        await ContentTagger.tagContentItem(inserted[0].id);
         result.itemsIngested++;
+      } else {
+        result.itemsSkipped++;
       }
     }
 

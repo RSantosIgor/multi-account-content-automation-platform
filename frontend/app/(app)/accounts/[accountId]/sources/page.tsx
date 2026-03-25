@@ -20,19 +20,21 @@ async function fetchAllSources(accountId: string) {
   const headers = { Authorization: `Bearer ${session.access_token}` };
   const base = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/accounts/${accountId}/sources`;
 
-  const [youtubeRes, xFeedsRes, newslettersRes] = await Promise.all([
+  const [newsSitesRes, youtubeRes, xFeedsRes, newslettersRes] = await Promise.all([
+    fetch(`${base}/news-sites`, { headers, cache: 'no-store' }),
     fetch(`${base}/youtube`, { headers, cache: 'no-store' }),
     fetch(`${base}/x-feeds`, { headers, cache: 'no-store' }),
     fetch(`${base}/newsletters`, { headers, cache: 'no-store' }),
   ]);
 
-  const [youtube, xFeeds, newsletters] = await Promise.all([
+  const [newsSites, youtube, xFeeds, newsletters] = await Promise.all([
+    newsSitesRes.ok ? newsSitesRes.json().then((r: { data: unknown[] }) => r.data) : [],
     youtubeRes.ok ? youtubeRes.json().then((r: { data: unknown[] }) => r.data) : [],
     xFeedsRes.ok ? xFeedsRes.json().then((r: { data: unknown[] }) => r.data) : [],
     newslettersRes.ok ? newslettersRes.json().then((r: { data: unknown[] }) => r.data) : [],
   ]);
 
-  return { youtube, xFeeds, newsletters };
+  return { newsSites, youtube, xFeeds, newsletters };
 }
 
 async function getAccount(accountId: string) {
@@ -53,7 +55,7 @@ async function getAccount(accountId: string) {
 
 export default async function SourcesPage({ params }: PageProps) {
   const { accountId } = await params;
-  const [{ youtube, xFeeds, newsletters }, account] = await Promise.all([
+  const [{ newsSites, youtube, xFeeds, newsletters }, account] = await Promise.all([
     fetchAllSources(accountId),
     getAccount(accountId),
   ]);
@@ -65,13 +67,14 @@ export default async function SourcesPage({ params }: PageProps) {
       <div>
         <h1 className="font-display text-3xl font-bold">Fontes de Conteúdo</h1>
         <p className="text-muted-foreground mt-1">
-          Fontes adicionais para <span className="font-medium">@{account.username}</span>: YouTube,
-          X e newsletters.
+          Gerencie todas as fontes de <span className="font-medium">@{account.username}</span>:
+          sites, YouTube, X e newsletters.
         </p>
       </div>
 
       <SourceTabs
         accountId={accountId}
+        newsSiteSources={newsSites as Parameters<typeof SourceTabs>[0]['newsSiteSources']}
         youtubeSources={youtube as Parameters<typeof SourceTabs>[0]['youtubeSources']}
         xFeedSources={xFeeds as Parameters<typeof SourceTabs>[0]['xFeedSources']}
         newsletterSources={newsletters as Parameters<typeof SourceTabs>[0]['newsletterSources']}

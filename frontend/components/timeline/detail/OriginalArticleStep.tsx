@@ -31,11 +31,8 @@ type Article = {
   summary: string | null;
   publishedAt: string | null;
   fullContent: string | null;
-  site: {
-    id: string;
-    name: string;
-    url: string;
-  } | null;
+  sourceName: string | null;
+  sourceUrl: string | null;
 };
 
 type OriginalArticleStepProps = {
@@ -112,17 +109,21 @@ export function OriginalArticleStep({
         <h4 className="text-xl font-bold">{title}</h4>
 
         {/* news_article: site info */}
-        {sourceType === 'news_article' && article?.site && (
+        {sourceType === 'news_article' && article?.sourceName && (
           <div className="flex items-center gap-2">
             <Building className="text-muted-foreground h-4 w-4" />
-            <a
-              href={article.site.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gold hover:text-gold/80 text-sm"
-            >
-              {article.site.name}
-            </a>
+            {article.sourceUrl ? (
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold hover:text-gold/80 text-sm"
+              >
+                {article.sourceName}
+              </a>
+            ) : (
+              <span className="text-muted-foreground text-sm">{article.sourceName}</span>
+            )}
           </div>
         )}
 

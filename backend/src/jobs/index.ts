@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import type { FastifyBaseLogger } from 'fastify';
-import { ScraperRunner } from '../services/scraper/runner.js';
+import { NewsSiteIngester } from '../services/ingest/news-site-ingester.js';
 import { YoutubeIngester } from '../services/ingest/youtube-ingester.js';
 import { XFeedIngester } from '../services/ingest/x-feed-ingester.js';
 import { NewsletterIngester } from '../services/ingest/newsletter-ingester.js';
@@ -10,11 +10,32 @@ import { BriefGenerator } from '../services/editorial/brief-generator.js';
 import { supabase } from '../lib/supabase.js';
 
 /**
- * Cron Job Scheduler (SCRAPER-005)
+ * Cron Job Scheduler
  *
  * Registers periodic jobs inside the Fastify process using node-cron.
  * Called once at server startup, before fastify.listen().
+ *
+ * Schedule summary:
+ *   0 * * * *    — News site ingestion   (every 1h)
+ *   0 * * * *    — YouTube ingestion     (every 1h)
+ *   0 * * * *    — X feed ingestion      (every 1h)
+ *   0 * * * *    — Newsletter ingestion  (every 1h)
+ *   0 * * * *    — Content tagging       (every 1h)
+ *   *\/10 * * * * — Clustering + briefs   (every 10 min, guarded by new-tags check)
  */
+
+/**
+ * Returns true if any new content_tags were created in the last WINDOW_MINUTES.
+ * Used as a cheap guard before running the clustering pipeline.
+ */
+async function hasNewTagsSince(windowMinutes: number): Promise<boolean> {
+  const cutoff = new Date(Date.now() - windowMinutes * 60_000).toISOString();
+  const { count } = await supabase
+    .from('content_tags')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', cutoff);
+  return (count ?? 0) > 0;
+}
 
 /**
  * Register all cron jobs.
@@ -22,26 +43,20 @@ import { supabase } from '../lib/supabase.js';
  * @param logger - Fastify pino logger for structured logging
  */
 export function registerJobs(logger: FastifyBaseLogger): void {
-  // Every 4 hours — scrape all active news sites
-  cron.schedule('0 */4 * * *', async () => {
-    logger.info('Cron: starting scheduled scraping run');
+  // Every 1 hour — news site ingestion (unified pipeline)
+  cron.schedule('0 * * * *', async () => {
+    logger.info('Cron: starting news site ingestion run');
     try {
-      const results = await ScraperRunner.runAll();
-      const successful = results.filter((r) => r.status === 'success').length;
-      const failed = results.filter((r) => r.status === 'failed').length;
-      const totalArticles = results.reduce((sum, r) => sum + r.articlesFound, 0);
-
-      logger.info(
-        { total: results.length, successful, failed, totalArticles },
-        'Cron: scraping run completed',
-      );
+      const results = await NewsSiteIngester.runAll();
+      const total = results.reduce((s, r) => s + r.itemsIngested, 0);
+      logger.info({ sources: results.length, total }, 'Cron: news site ingestion completed');
     } catch (err) {
-      logger.error(err, 'Cron: scraping run failed with unexpected error');
+      logger.error(err, 'Cron: news site ingestion failed');
     }
   });
 
-  // Every 6 hours — YouTube channel ingestion (requires YOUTUBE_API_KEY)
-  cron.schedule('0 */6 * * *', async () => {
+  // Every 1 hour — YouTube channel ingestion (requires YOUTUBE_API_KEY)
+  cron.schedule('0 * * * *', async () => {
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) return; // skip silently when key not configured
     logger.info('Cron: starting YouTube ingestion run');
@@ -54,8 +69,8 @@ export function registerJobs(logger: FastifyBaseLogger): void {
     }
   });
 
-  // Every 4 hours — X feed ingestion
-  cron.schedule('30 */4 * * *', async () => {
+  // Every 1 hour — X feed ingestion
+  cron.schedule('0 * * * *', async () => {
     logger.info('Cron: starting X feed ingestion run');
     try {
       const results = await XFeedIngester.runAll();
@@ -66,8 +81,8 @@ export function registerJobs(logger: FastifyBaseLogger): void {
     }
   });
 
-  // Every 12 hours — Newsletter/blog RSS ingestion
-  cron.schedule('0 */12 * * *', async () => {
+  // Every 1 hour — Newsletter/blog RSS ingestion
+  cron.schedule('0 * * * *', async () => {
     logger.info('Cron: starting newsletter ingestion run');
     try {
       const results = await NewsletterIngester.runAll();
@@ -99,10 +114,19 @@ export function registerJobs(logger: FastifyBaseLogger): void {
     }
   });
 
-  // Every 2 hours — detect editorial clusters + generate briefs for high-scoring ones
-  cron.schedule('0 */2 * * *', async () => {
-    logger.info('Cron: starting editorial clustering run');
+  // Every 10 minutes — detect editorial clusters + generate briefs + auto-suggestions (EDT-009)
+  // Guard: skips the run if no new content_tags were created in the last 15 minutes,
+  // avoiding expensive BFS clustering when there is no new content to process.
+  cron.schedule('*/10 * * * *', async () => {
     try {
+      const newContent = await hasNewTagsSince(15);
+      if (!newContent) {
+        logger.debug('Cron: no new tags in last 15 min — skipping clustering');
+        return;
+      }
+
+      logger.info('Cron: starting editorial clustering run');
+
       const { data: accounts } = await supabase
         .from('x_accounts')
         .select('id')
@@ -126,5 +150,5 @@ export function registerJobs(logger: FastifyBaseLogger): void {
     }
   });
 
-  logger.info('Cron jobs registered (scraping every 4 hours)');
+  logger.info('Cron jobs registered (4 ingesters + tagging + clustering/10min)');
 }

@@ -1,5 +1,5 @@
 /**
- * Contextual Generator Service (EDT-006)
+ * Contextual Generator Service (EDT-006, EDT-009)
  *
  * Generates AI suggestions from editorial briefs using multiple source articles.
  * Unlike the 1:1 pipeline (one article → one suggestion), this synthesizes
@@ -13,7 +13,9 @@
  *   5. Apply publication rules + call AI
  *   6. Parse response + generate article summary
  *   7. Insert ai_suggestion with editorial_brief_id + source_content_ids
- *   8. Mark brief + cluster as 'used'
+ *
+ * EDT-009: Supports generating multiple suggestions per brief (one per angle).
+ * The brief/cluster are marked as 'used' externally after all angles are processed.
  */
 
 import { supabase } from '../../lib/supabase.js';
@@ -33,12 +35,14 @@ export class ContextualGeneratorService {
   /**
    * Generates a suggestion from a brief + selected angle.
    * Fetches/caches full_content for the top cluster items.
+   * @param options.skipMarkUsed — if true, does NOT mark brief/cluster as 'used' (EDT-009: caller handles it)
    * @returns The inserted ai_suggestion id
    */
   static async generateFromBrief(
     briefId: string,
     selectedAngle: string,
     xAccountId: string,
+    options?: { skipMarkUsed?: boolean },
   ): Promise<{ id: string; suggestion_text: string; hashtags: string[] }> {
     // 1. Fetch brief + cluster info
     const { data: brief, error: briefError } = await supabase
@@ -157,23 +161,43 @@ export class ContextualGeneratorService {
       throw new Error(insertError?.message ?? 'Failed to insert suggestion');
     }
 
-    // 11. Mark brief + cluster as 'used'
-    await supabase
-      .from('editorial_briefs')
-      .update({ status: 'used', updated_at: new Date().toISOString() })
-      .eq('id', briefId);
+    // 11. Mark brief + cluster as 'used' (unless caller handles it)
+    if (!options?.skipMarkUsed) {
+      await ContextualGeneratorService.markBriefUsed(briefId);
+    }
 
-    await supabase
-      .from('editorial_clusters')
-      .update({ status: 'used', updated_at: new Date().toISOString() })
-      .eq('id', brief.cluster_id);
-
-    console.info(`[ContextualGen] Generated suggestion from brief ${briefId}`);
+    console.info(
+      `[ContextualGen] Generated suggestion from brief ${briefId}, angle: "${selectedAngle}"`,
+    );
 
     return {
       id: suggestion.id,
       suggestion_text: suggestion.suggestion_text ?? '',
       hashtags: suggestion.hashtags,
     };
+  }
+
+  /**
+   * Marks a brief and its parent cluster as 'used'.
+   * Called after all angle-based generations are complete (EDT-009).
+   */
+  static async markBriefUsed(briefId: string): Promise<void> {
+    const { data: brief } = await supabase
+      .from('editorial_briefs')
+      .select('cluster_id')
+      .eq('id', briefId)
+      .maybeSingle();
+
+    await supabase
+      .from('editorial_briefs')
+      .update({ status: 'used', updated_at: new Date().toISOString() })
+      .eq('id', briefId);
+
+    if (brief?.cluster_id) {
+      await supabase
+        .from('editorial_clusters')
+        .update({ status: 'used', updated_at: new Date().toISOString() })
+        .eq('id', brief.cluster_id);
+    }
   }
 }

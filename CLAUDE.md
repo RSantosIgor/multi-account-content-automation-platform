@@ -35,27 +35,28 @@
 
 ## 2. Current State
 
-### Implementation Status (as of 2026-03-04)
+### Implementation Status (as of 2026-03-19)
 
-| Epic     | Status      | Description                                                                                                                             |
-| -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| SETUP    | DONE        | Monorepo, tooling, env setup                                                                                                            |
-| DB       | DONE        | All migrations (001–026), RLS policies                                                                                                  |
-| CORE     | DONE        | Auth, JWT middleware, role-based access                                                                                                 |
-| AUTH     | DONE        | Login, register, forgot-password, Supabase SSR                                                                                          |
-| XACCOUNT | DONE        | X OAuth 2.0 PKCE, token encryption, account management                                                                                  |
-| SITES    | DONE        | CRUD, RSS auto-detection, HTML scraping config, test run                                                                                |
-| SCRAPER  | DONE        | RSS parser, Cheerio HTML, runner, cron job, scraping logs                                                                               |
-| AI       | DONE        | OpenAI/Anthropic/DeepSeek providers, suggestion CRUD                                                                                    |
-| TIMELINE | DONE        | Unified timeline, detail stepper (article→suggestion→post)                                                                              |
-| POSTS    | DONE        | Publish to X, post history, error tracking                                                                                              |
-| ADMIN    | DONE        | Admin panel, user role management                                                                                                       |
-| UX       | DONE        | Dashboard redesign, account settings, prompt rules UI, breadcrumbs, stats, responsiveness audit, account overview redesign (UX-001–010) |
-| FLOW     | DONE        | AI analysis phase, tweet gen on approval, auto-flow, 4-phase stepper                                                                    |
-| FEAT     | TODO        | X Premium, language selector, TanStack Query, smooth state                                                                              |
-| SRC      | IN PROGRESS | Multi-source ingestion: YouTube, X feeds, newsletters, unified content                                                                  |
-| EDT      | DONE        | Editorial intelligence: tags, clusters, briefs, contextual gen, frontend panel, dashboard integration (EDT-001–008)                     |
-| INFRA    | TODO        | Deployment, CI/CD, monitoring, backup                                                                                                   |
+| Epic     | Status | Description                                                                                                                                  |
+| -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| SETUP    | DONE   | Monorepo, tooling, env setup                                                                                                                 |
+| DB       | DONE   | All migrations (001–029), RLS policies                                                                                                       |
+| CORE     | DONE   | Auth, JWT middleware, role-based access                                                                                                      |
+| AUTH     | DONE   | Login, register, forgot-password, Supabase SSR                                                                                               |
+| XACCOUNT | DONE   | X OAuth 2.0 PKCE, token encryption, account management                                                                                       |
+| SITES    | DONE   | (Legacy — superseded by UNIFY epic)                                                                                                          |
+| SCRAPER  | DONE   | RSS parser, Cheerio HTML, scraping utilities                                                                                                 |
+| AI       | DONE   | OpenAI/Anthropic/DeepSeek providers, suggestion CRUD                                                                                         |
+| TIMELINE | DONE   | Unified timeline, detail stepper (content→suggestion→post)                                                                                   |
+| POSTS    | DONE   | Publish to X, post history, error tracking                                                                                                   |
+| ADMIN    | DONE   | Admin panel, user role management                                                                                                            |
+| UX       | DONE   | Dashboard redesign, account settings, prompt rules UI, breadcrumbs, stats, responsiveness audit, account overview redesign (UX-001–010)      |
+| FLOW     | DONE   | AI analysis phase, tweet gen on approval, auto-flow, 4-phase stepper                                                                         |
+| FEAT     | TODO   | X Premium, language selector, TanStack Query, smooth state                                                                                   |
+| SRC      | DONE   | Multi-source ingestion: YouTube, X feeds, newsletters, unified content, force-run buttons (SRC-001–010)                                      |
+| EDT      | DONE   | Editorial intelligence: tags, clusters, briefs, contextual gen, auto-generate per angle, frontend panel, dashboard integration (EDT-001–009) |
+| UNIFY    | DONE   | Unified content pipeline: news_site_sources, auto_flow on all sources, drop legacy tables (UNIFY-001–010)                                    |
+| INFRA    | TODO   | Deployment, CI/CD, monitoring, backup                                                                                                        |
 
 ### Key New Features (UX Epic, Feb 2026)
 
@@ -123,37 +124,38 @@ pending → approved → posted
 
 > This is the most important business rule. Read carefully before touching AI or scraping code.
 
-### Phase 1 — Scrape (cheap)
+### Phase 1 — Ingest (cheap)
 
-- RSS or Cheerio fetches article `title` + `summary` (max ~500 chars) + `url`
-- Stored in `scraped_articles`: `is_processed = false`
-- **Does NOT fetch full article content at this stage** (saves bandwidth and cost)
+- All source types (news sites, YouTube, X feeds, newsletters) ingest into `content_items`
+- RSS or Cheerio fetches `title` + `summary` (max ~500 chars) + `url`
+- Stored in `content_items`: `is_processed = false`
+- **Does NOT fetch full content at this stage** (saves bandwidth and cost)
 
-### Phase 2 — Analysis (FLOW-003 — DONE)
+### Phase 2 — Analysis
 
-- AI uses only `title + summary` (cheap, fast tokens) to decide if article is worth suggesting
+- AI uses only `title + summary` (cheap, fast tokens) to decide if content is worth suggesting
 - Uses **analysis prompt rules** (`prompt_rules.rule_type = 'analysis'`) for filtering
 - If relevant → creates `ai_suggestions` record (`status: pending`, `suggestion_text: NULL`)
 - If not relevant → marks `is_processed = true` and skips
 - **`suggestion_text` is NULL at this stage** — the tweet is only generated on approval (Phase 4)
 
-### Phase 3 — Tweet Generation (on approval — FLOW-004 — DONE)
+### Phase 3 — Tweet Generation (on approval)
 
 - Triggered when user approves a pending suggestion (`PATCH /ai/suggestions/:id/status`)
-- Fetches full article content from URL (or reuses `scraped_articles.full_article_content` cache)
-- AI generates tweet using **publication prompt rules** + full article content
-- Generates bullet-point article summary via `summarizer.ts`
+- Fetches full content from URL (or reuses `content_items.full_content` cache)
+- AI generates tweet using **publication prompt rules** + full content
+- Generates bullet-point summary via `summarizer.ts`
 - Saves tweet text + hashtags + summary in `ai_suggestions`
-- Marks `scraped_articles.is_processed = true`
+- Marks `content_items.is_processed = true`
 
 ### Phase 4 — Manual Approval
 
 - User reviews suggestion on Timeline or Dashboard
 - On approval:
-  1. **MUST fetch full article content** from `scraped_articles.url` via `fetchArticleContent()` in `article-fetcher.ts`
-  2. Cache result in `scraped_articles.full_article_content` (avoid re-fetching on retry)
-  3. Re-generate the tweet using the **full article body** (higher quality)
-  4. Generate bullet-point article summary via `generateArticleSummary()` in `summarizer.ts`
+  1. **MUST fetch full content** from `content_items.url` via `fetchArticleContent()` in `article-fetcher.ts`
+  2. Cache result in `content_items.full_content` (avoid re-fetching on retry)
+  3. Re-generate the tweet using the **full content body** (higher quality)
+  4. Generate bullet-point summary via `generateArticleSummary()` in `summarizer.ts`
   5. Save summary in `ai_suggestions.article_summary` (JSONB: `{ bullets: string[] }`)
   6. Update `ai_suggestions.status = 'approved'`
 - On rejection:
@@ -161,9 +163,9 @@ pending → approved → posted
   2. Record `reviewed_at` and `reviewed_by`
   3. No post is created
 
-> **Why full content on approval?** Initial scraping uses only the RSS summary (cheap, fast).
-> When the user decides to publish, quality matters — the AI should see the complete article
-> to produce an accurate and engaging tweet. `full_article_content` is a cache: if already
+> **Why full content on approval?** Initial ingestion uses only the RSS summary (cheap, fast).
+> When the user decides to publish, quality matters — the AI should see the complete content
+> to produce an accurate and engaging tweet. `full_content` is a cache: if already
 > fetched, reuse it; if not, fetch from `url` and persist before calling AI.
 
 ### Phase 5 — Publication
@@ -172,11 +174,11 @@ pending → approved → posted
 - Creates record in `posts` table with `x_post_id`, `x_post_url`, `status = 'published'`
 - Updates `ai_suggestions.status = 'posted'`
 
-### Phase 6 — Auto-Flow (FLOW-005 — DONE)
+### Phase 6 — Auto-Flow
 
-- A fully automatic path: Scrape → Analysis → Generate → Approve → Publish with no human review
-- Also uses full article content on the generation step (same rule as Phase 3)
-- Configurable **per site** via `news_sites.auto_flow` (opt-in)
+- A fully automatic path: Ingest → Analysis → Generate → Approve → Publish with no human review
+- Also uses full content on the generation step (same rule as Phase 3)
+- Configurable **per source** via `auto_flow` column on any `*_sources` table (opt-in)
 - Implemented in `backend/src/services/ai/auto-flow.ts` (`AutoFlowService`)
 
 ---
@@ -213,31 +215,38 @@ pending → approved → posted
 | `024_ai_suggestions_content_item.sql`      | Added `ai_suggestions.content_item_id` FK; `newsletter_sources.feed_url` + `last_scraped_at`                                                       |
 | `025_content_tags.sql`                     | New `content_tags` table for AI-extracted thematic tags (EDT-001)                                                                                  |
 | `026_editorial_clusters.sql`               | New `editorial_clusters`, `cluster_items`, `editorial_briefs`; extends `ai_suggestions` with `editorial_brief_id` + `source_content_ids` (EDT-003) |
+| `027_ai_suggestions_nullable_article.sql`  | Made `ai_suggestions.scraped_article_id` nullable (prep for UNIFY)                                                                                 |
+| `028_unify_news_site_sources.sql`          | New `news_site_sources` table, `auto_flow` on all source tables, backfill from `news_sites` (UNIFY-001)                                            |
+| `029_drop_legacy_tables.sql`               | Drops `scraped_articles`, `scraping_runs`, `news_sites`, bridge trigger (UNIFY-009)                                                                |
 
 ### Key Tables
 
-#### `scraped_articles` (extended in 012)
+#### `content_items` (unified content layer)
 
-| Column                   | Type        | Notes                                                                 |
-| ------------------------ | ----------- | --------------------------------------------------------------------- |
-| id                       | uuid PK     |                                                                       |
-| news_site_id             | uuid FK     |                                                                       |
-| url                      | text        | UNIQUE with news_site_id                                              |
-| title                    | text        |                                                                       |
-| summary                  | text        | RSS/HTML excerpt, max ~500 chars                                      |
-| published_at             | timestamptz |                                                                       |
-| scraped_at               | timestamptz |                                                                       |
-| is_processed             | boolean     | true when AI has processed this article                               |
-| **full_article_content** | text        | **Fetched on approval; cached for reuse. NULL until first approval.** |
+| Column           | Type        | Notes                                                                             |
+| ---------------- | ----------- | --------------------------------------------------------------------------------- |
+| id               | uuid PK     |                                                                                   |
+| x_account_id     | uuid FK     |                                                                                   |
+| source_type      | text        | `news_article` / `youtube_video` / `x_post` / `newsletter`                        |
+| source_table     | text        | `news_site_sources` / `youtube_sources` / `x_feed_sources` / `newsletter_sources` |
+| source_record_id | uuid        | FK to the specific source row                                                     |
+| url              | text        | UNIQUE with source_type + x_account_id                                            |
+| title            | text        |                                                                                   |
+| summary          | text        |                                                                                   |
+| full_content     | text        | **Fetched on approval; cached for reuse. NULL until first approval.**             |
+| metadata         | jsonb       | Source-specific data (siteName, channelTitle, etc.)                               |
+| is_processed     | boolean     | true when AI has processed this item                                              |
+| published_at     | timestamptz |                                                                                   |
+| created_at       | timestamptz |                                                                                   |
 
-#### `ai_suggestions` (extended in 012)
+#### `ai_suggestions`
 
 | Column              | Type        | Notes                                               |
 | ------------------- | ----------- | --------------------------------------------------- |
 | id                  | uuid PK     |                                                     |
-| scraped_article_id  | uuid FK     |                                                     |
+| content_item_id     | uuid FK     | Links to content_items                              |
 | x_account_id        | uuid FK     |                                                     |
-| suggestion_text     | text        | Tweet text (≤ 280 chars)                            |
+| suggestion_text     | text        | Tweet text (≤ 280 chars, nullable until generation) |
 | hashtags            | text[]      |                                                     |
 | status              | text        | `pending` / `approved` / `rejected` / `posted`      |
 | ai_model_used       | text        | e.g. `gpt-4o-mini`, `claude-haiku-4-5`              |
@@ -245,6 +254,8 @@ pending → approved → posted
 | reviewed_at         | timestamptz |                                                     |
 | reviewed_by         | uuid FK     |                                                     |
 | **article_summary** | jsonb       | **`{ bullets: string[] }` — generated on approval** |
+| editorial_brief_id  | uuid FK     | Links to editorial_briefs (if editorial suggestion) |
+| source_content_ids  | uuid[]      | Multi-source references for editorial suggestions   |
 
 #### `prompt_rules` (added in 013)
 
@@ -269,11 +280,13 @@ auth.users (Supabase managed)
     ├──< user_roles          (1:1)
     └──< x_accounts          (1:N)
               │
-              ├──< news_sites           (1:N)
-              │         │
-              │         └──< scraped_articles  (1:N)
-              │                   │
-              │                   └──< ai_suggestions  (1:N)
+              ├──< news_site_sources    (1:N) ──< content_items (1:N)
+              ├──< youtube_sources      (1:N) ──< content_items (1:N)
+              ├──< x_feed_sources       (1:N) ──< content_items (1:N)
+              ├──< newsletter_sources   (1:N) ──< content_items (1:N)
+              │
+              ├──< content_items        (1:N)
+              │         └──< ai_suggestions  (1:N)
               │
               ├──< posts               (1:N)
               │         └── ai_suggestion_id (nullable FK)
@@ -384,28 +397,38 @@ PUT    /api/v1/accounts/:accountId/prompt-rules/:ruleId  → Update rule
 DELETE /api/v1/accounts/:accountId/prompt-rules/:ruleId  → Delete rule
 ```
 
-### News Sites
+### Sources (all content types)
 
 ```
-GET    /api/v1/accounts/:accountId/sites                          → List sites
-POST   /api/v1/accounts/:accountId/sites                          → Create site (auto-detects RSS)
-PUT    /api/v1/accounts/:accountId/sites/:siteId                  → Update site
-DELETE /api/v1/accounts/:accountId/sites/:siteId                  → Delete site
-POST   /api/v1/accounts/:accountId/sites/:siteId/test             → Scraping preview (no save)
-GET    /api/v1/accounts/:accountId/sites/:siteId/runs             → Scraping run history
-```
+GET    /api/v1/accounts/:accountId/sources/news-sites                           → List news site sources
+POST   /api/v1/accounts/:accountId/sources/news-sites                           → Create news site source (auto-detects RSS)
+PUT    /api/v1/accounts/:accountId/sources/news-sites/:sourceId                 → Update news site source
+DELETE /api/v1/accounts/:accountId/sources/news-sites/:sourceId                 → Delete news site source
+POST   /api/v1/accounts/:accountId/sources/news-sites/:sourceId/run             → Force-run news site ingestion
+POST   /api/v1/accounts/:accountId/sources/news-sites/:sourceId/test            → Scraping preview (no save)
 
-### Scraping
+GET    /api/v1/accounts/:accountId/sources/youtube                              → List YouTube sources
+POST   /api/v1/accounts/:accountId/sources/youtube                              → Create YouTube source
+PUT    /api/v1/accounts/:accountId/sources/youtube/:sourceId                    → Update YouTube source
+DELETE /api/v1/accounts/:accountId/sources/youtube/:sourceId                    → Delete YouTube source
+POST   /api/v1/accounts/:accountId/sources/youtube/:sourceId/run                → Force-run YouTube ingestion
 
-```
-POST   /api/v1/scrape/run                        → Run all active sites (requires CRON_SECRET)
-POST   /api/v1/scrape/run/:siteId                → Run one site
+GET    /api/v1/accounts/:accountId/sources/x-feeds                              → List X feed sources
+POST   /api/v1/accounts/:accountId/sources/x-feeds                              → Create X feed source
+PUT    /api/v1/accounts/:accountId/sources/x-feeds/:sourceId                    → Update X feed source
+DELETE /api/v1/accounts/:accountId/sources/x-feeds/:sourceId                    → Delete X feed source
+POST   /api/v1/accounts/:accountId/sources/x-feeds/:sourceId/run               → Force-run X feed ingestion
+
+GET    /api/v1/accounts/:accountId/sources/newsletters                          → List newsletter sources
+POST   /api/v1/accounts/:accountId/sources/newsletters                          → Create newsletter source
+PUT    /api/v1/accounts/:accountId/sources/newsletters/:sourceId                → Update newsletter source
+DELETE /api/v1/accounts/:accountId/sources/newsletters/:sourceId                → Delete newsletter source
 ```
 
 ### AI Suggestions
 
 ```
-POST   /api/v1/ai/suggest/:articleId             → Generate suggestion for article
+POST   /api/v1/ai/suggest/:contentItemId         → Generate suggestion for content item
 PATCH  /api/v1/ai/suggestions/:id/status         → Approve / reject (triggers full-content fetch on approve)
 ```
 
@@ -458,8 +481,12 @@ backend/src/
 │   │   ├── rss.ts                ← RSS/Atom feed parsing
 │   │   ├── html.ts               ← Cheerio HTML scraping
 │   │   ├── rss-detector.ts       ← auto-detect RSS feed URL
-│   │   ├── runner.ts             ← orchestrates sites, deduplication, storage
 │   │   └── article-fetcher.ts    ← fetches + parses full article text from URL
+│   ├── ingest/
+│   │   ├── news-site-ingester.ts ← RSS/HTML → content_items for news sites
+│   │   ├── youtube-ingester.ts   ← YouTube API → content_items
+│   │   ├── x-feed-ingester.ts    ← X API → content_items
+│   │   └── newsletter-ingester.ts← RSS → content_items for newsletters
 │   ├── ai/
 │   │   ├── provider.ts           ← AiProvider interface + factory
 │   │   ├── openai.ts             ← OpenAI implementation (circuit-breaker)
@@ -482,7 +509,7 @@ backend/src/
 │   ├── supabase.ts               ← Supabase client (service role key)
 │   └── crypto.ts                 ← AES-256-GCM encrypt/decrypt
 ├── schemas/
-│   └── sites.schema.ts           ← Zod schemas for site validation
+│   └── sources.schema.ts         ← Zod schemas for all source types
 └── types/
     ├── database.ts               ← generated by Supabase CLI
     └── fastify.d.ts              ← Fastify type augmentations (request.user)
@@ -503,7 +530,7 @@ frontend/
 │       ├── accounts/             ← Account list (former dashboard)
 │       │   └── [accountId]/
 │       │       ├── page.tsx      ← Account overview
-│       │       ├── sites/        ← CRUD
+│       │       ├── sources/      ← All content source management (tabs)
 │       │       ├── timeline/
 │       │       │   ├── page.tsx
 │       │       │   └── [itemId]/ ← Detail page (article→suggestion→post stepper)
@@ -516,7 +543,7 @@ frontend/
 │   ├── accounts/
 │   │   └── settings/             ← AccountDataTab, PromptRulesTab, PromptRuleForm, PromptRuleList
 │   ├── dashboard/                ← AccountSelector, PendingPostsSection, PublishedPostsSection, RejectedPostsSection
-│   ├── sites/                    ← SiteForm, SiteTable, ScraperPreview
+│   ├── sources/                  ← SourceTabs, NewsSiteSourceTable, YouTubeSourceTable, XFeedSourceTable, NewsletterSourceTable
 │   ├── stats/                    ← DateRangeFilter, MetricsCards, PostingChart (recharts)
 │   └── timeline/
 │       ├── TimelineItem.tsx
@@ -615,15 +642,15 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ## 12. Key Conventions
 
-### Full Article Content Rule
+### Full Content Rule
 
-> When AI generates the **final tweet** (on approval — manual or auto), it MUST use the full article
-> text from `scraped_articles.full_article_content`, not the RSS summary.
+> When AI generates the **final tweet** (on approval — manual or auto), it MUST use the full content
+> text from `content_items.full_content`, not the RSS summary.
 >
-> - If `full_article_content` is already populated: reuse it (no extra HTTP request)
-> - If `full_article_content` is NULL: call `fetchArticleContent(url)`, persist the result, then call AI
+> - If `full_content` is already populated: reuse it (no extra HTTP request)
+> - If `full_content` is NULL: call `fetchArticleContent(url)`, persist the result, then call AI
 >
-> This rule applies to: manual approval (`PATCH /ai/suggestions/:id/status`), auto-flow approval (FLOW-005).
+> This rule applies to: manual approval (`PATCH /ai/suggestions/:id/status`), auto-flow approval.
 
 ### Prompt Rule Application
 
@@ -641,5 +668,5 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ---
 
-_Last updated: 2026-02-25 (FLOW epic completed)_
+_Last updated: 2026-03-19 (UNIFY epic completed — unified content pipeline)_
 _Update this file whenever new business rules are defined._

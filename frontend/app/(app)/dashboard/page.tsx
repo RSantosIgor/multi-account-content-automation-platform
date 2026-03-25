@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { TrendingSection } from '@/components/dashboard/TrendingSection';
+import { RunClusteringButton } from '@/components/editorial/RunClusteringButton';
 
 type AccountsResponse = {
   data: Array<{
@@ -140,7 +141,14 @@ export default function DashboardPage() {
         onChange={setSelectedAccountId}
       />
 
-      {selectedAccountId && <TrendingSection accountId={selectedAccountId} />}
+      {selectedAccountId && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-end">
+            <RunClusteringButton accountId={selectedAccountId} />
+          </div>
+          <TrendingSection accountId={selectedAccountId} />
+        </div>
+      )}
 
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>

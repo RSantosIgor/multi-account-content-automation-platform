@@ -19,7 +19,7 @@ type TimelineItemDetail = {
   type: 'suggestion' | 'post';
   suggestion: {
     id: string;
-    articleId: string;
+    contentItemId: string | null;
     xAccountId: string;
     status: string;
     suggestionText: string | null;
@@ -28,6 +28,10 @@ type TimelineItemDetail = {
     createdAt: string;
     reviewedAt: string | null;
     reviewedBy: string | null;
+    sourceType?: string;
+    sourceMetadata?: Record<string, unknown> | null;
+    editorialBriefId?: string | null;
+    sourceContentIds?: string[];
   } | null;
   article: {
     id: string;
@@ -36,11 +40,8 @@ type TimelineItemDetail = {
     summary: string | null;
     publishedAt: string | null;
     fullContent: string | null;
-    site: {
-      id: string;
-      name: string;
-      url: string;
-    } | null;
+    sourceName: string | null;
+    sourceUrl: string | null;
   } | null;
   post: {
     id: string;
@@ -122,8 +123,8 @@ export default function TimelineItemDetailPage({ params }: PageProps) {
         <h1 className="font-display text-3xl leading-tight">
           {item.article?.title ?? 'Detalhes do Item'}
         </h1>
-        {item.article?.site && (
-          <p className="text-muted-foreground mt-1 text-sm">Fonte: {item.article.site.name}</p>
+        {item.article?.sourceName && (
+          <p className="text-muted-foreground mt-1 text-sm">Fonte: {item.article.sourceName}</p>
         )}
       </div>
 

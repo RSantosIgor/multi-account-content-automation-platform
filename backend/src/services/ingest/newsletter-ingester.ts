@@ -12,6 +12,7 @@
 
 import { supabase } from '../../lib/supabase.js';
 import { scrapeRss } from '../scraper/rss.js';
+import { ContentTagger } from '../editorial/tagger.js';
 
 export interface NewsletterIngesterResult {
   sourceId: string;
@@ -103,29 +104,36 @@ export class NewsletterIngester {
         senderEmail: source.sender_email,
       };
 
-      const { error: insertError } = await supabase.from('content_items').upsert(
-        {
-          x_account_id: source.x_account_id,
-          source_type: 'newsletter',
-          source_table: 'newsletter_sources',
-          source_record_id: sourceId,
-          url: item.url,
-          title: item.title,
-          summary: item.summary,
-          full_content: null, // fetched on-demand at approval (same pattern as news_article)
-          is_processed: false,
-          published_at: item.published_at,
-          ingested_at: new Date().toISOString(),
-          metadata,
-        },
-        { onConflict: 'source_type,x_account_id,url', ignoreDuplicates: true },
-      );
+      const { data: inserted, error: insertError } = await supabase
+        .from('content_items')
+        .upsert(
+          {
+            x_account_id: source.x_account_id,
+            source_type: 'newsletter',
+            source_table: 'newsletter_sources',
+            source_record_id: sourceId,
+            url: item.url,
+            title: item.title,
+            summary: item.summary,
+            full_content: null, // fetched on-demand at approval (same pattern as news_article)
+            is_processed: false,
+            published_at: item.published_at,
+            ingested_at: new Date().toISOString(),
+            metadata,
+          },
+          { onConflict: 'source_type,x_account_id,url', ignoreDuplicates: true },
+        )
+        .select('id');
 
       if (insertError) {
         console.error('[Newsletter] Insert failed for', item.url, insertError.message);
         result.errors++;
-      } else {
+      } else if (inserted && inserted.length > 0) {
+        // Newly inserted item — tag it immediately
+        await ContentTagger.tagContentItem(inserted[0].id);
         result.itemsIngested++;
+      } else {
+        result.itemsSkipped++;
       }
     }
 

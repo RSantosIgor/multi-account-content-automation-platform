@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api/client';
 import {
   Select,
   SelectContent,
@@ -12,11 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type SiteOption = { id: string; name: string };
-
 export type TimelineFiltersState = {
   status: 'all' | 'pending' | 'approved' | 'rejected' | 'posted' | 'published' | 'failed';
-  siteId: string;
+  sourceType: string;
   from: string;
   to: string;
 };
@@ -27,20 +23,11 @@ type TimelineFiltersProps = {
   onChange: (next: TimelineFiltersState) => void;
 };
 
-export function TimelineFilters({ accountId, value, onChange }: TimelineFiltersProps) {
-  const [sites, setSites] = useState<SiteOption[]>([]);
-
-  useEffect(() => {
-    if (!accountId) return;
-    apiClient<{ data: Array<{ id: string; name: string }> }>(`/api/v1/accounts/${accountId}/sites`)
-      .then((res) => setSites(res.data.map((s) => ({ id: s.id, name: s.name }))))
-      .catch(() => setSites([]));
-  }, [accountId]);
-
+export function TimelineFilters({ value, onChange }: TimelineFiltersProps) {
   const reset = () =>
     onChange({
       status: 'all',
-      siteId: '',
+      sourceType: '',
       from: '',
       to: '',
     });
@@ -67,20 +54,19 @@ export function TimelineFilters({ accountId, value, onChange }: TimelineFiltersP
         </Select>
 
         <Select
-          value={value.siteId || 'all'}
-          onValueChange={(v) => onChange({ ...value, siteId: v === 'all' ? '' : v })}
-          disabled={sites.length === 0}
+          value={value.sourceType || 'all'}
+          onValueChange={(v) => onChange({ ...value, sourceType: v === 'all' ? '' : v })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Filtrar por site" />
+            <SelectValue placeholder="Tipo de fonte" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os sites</SelectItem>
-            {sites.map((site) => (
-              <SelectItem key={site.id} value={site.id}>
-                {site.name}
-              </SelectItem>
-            ))}
+            <SelectItem value="all">Todas as fontes</SelectItem>
+            <SelectItem value="news_article">Sites de Notícias</SelectItem>
+            <SelectItem value="youtube_video">YouTube</SelectItem>
+            <SelectItem value="x_post">X (Twitter)</SelectItem>
+            <SelectItem value="newsletter">Newsletters</SelectItem>
+            <SelectItem value="editorial">Editorial</SelectItem>
           </SelectContent>
         </Select>
 

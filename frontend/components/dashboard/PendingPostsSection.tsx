@@ -33,8 +33,7 @@ type PendingSuggestion = {
   status: string;
   createdAt: string;
   articleTitle: string;
-  siteId: string;
-  siteName: string | null;
+  sourceName: string | null;
   suggestionText: string | null;
   hashtags: string[];
   articleSummary: ArticleSummary | null;
@@ -50,8 +49,7 @@ type TimelineResponse = {
     status: string;
     createdAt: string;
     articleTitle?: string;
-    siteId?: string;
-    siteName?: string | null;
+    sourceName?: string | null;
     suggestionText?: string | null;
     hashtags?: string[];
     articleSummary?: ArticleSummary | null;
@@ -79,8 +77,7 @@ async function fetchPendingData(accountId: string) {
       status: item.status,
       createdAt: item.createdAt,
       articleTitle: item.articleTitle ?? '',
-      siteId: item.siteId ?? '',
-      siteName: item.siteName ?? null,
+      sourceName: item.sourceName ?? null,
       suggestionText: item.suggestionText ?? null,
       hashtags: item.hashtags ?? [],
       articleSummary: item.articleSummary ?? null,
@@ -148,7 +145,7 @@ export function PendingPostsSection({ accountId }: PendingPostsSectionProps) {
             <div className="text-muted-foreground mb-2 flex items-center gap-1.5 text-sm">
               <SourceIcon className="h-3.5 w-3.5" />
               <span>{sourceLabel}</span>
-              {suggestion.siteName && <span>· {suggestion.siteName}</span>}
+              {suggestion.sourceName && <span>· {suggestion.sourceName}</span>}
               <span>· {new Date(suggestion.createdAt).toLocaleString()}</span>
               {suggestion.editorialBriefId && <EditorialBadge />}
             </div>
