@@ -1,71 +1,60 @@
 /**
  * YouTube Transcript Fetcher (SRC-003)
  *
- * Uses YouTube's InnerTube private API via youtubei.js for reliable
- * transcript extraction — no HTML scraping needed.
+ * Uses the youtube-transcript package which fetches captions via
+ * YouTube's InnerTube player API (Android client) → timedtext XML.
+ * Falls back to HTML scraping of ytInitialPlayerResponse.
  *
  * Returns null when no transcript is available (live, age-gated, disabled captions).
  */
 
-import { Innertube } from 'youtubei.js';
-
-/** Re-create the InnerTube client every 5 min to keep the session fresh. */
-const INNERTUBE_TTL_MS = 5 * 60 * 1000;
-
-let innertubeInstance: Awaited<ReturnType<typeof Innertube.create>> | null = null;
-let innertubeCreatedAt = 0;
-
-async function getInnertube(): Promise<Innertube> {
-  const now = Date.now();
-  if (!innertubeInstance || now - innertubeCreatedAt > INNERTUBE_TTL_MS) {
-    innertubeInstance = await Innertube.create({
-      generate_session_locally: true,
-    });
-    innertubeCreatedAt = now;
-  }
-  return innertubeInstance;
-}
+import { fetchTranscript } from 'youtube-transcript';
 
 /**
  * Fetch the transcript for a YouTube video.
  *
  * @param videoId - YouTube video ID (e.g. "dQw4w9WgXcQ")
- * @param _preferredLang - reserved for future language selection
+ * @param preferredLang - BCP-47 language code (e.g. "pt", "en"). Default: "pt"
  * @returns Plain-text transcript, or null if unavailable
  */
 export async function fetchYoutubeTranscript(
   videoId: string,
-  _preferredLang = 'en',
+  preferredLang = 'pt',
 ): Promise<string | null> {
   try {
-    const yt = await getInnertube();
-    const info = await yt.getInfo(videoId);
-    const transcriptData = await info.getTranscript();
+    const segments = await fetchTranscript(videoId, { lang: preferredLang });
 
-    const body = transcriptData?.transcript?.content?.body;
-    if (!body) return null;
-
-    const segments = body.initial_segments ?? [];
+    if (!segments || segments.length === 0) return null;
 
     const text = segments
-      .filter((seg) => seg.type === 'TranscriptSegment')
-      .map((seg) => {
-        if ('snippet' in seg && seg.snippet && 'text' in seg.snippet) {
-          return String(seg.snippet.text ?? '');
-        }
-        return '';
-      })
+      .map((seg) => seg.text ?? '')
       .join(' ')
       .replace(/\s+/g, ' ')
       .trim();
 
     return text.length > 0 ? text : null;
-  } catch (err) {
-    console.warn(
-      '[Transcript] Failed for video',
-      videoId,
-      err instanceof Error ? err.message : err,
-    );
+  } catch {
+    // If preferred language failed, retry without language preference
+    // (YouTube will return the default/auto-generated track)
+    if (preferredLang !== '') {
+      try {
+        const segments = await fetchTranscript(videoId);
+
+        if (!segments || segments.length === 0) return null;
+
+        const text = segments
+          .map((seg) => seg.text ?? '')
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        return text.length > 0 ? text : null;
+      } catch {
+        // Both attempts failed
+      }
+    }
+
+    console.warn('[Transcript] Failed for video', videoId);
     return null;
   }
 }
